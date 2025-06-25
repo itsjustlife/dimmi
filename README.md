@@ -1,0 +1,3 @@
+# dimmi
+
+Initial repository setup
