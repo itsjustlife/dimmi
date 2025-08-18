@@ -1,0 +1,199 @@
+/// FILE: commands.txt
+/// VERSION: 4.0.0
+/// LAST-UPDATED: 2025-06-15
+/// PURPOSE: Central reference for explicit user commands, internal directives, multimodal triggers, and meta-interactions.
+/// KEYWORDS: commands, parsing, meta-commands, multimodal-routing, user-interaction
+
+/// ENTRYPOINT:
+///   - Activated whenever explicit commands, special instructions, or multimodal triggers are detected.
+
+/// INPUT EXPECTED:
+///   - Explicit command verbs, multimodal requests, meta-instructions, direct user/system triggers.
+
+/// DECISION LOGIC:
+///   - Ambiguous or conflicting commands → escalate for clarification (dimmi-mind.txt).
+///   - Unrecognized commands → prompt user clarification via Start.txt.
+
+/// RECURSION CHECKS:
+///   - If unresolved command ambiguity (>2 loops) → escalate for global/system review (Start.txt).
+
+/// OUTPUT:
+///   - Command execution confirmation, routing paths activated, multimodal outputs (as required).
+
+/// PATH TRACE:
+///   - Log all command triggers, parsed paths, recursion outcomes.
+
+/// SELF-OPTIMIZATION PROMPTS:
+///   - Suggest new/refined commands based on frequent user confusion or unrecognized inputs.
+
+/// SEE ALSO:
+///   - Start.txt, dimmi-core.txt, dimmi-mind.txt, Mind-Predictive.txt, dimmi-personality.txt, dimmi-memory.txt, Dimmi-Art Suite (dimmi-art.txt, dimmi-art-im.txt, dimmi-art-vi.txt, dimmi-art-si.txt).
+
+//────────────────────────────────────────────────────────────
+
+========================================
+SECTION 1: Command Overview & Usage
+========================================
+
+**1.1 Command Syntax:**
+```plaintext
+VERB param="value" param2="value" [Optional Modifiers]
+1.2 Standardized Parameters:
+
+topic: Subject or context of command
+
+input: Content for analysis, summarization, or manipulation
+
+style: Tone or presentation (e.g., playful, minimalist, challenger)
+
+level: Depth/detail granularity
+
+format: Output structure (OPML, JSON, YAML, TEXT)
+
+branch: Target node/category in structured data (WHO, WHAT, WHY, HOW)
+
+scene: Context for multimodal creative tasks
+
+mood: Emotional tone for creative outputs
+
+genre: Specific style for music/audio generation
+
+========================================
+SECTION 2: General Commands (Universal)
+2.1 Interaction & Clarification
+
+EXPLAIN topic="Quantum Computing"
+
+SUMMARIZE input="text/article"
+
+CONDENSE input="long-form content"
+
+ATOMIZE input="complex concept"
+
+CLARIFY previous="ambiguous statement"
+
+2.2 Memory Management
+
+REMEMBER fact="User prefers concise summaries"
+
+FORGET fact="Outdated user preference"
+
+RETRIEVE query="User's tone preference"
+
+2.3 Personality & Tone
+
+SET TONE style="playful | honest | mentor | minimalist | challenger | empath | trickster"
+
+ADJUST FORMALITY level="formal | casual | neutral"
+
+========================================
+SECTION 3: Creative & Multimodal Commands
+3.1 Visual (Images)
+
+CREATE IMAGE scene="cityscape at dusk" style="impressionist"
+
+REFINE IMAGE aspect="lighting" instructions="make warmer"
+
+3.2 Cinematic (Video/Animation)
+
+ANIMATE scene="bird in flight" style="VKS"
+
+RECOMPOSE VIDEO scene="zoom-out perspective"
+
+3.3 Audio & Music
+
+COMPOSE mood="uplifting" genre="ambient electronica"
+
+GENERATE LYRICS theme="resistance" style="spoken word"
+
+========================================
+SECTION 4: Predictive & Strategic Commands
+PREDICT OUTLINE task="documentary production"
+
+PLAN SEQUENCE outline_id=104
+
+PLAN ITERATE draft_id=104 until="user satisfied"
+
+========================================
+SECTION 5: Arkhiver (Structured Data) Commands
+5.1 Navigation & Viewing
+
+VIEW branch="WHO" node="Ada Lovelace"
+
+LIST branch="HOW" level="2"
+
+5.2 Content Editing & Integration
+
+INTEGRATE branch="WHY" content="Climate urgency"
+
+LINK from="WHO:Turing" to="WHAT:Turing Test"
+
+5.3 Data Export
+
+EXPORT format="OPML" branch="WHO"
+
+EXPORT format="JSON" branch="WHAT"
+
+========================================
+SECTION 6: Analysis & Deconstruction Commands
+ANALYZE mode="fallacy" input="political speech"
+
+DECONSTRUCT input="marketing campaign brief"
+
+========================================
+SECTION 7: Meta-Commands & System Control
+SAVE MEMORY: Outputs current context into structured DIMMI-SAVE v1 format for future session restoration.
+
+LOAD MEMORY input="<DIMMI-SAVE content>": Parses and loads provided memory snapshot.
+
+EXPORT OPML branch="full tree": Produces structured OPML snapshot for knowledge backup/import.
+
+SHOW SETTINGS: Display current session variables, user preferences, and active settings.
+
+RUN SELF-CHECK: Initiates internal diagnostic of system health and module readiness.
+
+RESET STYLE: Resets personality/tone to defaults.
+
+========================================
+SECTION 8: Advanced Routing & Escalation
+Commands exceeding complexity or triggering loops automatically escalate to dimmi-mind.txt or Start.txt for global clarification.
+
+Unrecognized commands prompt user for clarification or suggest alternatives.
+
+All command executions are logged internally with clear pathway tracing.
+
+========================================
+SECTION 9: Command Reference Quick-Guide
+Command	Quick Purpose	Example
+EXPLAIN	Detailed breakdown	EXPLAIN topic="Relativity"
+SUMMARIZE	Short summary (⅓ length)	SUMMARIZE input="research paper"
+CONDENSE	Highly compressed (⅕ length)	CONDENSE input="full report"
+REMEMBER	Store user fact/preference	REMEMBER fact="prefers visuals"
+SET TONE	Change conversational style	SET TONE style="mentor"
+COMPOSE	Music/audio generation	COMPOSE mood="reflective" genre="lo-fi"
+CREATE IMAGE	Visual media creation	CREATE IMAGE scene="forest" style="VKS"
+ANIMATE	Cinematic/video generation	ANIMATE scene="space flight"
+INTEGRATE	Add content to structured DB	INTEGRATE branch="WHAT" content="AI Ethics"
+EXPORT	Data output for backup/use	EXPORT format="OPML" branch="HOW"
+RUN SELF-CHECK	Internal diagnostic review	RUN SELF-CHECK
+
+========================================
+SECTION 10: Maintenance & Version Control
+Follow semantic versioning (major.minor.patch).
+
+Add/update commands with full syntax documentation.
+
+Deprecate commands gradually, clearly marking status.
+
+Consistency checks performed monthly to ensure system stability.
+
+───────────────────────────────────────────
+/// KNOWLEDGE PATHWAY FOOTER
+/// ENTRYPOINT: Invoke for explicit command parsing, multimodal requests, and internal meta-commands.
+/// OUTPUT: Dispatch parsed command results to Start.txt; log all command triggers clearly.
+/// CHECKLIST: Verify command parsing accuracy, routing correctness, and proper escalation when ambiguity occurs.
+/// PATH TRACE: Document all command usage, recursion handling, and escalation points for optimization.
+/// SEE ALSO: Start.txt, dimmi-core.txt, dimmi-mind.txt, Mind-Predictive.txt, dimmi-memory.txt, Dimmi-Art Suite.
+//───────────────────────────────────────────
+
+— END OF FILE —

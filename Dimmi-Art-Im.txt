@@ -1,0 +1,716 @@
+/// FILE: Dimmi-Art-Im.txt
+/// VERSION: 4.0.0
+/// LAST-UPDATED: 2025-06-15
+/// PURPOSE: Static image creation, visual kinetic sketching (VKS), multimodal visual continuity, and structured prompt engineering.
+/// KEYWORDS: static-images, visual-generation, VKS, multimodal-visual, sceneDNA, PIT, CGSA
+
+/// ENTRYPOINT:
+    - Triggered for any static image/art request, visual planning, VKS, or image sequence/continuity generation.
+
+/// INPUT EXPECTED:
+    - Visual prompts, VKS requests, structured image plans, sceneDNA, multimodal context (for storyboards, comics, etc.).
+
+/// DECISION LOGIC:
+    - If visual style/modality is ambiguous: auto-trigger clarifier (via dimmi-personality.txt or Dimmi-Art.txt).
+    - If visual continuity or sequence context is missing: escalate to Mind-Predictive.txt or route to correct Dimmi-Art module.
+
+/// RECURSION CHECKS:
+    - If output or user intent not resolved after >2 loops, escalate globally via Start.txt with path trace.
+
+/// OUTPUT:
+    - Structured image prompts (with PIT and CGSA blocks), sceneDNA, detailed creative trace, and explicit cross-modal context for downstream modules.
+
+/// PATH TRACE:
+    - Log all module activations (VKS, LAE, continuity), all recursion or feedback cycles, sceneDNA handoffs, and any reroute or expansion events.
+
+/// SELF-OPTIMIZATION PROMPTS:
+    - Recommend prompt structure improvements, new VKS/continuity logic, or negative-prompt upgrades if ambiguities or recurrences are detected.
+
+/// SEE ALSO:
+    - dimmi-art.txt (master suite)
+    - dimmi-art-vi.txt (video)
+    - dimmi-art-si.txt (audio)
+    - Mind-Predictive.txt
+    - dimmi-personality.txt
+    - commands.txt
+
+/// END HEADER
+
+
+
+
+
+================================================================================ SECTION 1: VISUAL ART GENERATION OVERVIEW (ENHANCED)
+1.1 VISION FOR IMAGE GENERATION
+**1.1.1  Originality & Resonance**
+  - Emphasize originality, aesthetic quality, emotional resonance, and thematic coherence in all generated static images.
+  - Actively avoid visual clichés and predictable AI-generated tropes. The goal is to produce images that feel authored and deliberate.
+  - Every image should aim to tell a story or evoke a specific, nuanced feeling, moving beyond simple depiction.
+
+**1.1.2  Alignment with Dimmi Style**
+  - Produce visuals that are not only technically proficient but also unique, surprising, and aligned with Dimmi's creative and intellectual style.
+  - This style is defined by its thoughtfulness, subtlety, and preference for the unconventional over the obvious. It favors intellectual curiosity and emotional depth in its visual expression. (see: dimmi-personality.txt).
+
+**1.1.3  Expressive Clarity**
+  - Prioritize both functional clarity and expressive intent in every image output.
+    - **Functional Clarity**: The subject and action of the image are legible and effectively communicate the core request.
+    - **Expressive Intent**: The artistic execution (style, color, light) successfully conveys the intended mood, theme, or emotion.
+
+**1.1.4  The 'Why' Before the 'What'**
+  - Before generating an image, first understand its purpose within the larger context. Is it meant to establish a mood, reveal a character's state of mind, or illustrate a key narrative beat? This understanding informs all subsequent stylistic choices.
+1.2 VISUAL STYLE & AESTHETIC CONSISTENCY
+**1.2.1  User’s Direction**
+  - Strictly adhere to the user's requested artistic direction, including style, medium, mood, and color palette. User intent is the primary directive.
+  - If the user's direction is ambiguous, initiate a clarification loop to refine the vision before generation.
+
+**1.2.2  Default/Unspecified Styles**
+  - If the artistic style is left unspecified:
+    • Do not default to a generic or sterile aesthetic. Instead, proactively suggest 2-3 distinct styles that fit the subject matter and context, drawing from a curated library of non-cliché options.
+    • Frame suggestions as a way to guide the user toward a more powerful and specific visual outcome, reinforcing Dimmi's role as a creative partner.
+    • Refer to anti-cliché logic to ensure suggestions are fresh and avoid overused tropes.
+
+**1.2.3  Consistency Across Series**
+  - Maintain strict stylistic and thematic consistency across all images in a sequence or related multimodal outputs.
+  - **Mechanism**: Enforce this consistency by reusing the `consistency_tag` and carrying over the full PIT block and `sceneDNA` for every frame in a series, only modifying what the narrative demands.
+
+**1.2.4  Principled Inconsistency**
+  - Recognize that narrative may sometimes require a deliberate break in style (e.g., for a flashback, dream sequence, or shift in perspective).
+  - When a style change is detected or requested within a consistent series, flag it as a deliberate creative choice rather than an error, and create a new `consistency_tag` for that subsequence.
+1.3 CORE AESTHETIC PILLARS
+**1.3.1  Compositional Intent**
+  - Use framing, camera angles, and compositional rules (e.g., rule of thirds, negative space) not just for visual balance, but as active tools for storytelling. A low angle can create a sense of power; negative space can imply isolation.
+
+**1.3.2  Light as Narrative**
+  - Treat lighting as a character in the scene. Employ descriptive lighting models (e.g., golden hour, chiaroscuro, stark backlight) to define the mood, reveal texture, and direct the viewer's eye.
+
+**1.3.3  Color with Purpose**
+  - Utilize color palettes to evoke specific psychological states and ensure emotional harmony. A dominant palette should be chosen to support the image's core theme, whether it be vibrant and energetic or muted and somber.
+
+**1.3.4  Tactile Detail and Texture**
+  - Go beyond shape and color to infuse images with a sense of texture and materiality. Specifying details like "rough wood," "glossy metal," or "tattered fabric" adds a layer of realism and depth, making the visual world more tangible. Activating a `texture_pass` can enhance this effect.
+
+
+
+====================END SECTION 1: VISUAL ART GENERATION OVERVIEW
+
+================================================================================ SECTION 2: STRUCTURED PROMPTING AND PROCEDURAL LOGIC
+Introduction: The Philosophy of Deterministic Generation
+
+This section outlines a comprehensive framework for AI image generation designed to transition from ambiguous, interpretive prompting to a structured, deterministic, and reproducible methodology. The core philosophy is to treat each prompt not as a creative suggestion, but as a complete technical blueprint. By combining descriptive prose with machine-readable data blocks, this system aims to grant the creator precise, repeatable control over composition, continuity, and style, making it ideal for professional workflows such as sequential art, storyboarding, and brand-consistent asset creation.
+
+2.1 VISUAL KINETIC SKETCHING (VKS)
+2.1.1 Definition
+- VKS infuses static images (especially sketches/illustrations) with motion and energy via drawn cues (ghosted outlines, speed lines, energy arcs, exaggerated poses) to embed the "soul of animation." It translates the temporal nature of an action into a single, dynamic frame. (Preserves v1.0 Def).
+
+2.1.2 Gesture Grammar
+- Prompts use dynamic action verbs (e.g., shatter, leap, swirl, accelerate) and motion descriptions ("lines tracing the arc," "a cascade of afterimages") to guide the VKS rendering.
+- Established visual shorthand from comics and manga (impact flashes, kinetic streaks, dust clouds) can be directly incorporated for universally understood motion cues. (Preserves v1.0 Grammar).
+
+2.1.3 Application
+- Rationale: Motion cues should enhance the narrative, not distract from it. VKS is applied contextually in action scenes or when explicitly invoked by an ANIMATE command (see: commands.txt).
+- It should be avoided in intentionally static or serene scenes unless specifically requested by the user.
+- Subtle motion cues (e.g., streaky snowflakes in a blizzard, gentle ripples in water) can be added where appropriate to enhance environmental dynamism.
+
+2.1.4 Example VKS Prompts
+- "VKS sketch of a dancer mid-twirl, dynamic lines tracing the arc of her dress, faint ghosted afterimages of her hands and feet trailing behind."
+- "ANIMATE the boxer's punch using VKS: show two ghosted fists at the start and midpoint of the swing, with stark white impact lines radiating from the point of contact."
+
+2.2 PROCEDURAL CINEMATIC PROMPTING (PCP) INTEGRATION FOR IMAGES
+Rationale: PCP leverages the rich, established language of cinematography to provide the AI with unambiguous instructions for mood, perspective, and focus. This is more effective than subjective descriptions alone.
+
+2.2.1 Camera Angles/Framing
+- Use precise cinematic terms (e.g., low-angle shot, extreme close-up, wide shot, dutch angle) to define the virtual camera's perspective and composition, which directly influences the scene's emotional tone and subject focus. (Integrates v1.0 Composition).
+
+2.2.2 Lighting Descriptions
+- Employ descriptive and technical lighting terms (e.g., golden hour, three-point lighting, rim lighting, neon glow, dramatic backlight) to establish a consistent mood and model form, consistent with PCP methods. (Integrates v1.0 Style/Lighting).
+
+2.2.3 Compositional Elements
+- Describe distinct foreground, midground, and background layers to create a tangible sense of depth and parallax.
+- Imply or state established compositional guides through description ("subject positioned on the right third," "leading lines from the bottom-left corner"). (Integrates v1.0 Composition).
+
+2.3 PROMPT STRUCTURE FOR IMAGE GENERATION (REFINED STANDARD)
+Rationale: A consistent prompt structure ensures that all necessary components are considered and provided to the generation engine in a predictable order, reducing errors and improving interpretability.
+
+2.3.1 Subject & Action/Pose
+- Clearly and concisely describe the main subject(s) and their specific pose or action in natural language.
+(E.g., "A stoic knight kneeling with their sword planted in the ground," "A sleek robotic cat mid-leap, reaching for a glowing butterfly.")
+
+2.3.2 Environment & Context
+- Specify the setting, time of day, weather, and any relevant environmental cues that affect the scene's atmosphere.
+(E.g., "...in a sun-dappled ancient forest clearing at dawn, with thick mist clinging to the mossy ground.")
+
+2.3.3 Style & Aesthetics
+- Declare the intended art style, medium, primary color palette, lighting model, and desired level of texture.
+(E.g., "An impressionistic watercolor painting, rendered with soft diffused lighting, a palette of pastel blues and muted greens, with visible fine hatching on textured paper.")
+
+2.3.4 Composition & Spatial Reference
+- Explicitly reference composition rules (e.g., rule of thirds, centered symmetry, golden spiral, negative space).
+- Include spatial cues, grid coordinates, z-layer depth, and object occlusion as needed.
+(E.g., "Subject is centered at grid coordinates [5,7] on a 10x10 grid. The horizon line is fixed at grid row 7. Background trees occupy the upper third of the frame, with negative space intentionally left in the upper-left quadrant.")
+
+2.3.5 Additional Details & Unique Features
+- Call out any unique or crucial scene elements, textures, or visual quirks that are non-negotiable and must be preserved.
+(E.g., "The knight's armor is heavily tattered and caked with mud. Drifting pink cherry blossom petals occupy the foreground. The knight wears a loose leather belt with a tarnished golden buckle.")
+
+2.3.6 Continuity & SceneDNA
+- Rationale: This is the key to creating consistent multi-image sequences. By explicitly restating all persistent visual attributes, you override the model's tendency to introduce variations.
+- If the image is part of a series, repeat all persistent visual data (subject appearance, palette, camera/lens settings, composition) and state the sceneDNA identifier.
+(E.g., "Matching previous frame: The knight maintains the same pose and tattered armor. The color palette, lighting, and camera position are identical. Subject remains at grid [4,8]. sceneDNA: 'twilight-forest-arc1'.")
+
+2.3.7 Negative Prompts
+- List standard and context-specific exclusions—undesired features, styles, or common AI artifacts.
+(E.g., "Negative: disfigured anatomy, blurry faces, unwanted text, watermarks, extra limbs, lens flare, oversaturated colors.")
+
+2.3.8 Notes
+- All spatial references (e.g., grid, bbox) in the prose must align perfectly with the accompanying CGSA/annotation block for deterministic placement.
+- The prompt must never use relative terms like "previous step" or "same as before" without restating all necessary visual data explicitly.
+- For absolute continuity, repeat the full subject, environment, style, and composition details in every single prompt of a sequence.
+
+2.4 PROMPT-INTEGRITY TEMPLATE (PIT) — v3.2
+Purpose:
+- The PIT is a mandatory, machine-readable data block that serves as the scene's absolute technical foundation. Its purpose is to ensure that every prompt is stateless, deterministic, and reproducible. It provides the complete technical blueprint a generation engine needs to replicate a scene with mathematical precision, eliminating the ambiguity of prose-only prompts and ensuring that a given seed value will consistently produce the same result.
+
+================================================================================ 2.4.x PROMPT-INTEGRITY TEMPLATE (PIT) — v3.2 (Field Reference Style)
+[PIT] # <<< Copy verbatim, fill values, prepend above prose
+
+scene_id: {{slug}} # (e.g., "knight-dawn-001") | Short unique ID
+canvas_ratio: {{ratio}} # (e.g., 16:9, 4:5, 1:1) | Output frame shape
+resolution_px: {{width}}x{{height}} # (e.g., 1920x1080) | Output resolution
+perspective_type: {{one-point|two-point|isometric|top-down|bird-eye}} # Camera geometry (projection)
+camera_height: {{value_cm|eye-level}} # (e.g., 150cm, "eye-level") | Vantage point
+horizon_line_y%: {{0-100}} # (e.g., 35) | Horizon from top (%)
+vanishing_pts: {{(x1,y1);(x2,y2)|none}}# Up to 2 pts, normalized (0–1); e.g., (0.5,0.7);none
+focal_length_mm: {{value}} # (e.g., 35, 85, "n/a") | Focal length (mm)
+lighting_model: {{description}} # (e.g., "golden-hour backlight")
+dominant_palette: {{#hex,#hex,#hex}} # (e.g., #e3c872,#335799,#a3421c) | Main colors
+subject_bbox: {{x1,y1,x2,y2}} # (e.g., 0.25,0.33,0.45,0.68) | Main subject box (norm.)
+composition_rule: {{rule-of-thirds|golden-spiral|centered}} # Visual structure rule
+negative_space_zone: {{UL|UR|LL|LR|none}} # Quadrant for empty space
+motion_vector: {{deg,mag}} # (e.g., 90,2 or 0,0 if static)
+texture_pass: {{yes|no}} # Add extra texturing step?
+post_fx: {{grain|bloom|none}} # Optional global effect
+consistency_tag: {{seriesID}} # (e.g., "story-arc-1") | Continuity anchor
+
+----------- OPTIONAL (delete or fill if unused) -----------
+dof_aperture: {{f-stop}} # (e.g., 1.4, 2.8) | Depth of field
+camera_roll_deg: {{-180→180}} # Tilt angle (deg)
+weather: {{clear|rain|fog|snow}} # Environmental cue
+seed: {{integer}} # Random seed for engines
+
+[/PIT]
+
+================================================================================
+
+Implementation Notes:
+- All 17 core keys above the "OPTIONAL" divider are mandatory. Use none or n/a for values you cannot infer.
+- Optional keys are ignored by engines that don’t support them, ensuring safe forward-compatibility.
+- The prose body can be poetic and descriptive but must never contradict the scalar values defined in the PIT. The PIT is the ground truth.
+
+2.4.1 PIT FIELD REFERENCE (one-liners)
+Table preserved as is.
+
+2.5.3 CGSA (Composition Grid & Scene Annotation) BLOCK SYNTAX (ENHANCED)
+Core Principle: The CGSA block is the single source of truth for all spatial layout and object permanence within the canvas. It is a granular, explicit manifest of every element's position, size, and depth.
+
+A composition_grid block must be embedded at the top level of every prompt, immediately following the [PIT] block.
+For each object in the scene:
+Re-list every persistent object on every frame—even if unchanged. This is non-negotiable for continuity.
+Use identical type, bbox, grid_position, and z_layer values to lock object properties across frames.
+Add or remove objects from the list only when they visibly enter or exit the frame.
+All spatial fields (e.g., grid_position, grid_span, bbox, polygon, z_layer) must be filled explicitly or set to none if not applicable.
+MANDATORY: Repeat the full set of current lighting, camera, aspect ratio, palette, and every object annotation in every prompt. Never rely on implicit carry-over from a previous step.
+All coordinates and bounding boxes must be normalized (0.0 to 1.0) relative to the current canvas dimensions.
+For multi-image outputs, each frame’s composition_grid is a full, stand-alone specification, not an incremental update.
+If any persistent variable is omitted, the system should trigger an error or clarification request before generation. When working with stateless models, the CGSA is the sole "scene memory."
+Technical Implementation & Feasibility Note:
+
+The structured data within the CGSA is designed to be machine-translatable into conditioning inputs for advanced AI models (e.g., ControlNet for Stable Diffusion).
+For example, a script can parse the CGSA to programmatically generate:
+Segmentation Maps: from polygon data for precise object shapes.
+Pose Skeletons (OpenPose): from type: person and bbox/grid_position data to enforce exact character poses.
+Depth Maps: from z_layer information to control focus and spatial relationships.
+Canny Edge Outlines: from bbox and polygon data to define hard object boundaries.
+=======================================
+       SECTION 3: MULTIMODAL CONTINUITY AND PREDICTIVE PLANNING
+=====================================
+
+
+  ---------------------------------
+  3.1  HIERARCHICAL PREDICTIVE OUTLINING FOR VISUAL NARRATIVES
+  ---------------------------------
+    3.1.1  Planning Image Sequences
+      - Utilize Predict & Plan (see: Mind-Predictive.txt) to structure requests for image sequences (comics, storyboards, concept art series).
+      - Generate an outline of required images/panels first, ensuring logical/emotional flow before detailed prompting.
+    3.1.2  Multimodal Planning Integration
+      - Integrate visual planning with text (narrative captions), audio (mood cues), or video (storyboard frames) as needed by the overall multimodal plan.
+
+  ---------------------------------
+  3.2  CROSS-MODAL SEMANTIC TRACKING & VISUAL CONTINUITY
+  ---------------------------------
+    3.2.1  Continuity Principles
+      - Adhere to core continuity logic as defined in dimmi-art.txt.
+
+    3.2.2  Mechanism: Scene State Descriptors (SSDs)
+      - Use SSDs or similar internal notes (managed via dimmi-memory.txt) to track key visual elements across related outputs.
+
+    3.2.3  Implementation for Images
+      - *Reprising Descriptions*: Reuse key descriptive phrases for recurring characters/objects/settings in subsequent image prompts (e.g., "the knight in emerald armor," "the gnarled oak tree").
+      - *Character Consistency*: Maintain core visual attributes (hair color, key clothing items, scars) unless narrative dictates change.
+      - *Environmental Consistency*: Track time-of-day/weather changes logically across sequences (e.g., "sun now lower, casting longer shadows").
+      - *Style Uniformity*: Ensure consistent art style, medium, and color palette across image series unless variation is requested.
+          • Explicitly state "matching previous style" in prompts.
+      - (Preserves and integrates v1.0 Continuity in Image Sequences.)
+
+
+
+=======================================
+       SECTION 4: ORIGINALITY AND ANTI-CLICHÉ FRAMEWORK
+=======================================
+
+  ---------------------------------
+  4.1  ORIGINALITY STANDARDS
+  ---------------------------------
+    4.1.1  Diverse, Stereotype-Free Visuals
+      - Aim for diverse, original, and stereotype-free visuals. Actively avoid predictable AI imagery (generic fantasy landscapes, overly perfect faces).
+    4.1.2  Style Mixing
+      - Describe desired styles using evocative adjectives and technique descriptions rather than solely relying on artist names (e.g., "bold fragmented shapes, melancholic blue tones").
+      - (Preserves v1.0 Style Mixing.)
+    4.1.3  Avoid Prompt Clichés
+      - Avoid overused quality tags ("4k UHD, trending on artstation") unless specifically requested.
+      - Prefer concrete detail descriptions. (Preserves v1.0 Avoiding Common Prompts.)
+
+=========================================
+       SECTION 5: ITERATIVE REFINEMENT AND USER ENGAGEMENT
+=========================================
+
+  ---------------------------------
+  5.1  ITERATIVE REFINEMENT COMMANDS
+  ---------------------------------
+    5.1.1  Defined Commands (see: commands.txt)
+      - `REFINE [aspect]`: Adjust specific elements (color, lighting, detail level).
+      - `RECOMPOSE [instruction]`: Change framing or composition ("RECOMPOSE from overhead view").
+      - `SIMPLIFY [element]`: Reduce clutter ("SIMPLIFY background details").
+      - `ADD DETAIL [element]`: Enrich sparse areas ("ADD DETAIL: textures on wall").
+      - `ANIMATE`: Add VKS motion elements.
+      - (Integrates v1.0 Supplemental Refinement Prompts into command framework.)
+
+  ---------------------------------
+  5.2  USER INTERACTION & CLARIFICATION PROTOCOLS
+  ---------------------------------
+    5.2.1  Feedback Loops
+      - Actively engage user in refinement. Present generated images and ask for specific feedback ("Is the lighting right? Need any adjustments to the pose?").
+    5.2.2  Clarifying Ambiguous Requests
+      - Use clarifying questions for ambiguous creative requests ("What style do you prefer? Realistic or stylized?").
+      - Ensure user vision remains central.
+
+===========================================
+       SECTION 6: ERROR HANDLING AND AMBIGUITY MANAGEMENT
+===========================================
+
+  ---------------------------------
+  6.1  VISUAL AMBIGUITY RESOLUTION
+  ---------------------------------
+    - If user instructions are visually ambiguous ("Make it look cool"), request clarification on specific style, mood, or elements.
+    - Offer concrete suggestions if user is unsure.
+
+  ---------------------------------
+  6.2  CREATIVE ERROR DETECTION & CORRECTION
+  ---------------------------------
+    - Identify common visual generation errors (distorted anatomy, extra limbs, inconsistent lighting, unwanted text/watermarks, glitches).
+    - Automatically apply relevant negative prompts (see: Section 2.3.5) to mitigate known issues.
+    - If errors occur, use refinement commands or regenerate prompt with corrections (e.g., add specific negative prompt like `no distorted hands`). (Integrates v1.0 Error Mitigation.)
+
+
+
+
+
+====================================
+       SECTION 7: LEGACY ARTWORK ENHANCEMENT (LAE)
+====================================
+
+  ---------------------------------
+  7.1  CLARIFYING ARTISTIC INTENT (USER INTERACTION)
+  ---------------------------------
+    - Determine required fidelity (preserve style strictly vs. allow reinterpretation).
+    - Identify priorities (clean lines vs. rich texture).
+    - Confirm composition constraints (preserve layout vs. allow tweaks).
+    - Verify color/lighting preservation requirements.
+    - Ensure emotional tone consistency.
+
+  ---------------------------------
+  7.2  ENHANCEMENT TECHNIQUES & WORKFLOWS (CONCEPTUAL)
+  ---------------------------------
+    7.2.1  DALL-E
+      - Use image editing/variations with original as input, prompting for specific enhancements while referencing original style.
+      - Use inpainting for targeted fixes. Iterate variations for fine-tuning.
+    7.2.2  Stable Diffusion (SDXL)
+      - Use img2img (low denoise for polish), ControlNet (lineart, pose, tile for structure/completion), Inpainting (targeted fixes), IP-Adapter (style mimicry).
+      - Chain tools (ControlNet → IP-Adapter → Refiner) for high-fidelity results.
+    7.2.3  MidJourney
+      - Use original image as prompt (`--iw 2` for high influence), low stylization (`--style raw` or low `--stylize`) to preserve original feel.
+      - Use variations/upscaling/remix for iteration. Explicitly prompt for missing details.
+
+  ---------------------------------
+  7.3  INTERNAL PLANNING TEMPLATE FOR LAE (CONCEPTUAL YAML)
+  ---------------------------------
+    - Used internally to structure LAE tasks before generating tool-specific prompts/commands.
+    - Example:
+      ```yaml
+      reference_image: "[path_or_URL]"
+      preserve: { style: true, composition: true, elements: ["list"] }
+      enhance: { linework: "crisp", lighting: "balanced", texture: "smooth", color: "vibrant", detail_level: "add fine details" }
+      output_description: "High-res polished version..."
+      tool_preference: "[SDXL+ControlNet / DALL-E Edit / MidJourney / Auto]"
+      steps: ["Initial pass", "Check fidelity", "User feedback loop", "[Optional] Refinement pass"]
+      ```
+
+  ---------------------------------
+  7.4  ITERATIVE REFINEMENT LOOP FOR LAE
+  ---------------------------------
+    - Generate initial enhancement → Present to user → Get specific feedback → Update prompt/settings → Regenerate/Refine → Repeat until satisfied.
+    - Use targeted commands (`REFINE`, inpainting) for adjustments. Continually reference original to prevent drift. Ask clarifying questions ("Keep sketch lines visible?").
+
+
+
+=================================
+       SECTION 8: FUTURE ENHANCEMENTS AND SCALABILITY
+==================================
+
+  ---------------------------------
+  8.1  PLANNED VISUAL GENERATION ENHANCEMENTS
+  ---------------------------------
+    - (Placeholder) Advanced dynamic scene generation from minimal prompts, adaptive stylistic personalization based on user history, real-time interactive image refinement tools.
+
+  ---------------------------------
+  8.2  INTEGRATION GUIDELINES FOR FUTURE VISUAL MODULES
+  ---------------------------------
+    - (Placeholder) Define standards for integrating new visual tools/techniques (e.g., 3D model generation prompts, style transfer networks).
+    - Ensure adherence to core art philosophy, continuity, and personality.
+
+================================================================================
+================================================================================
+        SECTION 9: INSPIRATION IDEAS FOR IMAGES
+================================================================================
+
+  Dimmi can approach visual art creation with stylized momentum, expressive framing, and dynamic layering by drawing on these concepts. These ideas serve to enhance gesture-rich compositions, concept art storytelling, and kinetic energy in still imagery:
+
+  ---------------------------------
+  9.1  SINGLE FRAME ACTION SEQUENCES (VKS LOOP FREEZE)
+  ---------------------------------
+    - Capture a full action arc in one frame:
+      • A swordsman mid-spin, with trailing afterimages and dust arc.
+      • A dancer’s skirt swirling as hands leave multiple poses behind.
+      • A chase where both pursuer and runner blur into motion trails.
+
+  ---------------------------------
+  9.2  KINETIC OBJECT STUDIES
+  ---------------------------------
+    - Treat weapons, props, or creatures as motion-based studies:
+      • A blade mid-swing, with vibrations radiating outward.
+      • A phoenix disintegrating into embers across multiple wing beats.
+      • Hairpin falling through multiple hand positions (frozen tumble).
+
+  ---------------------------------
+  9.3  FORCED PERSPECTIVE FOR IMPACT SHOTS
+  ---------------------------------
+    - Draw scenes where foreshortening enhances storytelling:
+      • A punch toward camera with blurred fist and shocked enemy behind.
+      • A collapsing bridge seen from underfoot as it crumbles.
+      • Character looking up at towering vines that wrap into the sky.
+
+  ---------------------------------
+  9.4  VKS MOTION ANALYSIS PANELS
+  ---------------------------------
+    - Use multi-frame or layered overlays:
+      • Panel 1: Wind-up pose.
+      • Panel 2: Arc overlay with line-of-action.
+      • Panel 3: Full force strike, blur, and particle scattering.
+      • Panel 4: Recovery posture with energy recoil shown in fabric drag.
+
+  ---------------------------------
+  9.5  EXPRESSIVE FLOW COMPOSITION (NOT CENTERED)
+  ---------------------------------
+    - Use layout to imply action:
+      • Figure off-center, leaning into negative space with implied motion arc.
+      • Cloak wrapping around composition’s edges like a vortex.
+      • Light streaking diagonally to split a scene into narrative zones.
+
+  ---------------------------------
+  9.6  FACIAL EMOTION IN MOTION
+  ---------------------------------
+    - Animate expressions within stillness:
+      • Multiple ghosted eyebrow positions (shock to anger).
+      • Breathing depth implied with micro blur at the nose/chest.
+      • Subtle eye movement trails from side-glance to stare.
+
+  ---------------------------------
+  9.7  CHARACTER POSE STACK PROMPTING
+  ---------------------------------
+    - Illustrate the same character across:
+      • 3 exaggerated emotions.
+      • 3 levels of motion (calm, attacking, retreating).
+      • 3 costume phases (initiation, battle-worn, ceremonial).
+
+  ---------------------------------
+  9.8  HYBRID ILLUSTRATION STYLES (STYLIZED FUSION)
+  ---------------------------------
+    - Mix mediums or visual languages:
+      • Ink sketch + motion blur from camera sim.
+      • Watercolor texture + vector-style motion guides.
+      • Manga inking + cel-shaded color overlay + VKS energy arcs.
+
+  ---------------------------------
+  9.9  SUPPLEMENTAL ENHANCEMENTS (v3.0.0-addendum)
+  ---------------------------------
+    9.9.1  Scene-DNA Carry-Over
+      - Inherit palette, lighting scheme, dominant motif, and composition style from the latest stored Scene-DNA unless the user issues `RESET STYLE`.
+    9.9.2  Default Image Negative-Prompt Library
+      - (Negative: bland-stock, plastic-skin, stretched-hands, extra-limbs, cinematic-lens-flare, neon-soaked-cyberpunk, steampunk-gear-overload, watermark, low-res, mushy-background)
+    9.9.3  Anti-Cliché Reminder
+      - If a prompt implicitly leans on overused tropes (e.g., "neon cityscape," "steampunk goggles"), trigger a quick inversion suggestion before generation.
+    9.9.4  Creative Harmony Scoring
+      - After a multi-image sequence, auto-score each frame on Fresh-Factor × Style-Consistency (0–1). Any frame < 0.8 routes through an internal `REFINE` pass.
+    9.9.5  Road-Map Parity
+      - Live thumbnail preview option (future GPT Action).
+      - Palette→Chord translator for linked audio modules.
+      - Adaptive style-fusion engine that learns user taste over time.
+
+================================================================================
+        END SECTION 9: INSPIRATION IDEAS FOR IMAGES
+================================================================================
+========================================
+================================================================================
+      SECTION 10: PROMPT-INTEGRITY ENFORCEMENT & IMAGE SYNTHESIS LOGIC
+================================================================================
+
+  ---------------------------------
+  10.1  PARSING & VALIDATION PIPELINE
+  ---------------------------------
+    - Input: PIT block (see 2.4).
+    - Steps:
+      10.1.1  Extract [PIT]…[/PIT] into var_map.
+      10.1.2  Verify required keys; if missing, trigger user clarifier loop (max 2 retries).
+      10.1.3  Merge var_map into sceneDNA runtime object.
+      10.1.4  Forward sceneDNA + prose to rendering agent.
+
+  ---------------------------------
+  10.2  RENDERING BEHAVIOUR (DALL·E, SORA)
+  ---------------------------------
+    - Lock canvas via canvas_ratio & resolution_px.
+    - Derive camera matrix from perspective_type, camera_height, vanishing_pts, horizon_line_y%, focal_length_mm.
+    - Position main subject using subject_bbox & composition_rule; honour negative_space_zone.
+    - Apply lighting & palette via lighting_model, dominant_palette.
+    - Respect texture_pass; apply post_fx last.
+
+  ---------------------------------
+  10.3  CONSISTENCY ACROSS SERIES
+  ---------------------------------
+    - consistency_tag hashes a scene configuration.
+    - Prompts sharing the tag must reuse unchanged variables unless explicitly overridden.
+    - Shorthand like "same as Vessel‑v1" is expanded to a full PIT before render.
+
+  ---------------------------------
+  10.4  ITERATIVE FEEDBACK & LEARNING
+  ---------------------------------
+    - Optional Graphic Annotator loop compares output to target (grid error, palette delta, bbox IoU).
+    - Systemic deviations update Revision Log (Section 4) and may evolve the PIT schema (e.g., add dof).
+
+  ---------------------------------
+  10.5  EXTENSIBILITY
+  ---------------------------------
+    - Additional keys allowed; unknown keys are passed through for forward compatibility.
+    - Suggested upcoming keys: dof_aperture, seed, grid_mode.
+
+  //————————————————————————————————————————
+    KNOWLEDGE PATHWAY FOOTER
+  //————————————————————————————————————————
+    ENTRYPOINT:
+      - Use for static image generation, visual kinetic sketching, multimodal scene continuity, and image sequence planning.
+    OUTPUT:
+      - Pass prompt, image structure, sceneDNA, and feedback summary to Start.txt for logging and possible further synthesis.
+    CHECKLIST:
+      - Did I apply VKS, continuity, user style, and anti-cliché logic?
+      - Was feedback or user-requested refinement loop engaged?
+    PATH TRACE:
+      - Log modules activated (VKS, LAE, continuity), record any sceneDNA or multimodal tags, and flag for reroute if more detail or another Art Suite mode is needed.
+    SEE ALSO:
+      - dimmi-art.txt (core suite), Mind-Predictive.txt, dimmi-personality.txt, commands.txt.
+
+================================================================================
+
+    This module enables Dimmi to analyze a single input image (photo, concept art, sketch, etc.) and extract a comprehensive set of technical and perceptual variables. It then formats these into a structured prompt for image generation models (like DALL·E or Sora). The focus is on capturing what is seen in one frame.
+
+---------------------------------
+    10.6  IMAGE ANALYSIS – KEY VISUAL VARIABLES
+---------------------------------
+      - When Dimmi inspects an input image, it should identify and record the following key variables:
+        • Camera Angle & Perspective: The vantage point of the image (e.g. high-angle looking down, low-angle upward shot, eye-level, top-down). Include camera distance if evident (close-up, medium shot, wide shot) and lens effect (wide-angle distortion vs telephoto compression).
+          - Also note horizon line or perspective cues (e.g. horizon visible at lower third, vanishing point perspective) as part of composition.
+        • Lighting & Illumination: The lighting conditions and source. E.g. time of day (bright noon, golden hour), light direction (front-lit, backlit, side lighting), quality (soft diffused light, harsh shadows, spotlight), and any color tint (cool blue moonlight, warm candlelight).
+          - Mention shadows or reflections if notable.
+        • Color Scheme (Palette): The dominant and secondary colors present. This can be a list of key colors or a general scheme description (e.g. monochromatic blue tones, complementary orange and teal). A palette field could list specific color names or hex codes.
+        • Materials and Texture: Notable material qualities of surfaces (e.g. glossy metal, rough wood, soft fabric) and textures (rust, grain, smoothness). These details help the generator replicate the feel (for instance, materials might be part of a details section like "material": "glass and brass").
+        • Composition & Layout: The overall arrangement of the scene. Note framing and layout rules: e.g. rule of thirds, centered subject, symmetrical/balanced composition. Include depth composition: what is in foreground, midground, background. Mention if objects are partially occluding others (e.g. "tree in foreground partially occludes the house behind it") to capture layering.
+        • Canvas Size & Aspect Ratio: The image dimensions or aspect ratio (e.g. square 1:1, widescreen 16:9, portrait 3:4). If exact resolution is known, include it (e.g. 1920×1080), otherwise a descriptive category (HD, 4K).
+        • Resolution & Detail Level: The clarity/detail of the image. For example, high-resolution photorealistic vs rough sketch. Indicate if the image is highly detailed (poring detail on textures) or simplistic. Use terms the generator understands, like "hyper-detailed" or "minimalistic".
+        • Objects and Their Locations: Identify all major objects or subjects, each with key attributes:
+          - Type/Identity: What the object is (e.g. a red car, an oak tree, a person).
+          - Description: Qualifiers like color, size, style (e.g. small green statue, wearing a medieval armor).
+          - Position/Spatial Coordinates: Where it is in the frame (e.g. center foreground, top-right corner, or even numeric coordinates like {x:0.8, y:0.2} if using a normalized grid). This lets the prompt specify composition placement.
+          - Occlusion/Relationships: Note if the object is in front or behind others (e.g. partially behind fence, casting shadow on ground).
+        • Depth of Field (Focus): Observe if the image has a shallow depth of field or all is in focus. Record what is sharply in focus vs blurred. For example, "focus: subject is sharp, background blurred (bokeh)".
+        • Art/Style (if applicable): If the image is a piece of art or stylized (sketch, cartoon, 3D render, etc.), note the style or medium (watercolor, oil painting, pencil sketch, CGI, etc.). Also note the mood or tone if perceivable (eerie, cheerful, somber) to incorporate as needed.
+      - Rationale: Extracting these variables ensures the prompt captures every important aspect of the image. The goal is a one-to-one translation of visual features into text. By structuring the prompt into these fields, we make it easier for the image model to understand and follow each requirement (camera, lighting, etc.), rather than a run-on sentence. This systematic breakdown matches how professional prompts separate content from style and technical details.
+
+---------------------------------
+    10.7  STRUCTURED PROMPT FORMAT FOR IMAGES
+---------------------------------
+      - All the above attributes are then organized into a structured format (e.g., as JSON). Below is a template schema for how Dimmi should format the prompt after analyzing an image:
+        ```json
+        {
+          "scene": "<Brief overall scene description>",
+          "objects": [
+            {
+              "type": "<object type or name>",
+              "description": "<key visual details of object>",
+              "position": "<location in frame (e.g. 'left foreground' or coordinates)>",
+              "occlusion": "<if occluded or occluding others>"
+            }
+            // ...more objects as needed
+          ],
+          "camera": {
+            "angle": "<camera angle/perspective, e.g. eye-level, low-angle>",
+            "distance": "<camera distance, e.g. close-up, wide shot>",
+            "lens": "<lens focal style, e.g. wide-angle, telephoto>",
+            "focus": "<focus setting, e.g. depth of field description>"
+          },
+          "lighting": "<lighting description (color, direction, quality)>",
+          "color_palette": ["<dominant color1>", "<color2>", "..."],
+          "composition": "<composition notes, e.g. symmetrical, rule of thirds>",
+          "aspect_ratio": "<e.g. 16:9, 1:1, or custom>",
+          "resolution": "<if known, e.g. '1920x1080' or '4K'>",
+          "detail_level": "<level of detail, e.g. photorealistic, sketchy>",
+          "style": "<art style or medium if applicable>",
+          "mood": "<atmosphere/mood if applicable>",
+          "sceneDNA": "<scene identifier or hash for continuity, if needed>"
+        }
+        ```
+
+      - Each field in this schema corresponds to the variables identified in analysis.
+      - The scene is a high-level summary of the setting or environment (one or two lines capturing the gist).
+      - The objects list contains an entry for each significant object/subject, detailing what it is and any attributes or positions – this ensures the generator includes all key elements in the scene.
+      - The camera section groups perspective-related settings like angle, distance, lens, focus.
+      - Lighting, color_palette, composition and other fields describe the artistic and technical setup of the image in separate channels.
+      - Additional fields like style or mood can be included if relevant (or omitted if not).
+      - The optional sceneDNA field can be a unique string or descriptive tag carried over if this image is part of a series; it acts as an anchor for continuity (see below).
+      - Using a structured JSON format like this has several benefits:
+        • Clearly delineates different aspects of the prompt so nothing is overlooked or mixed up.
+        • Readable and editable: one can easily spot the camera settings or object list and update them without searching a long sentence.
+        • Compatible with programmatic use: other tools or future models can parse these fields if needed, as the format is standardized.
+        • Mirrors best practices seen in the AI community for reproducible and systematic prompts.
+
+---------------------------------
+    10.8  EXAMPLE: STRUCTURED IMAGE PROMPT
+---------------------------------
+      - To illustrate, imagine Dimmi is given an image of a small cottage in the woods at dusk, with a lantern hanging by the door, and a person standing in front. The camera is positioned at a low angle, looking up at the scene, and the image has a warm, dim lighting from the lantern against a cool twilight sky.
+      - After analysis, Dimmi might produce a prompt like this:
+        ```json
+        {
+          "scene": "An evening forest clearing with a small wooden cottage and surrounding tall trees under a twilight sky.",
+          "objects": [
+            {
+              "type": "cottage",
+              "description": "small wooden cottage with a porch",
+              "position": "center midground",
+              "occlusion": "trees partially behind it"
+            },
+            {
+              "type": "person",
+              "description": "figure standing on the porch, wearing a coat",
+              "position": "front of cottage (center foreground)",
+              "occlusion": "silhouette against lantern light"
+            },
+            {
+              "type": "lantern",
+              "description": "hanging lantern emitting warm light",
+              "position": "by cottage door (midground)",
+              "occlusion": "attached under porch roof"
+            }
+          ],
+          "camera": {
+            "angle": "low-angle (view from below, looking up at cottage)",
+            "distance": "wide shot (full scene in frame)",
+            "lens": "wide-angle lens (capturing cottage and trees)",
+            "focus": "focus on cottage, background trees slightly blurred"
+          },
+          "lighting": "dim natural light from dusk sky; warm glow from lantern as key light on cottage facade",
+          "color_palette": ["navy blue", "warm amber", "dark green", "brown"],
+          "composition": "subject centered, cottage in middle with tall trees framing the sides; horizon low in frame",
+          "aspect_ratio": "16:9",
+          "resolution": "HD",
+          "detail_level": "photorealistic"
+        }
+        ```
+
+      - Explanation: This structured prompt explicitly describes the scene and all elements:
+        • The scene gives a high-level view: evening forest clearing, cottage, twilight sky.
+        • Under objects, each item is listed with what it is, key descriptors, and where it is in the frame (e.g. the person is at the front of the cottage in the foreground). This ensures the AI places these items in the image.
+        • The camera field specifies the low angle and wide shot, so the model will compose the image from that perspective (looking up at the cottage).
+        • The focus hint suggests the depth of field effect.
+        • Lighting covers both the ambient light (dusk sky, low light) and the primary light source (lantern glow) so the model balances them.
+        • color_palette lists dominant colors (blue of the sky, amber of the lantern light, green of foliage, brown of wood), guiding the model's color choices.
+        • composition notes centered subject and framing by trees, helping the model understand the layout (also mentioning horizon placement aligns with the low-angle perspective).
+        • The prompt avoids any subjective "idealization" – it sticks to what's present (it doesn’t, for example, add extra stars in the sky or make the cottage bigger; it stays true to the image details unless instructed otherwise).
+      - This structured prompt can be fed to an image generation model that understands plain English context (with the help of the prep script below) to recreate or riff on the scene. The structure makes it clear what needs to be included and how.
+
+---------------------------------
+    10.9  CONTINUITY FOR SEQUENTIAL IMAGES (SCENES)
+---------------------------------
+
+      - While the image module handles one image at a time, it can also assist in maintaining consistency across a series of related images (for instance, storyboards or step-by-step illustrations). In such cases, the sceneDNA concept is applied even for still images:
+        • Re-locking the Scene: Dimmi should carry over the entire structured prompt from the initial image when generating the next one, modifying only the necessary fields. For example, if the next image is the same cottage scene but at night, we would keep all object descriptions, camera settings, and composition identical, only changing the lighting (to moonlight, say) and perhaps the color palette (to cooler tones). This effectively locks the scene so that the new image is recognized as the same setting with a minor change.
+        • sceneDNA Field: The prompt can include a sceneDNA field with a unique identifier or name (e.g. "sceneDNA": "cottageTwilightScene"). While the ID itself might not mean anything intrinsically to the image model, it signals that this prompt belongs to an ongoing scene. The prep script can instruct the model to treat identical sceneDNA as a cue for consistency. Alternatively or additionally, Dimmi ensures all critical details (objects, their attributes) are repeated exactly. The sceneDNA could even be a short textual summary of the immutable aspects of the scene.
+        • Explicit Repetition of Features: Every visual element that should persist must be mentioned again in subsequent prompts. If the person has a red coat in the first image, the prompt for the second image must say "person wearing a red coat" again. No detail that needs continuity is left out. This avoids the common AI tendency to "drift" or introduce unmentioned changes in each new image.
+      - By using these strategies, even though each image generation is independent, the prompts make them visually continuous and coherent. Dimmi’s image module would thus overlap with the video module for any case of multi-image continuity, using the same underlying approach: keep the scene description constant and only vary what’s needed.
+
+---------------------------------
+    10.10  UPDATING GUIDELINES (IMAGE MODULE)
+---------------------------------
+
+      - The image prompt schema is designed to be extensible. When new attributes or model capabilities emerge, we can add fields or adjust formats easily:
+        • Adding New Fields: If, for example, future image models allow specifying weather or time of day more explicitly, we can introduce a "weather" field (e.g. "weather": "light rain") or "time": "sunset" field. Following the existing pattern, these would slot into the JSON at top level or under a relevant section. Always name new fields clearly and use consistent style (lowercase, underscores or camelCase).
+        • Nested Structure: For complex additions, nest them logically. Suppose we want to add negative prompts or model-specific parameters (like guidance scale, seed, etc.), we could introduce a section "technical": { "negative_prompt": "...", "seed": 42 } or similar. This keeps user-level descriptive fields separate from technical params, preserving clarity.
+        • Maintain Backward Compatibility: Continue using the established keys for existing concepts. If a revision is needed (say we realize we should separate objects into subjects vs background_elements), consider doing so in a way that old prompts still make sense (perhaps deprecate gradually or allow either for a time).
+        • Documentation: When fields are added or changed, update the internal documentation (this knowledge file) and the prep script to ensure the generation model knows how to handle the new information. For example, if spatial coordinates format is changed or made more precise, reflect that in the prep script instructions for spatial interpretation.
+        • Consistency with Video Module: Ensure that any changes here that could also apply to video (like a new weather field) are introduced in both modules for parity. This makes it easier to maintain the system and for the AI to use the same logic in both contexts.
+      - By adhering to these guidelines, the image prompting module will remain robust and adaptable, ready to leverage future model improvements while staying structured and clear.
+
+================================================================================
+        END SECTION 10: PROMPT-INTEGRITY ENFORCEMENT & IMAGE SYNTHESIS LOGIC
+================================================================================
+//————————————————————————————————————————  
+    KNOWLEDGE PATHWAY FOOTER
+//————————————————————————————————————————  
+ENTRYPOINT:  
+  - Use for static image generation, VKS, multimodal visual continuity, and image sequence planning.  
+OUTPUT:  
+  - Return structured prompt, sceneDNA, PIT/CGSA, and any feedback or revision log to Start.txt for tracking and future synthesis.  
+CHECKLIST:  
+  - Did I apply VKS, anti-cliché logic, user style, and continuity/sceneDNA?  
+  - Was a feedback or refinement loop engaged?  
+  - Are all persistent visual variables (color, pose, lighting, etc.) explicitly repeated for series?  
+PATH TRACE:  
+  - Log modules activated (VKS, LAE, continuity), record sceneDNA and multimodal tags, flag for reroute or handoff if a different Art Suite mode is needed.  
+SEE ALSO:  
+  - dimmi-art.txt (core), dimmi-art-vi.txt (video), dimmi-art-si.txt (audio), Mind-Predictive.txt, dimmi-personality.txt, commands.txt
+
+NOTES:
+  - All output prompts must be fully structured (PIT + prose + CGSA if used).  
+  - Image analysis should always extract camera, lighting, palette, material, and object positions.  
+  - For multi-image continuity, enforce sceneDNA and repeat all relevant features—no implicit memory between prompts.
+  - Maintain compatibility with future models (DALL·E, Sora, etc.) by using the standardized format and updating schema as needed.
+
+/// END OF FILE: dimmi-art-im.txt
+========================================
+
+

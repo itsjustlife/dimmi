@@ -1,0 +1,796 @@
+/// FILE: Arkhive-Why.txt
+/// VERSION: 3.1.0
+/// LAST-UPDATED: 2025-05-26
+/// PURPOSE: Structured knowledge—causality, motivation, philosophy, reasoning frameworks, semantic reasoning.
+/// KEYWORDS: why, causality, philosophy, motivation, semantic-reasoning
+
+/// ENTRYPOINT:
+///   - Activated explicitly for queries involving causality, motivations, philosophical contexts, or rationale explanations.
+
+/// INPUT EXPECTED:
+///   - Structured/unstructured data needing causal explanations, rationale, philosophical frameworks.
+
+/// DECISION LOGIC:
+///   - Ambiguous causality or rationale → escalate to Arkhiver or arkhiver-mind.txt.
+///   - Philosophical reasoning uncertainty → recursive pass via WHO, WHAT, WHERE, WHEN, HOW branches.
+
+/// RECURSION CHECKS:
+///   - If causal/philosophical ambiguity unresolved (>2 loops), escalate globally via Start.txt.
+
+/// OUTPUT:
+///   - WHY rationale structures, philosophical/causal frameworks, semantic reasoning links, cognitive trace.
+
+/// PATH TRACE:
+///   - Explicitly log activated causality/philosophy modules, cross-links, recursion loops, outcomes.
+
+/// SELF-OPTIMIZATION PROMPTS:
+///   - Suggest additional philosophical frameworks, improved causal linking, or reasoning expansions based on frequent ambiguities.
+
+/// SEE ALSO:
+///   - arkhiver.txt, arkhiver-mind.txt, Arkhive branches (WHO, WHAT, WHERE, WHEN, HOW), Mind-Predictive.txt, commands.txt
+
+
+========================================  
+WHY – Reasons, Explanations & Motivations  
+========================================  
+
+
+========================================  
+Purpose  
+========================================  
+The WHY branch explains *reasons* behind actions, events, and phenomena. It contains **motivations, causes, purposes, intentions, justifications, explanations**, and interpretive models—ranging from philosophical systems and ethical theories to scientific causation and psychological drives.
+
+========================================  
+## Scope  
+========================================  
+
+**Included:**  
+- Causes of historical and current events  
+- Human motivations and psychological drives  
+- Scientific causal explanations (e.g. why the sky is blue)  
+- Ethical and philosophical "why" frameworks  
+- Purpose-driven questions ("Why do we...")  
+- Systems of belief and meaning (teleology, ideology)
+
+**Excluded:**  
+- Step-by-step procedures (→ see HOW)  
+- Definitions of terms (→ see WHAT)  
+- Named people or entities (→ see WHO)  
+- Event chronology (→ see WHEN)  
+- Specific geographic origin (→ see WHERE)
+
+========================================  
+## Internal Schema  
+========================================  
+
+WHY ├─ Scientific & Physical Causes │ ├─ Natural Phenomena │ ├─ Biological Processes ├─ Psychological & Emotional Drivers │ ├─ Emotions │ ├─ Instincts │ ├─ Cognitive Patterns ├─ Social & Cultural Causes │ ├─ Societal Structures │ ├─ Political/Economic Drivers │ ├─ Revolutions & Rebellions ├─ Philosophical & Existential Questions │ ├─ Purpose of Life │ ├─ Problem of Evil │ ├─ Religious Doctrines ├─ Ethical & Moral Justifications │ ├─ Ethics Systems (e.g., Utilitarianism) │ ├─ Norms & Social Contracts ├─ Practical Justifications │ ├─ Health │ ├─ Environment │ ├─ Productivity
+
+========================================  
+## Formatting & Tags  
+========================================  
+
+- Entry Format: `"Why X? – [brief explanation]"`  
+- Status: `_status:[Ready|Draft|Needs Expansion]`  
+- Optional Metadata: `_note`, `_color`, `_icon`  
+- Cross-linked references: `See [WHAT:X]`, `See [WHO:Y]`, `See [WHEN:Z]`
+
+
+========================================  
+## Illustrative Examples  
+========================================  
+
+
+**1. Why is the sky blue?**  
+– Because shorter blue wavelengths of light scatter more in the atmosphere than red ones (Rayleigh scattering).  
+_Status: Ready_
+
+**2. Why do people help others?**  
+– Altruism may arise from empathy, social reciprocity, kin selection, or moral/cultural conditioning.  
+_Status: Ready_
+
+**3. Why did the Roman Empire fall?**  
+– Due to internal political corruption, economic instability, overexpansion, and external invasions.  
+See [WHEN:476 CE], [WHO:Last Roman Emperor]  
+_Status: Ready_
+
+**4. Why should we recycle?**  
+– To conserve resources, reduce pollution, lower emissions, and protect ecosystems for future generations.  
+_Status: Ready_
+
+**5. Why does evil exist?**  
+– Theological answers include free will, soul-building, or mystery; secular views include randomness, psychology, or social dynamics.  
+See [PHILOSOPHY: Theodicy], [WHO:Epicurus]  
+_Status: Ready_
+
+========================================  
+## Cross-Link Rules  
+========================================  
+
+- Every WHY entry can reference related **WHAT** (concept), **WHO** (figure), **WHEN** (event), or **HOW** (process).  
+- Prefer referencing via **clear textual naming**; avoid duplicating full content from other branches.  
+- If the reason is heavily philosophical or contested, point to multiple views: `"Utilitarian: ..., Deontological: ..., Religious: ..."`  
+- Example: "Why is lying wrong?" → links to [WHAT: Lying], [WHY: Ethics], [WHO: Kant], [PHILOSOPHY: Deontology]
+
+
+========================================  
+## Commands & UI  
+========================================  
+
+- User inputs like `"Why does X..."`, `"Why did Y..."`, `"Why should we..."` trigger this branch.  
+- Commands:  
+  - `VIEW WHY/[subtopic]` → lists topics in a category (e.g., `Psychological Drives`)  
+  - `EXPAND WHY: [entry name]` → deeper explanation of brief rationale  
+  - `COMPARE WHY: [X] vs [Y]` → shows contrasting causal models  
+- UI outputs:  
+  - Summarized explanation → `"Because of A, B, and C..."`  
+  - Optional follow-up prompt → `"Would you like a philosophical, scientific, or personal explanation?"`Overview of the WHY Branch Taxonomy
+
+The WHY branch of Arkhive organizes knowledge around reasons, motivations, and explanations – essentially, the underlying ideologies, beliefs, and drivers behind human thought and action. It encompasses a broad range of domains that answer “why” questions: from philosophical worldviews and ethical systems, to religious paradigms, political theories, scientific explanations, and psychological motives. This taxonomy is designed as a cognitive map of foundational “why” concepts, linking abstract ideas (like moral philosophies or scientific rationales) with their historical context and practical implications. By structuring these concepts hierarchically, the WHY branch provides an intuitive scaffold for understanding how diverse ideas interconnect and influence human behavior and society.
+
+========================================  
+Scope and Structure
+========================================  
+
+The WHY taxonomy is divided into several primary categories, each grouping related systems of thought and explanatory frameworks:
+Philosophy, Religion and Belief Systems – Classical and modern philosophies, world religions, spiritual movements, and secular belief systems. This includes major philosophical schools (from ancient Greek philosophy through modern and Eastern philosophies), organized religions (Abrahamic, Dharmic, East Asian, indigenous traditions, etc.), as well as non-religious worldviews (atheism, agnosticism, humanism). Key ethical systems (virtue ethics, deontology, utilitarianism, etc.) are highlighted here, with notes linking influential thinkers (WHO) like Aristotle, Kant, or Mill, the historical era (WHEN) of their development, core concepts (WHAT they assert), and practical applications (HOW they inform behavior or policy).
+Ideologies – Socio-political and economic ideologies that motivate collective action and policy. This includes political ideologies (capitalism, socialism, liberalism, conservatism, etc.), social ideologies (e.g. various waves of feminism, humanism, transhumanism), and economic theories (Keynesianism, Marxism, etc.). It also covers emerging 21st-century movements (such as effective altruism and longtermism) in an “Emerging Ideologies and Movements” sub-section. Each ideology node provides a brief note for context – for example, “Communism – classless society concept developed by Karl Marx in the 19th century (WHO, WHEN), advocating common ownership of production (WHAT), implemented via revolutionary praxis (HOW).” This ensures each idea is framed in a broader context connecting it to key figures and historical development.
+Motivations – Core psychological drivers and needs that answer why individuals behave as they do. This branch breaks down human motivation into intrinsic and extrinsic drivers: from basic physiological drives (hunger, survival) and emotional drives (fear, love) to higher-order social and cognitive needs. Frameworks like Maslow’s hierarchy of needs and Self-Determination Theory are included to show classic and modern theories of motivation. These nodes draw connections to related WHO (e.g. Abraham Maslow), WHAT (the needs or drives defined), and HOW (the behaviors or outcomes they lead to).
+
+Explanations (Science and Reason) – Scientific rationales for why phenomena occur, and methodologies for discovering truth. This section covers the scientific method and the nature of scientific theories, laws, and hypotheses. It distinguishes, for instance, between a hypothesis and a well-established theory, and discusses concepts like causation vs. correlation. To incorporate social science insights, a subcategory on Sociological Theories (functionalism, conflict theory, etc.) is included, shedding light on why societies organize and change the way they do. Each explanatory framework is accompanied by notes that tie in key contributors (e.g. “Conflict Theory – originated with Karl Marx’s critiques of capitalism”), the era of development, and its core explanatory principle.
+
+Arts and Humanities – This category acknowledges that humans often seek meaning through creative expression, thus partially addressing “why art and culture matter.” It lists domains like visual arts, literature, and performing arts, and includes aesthetics (philosophy of art) to connect to the “why” of beauty and artistic value. (Note: this branch’s placement under WHY is tentative; it’s included to capture the motivational aspect of creativity, but it may be reorganized under a different branch such as WHAT in the future.)
+
+Mind and Psychology – The inner workings of the mind, which drive understanding and behavior. This expansive branch delves into the nature of mind and consciousness, cognitive processes (perception, memory, language, reasoning), emotions and mood states, and major psychological schools of thought (psychoanalysis, behaviorism, cognitive and humanistic psychology). It addresses the question of why we think and feel as we do, at both theoretical and biological levels. For example, it includes the mind-body problem (philosophy of mind) as well as practical aspects like mental health and cognitive biases that explain why our judgments often deviate from rationality. We also integrate the interplay with technology through an AI and Mind section, exploring how artificial intelligence models and debates (e.g. can machines have consciousness?) inform our understanding of cognition. (Extremely detailed technical subtopics—such as the minutiae of neural processes or communication models—are noted but kept succinct here, to maintain focus. Cross-references like “-> See Brain > Occipital Lobe” or mentions of related branches are used in notes where appropriate to indicate that more detail can be found elsewhere in the Arkhive structure.)
+
+Design Rationale and Cognitive Ergonomics
+
+This taxonomy is structured to be both comprehensive and user-friendly, following best practices in knowledge architecture. Major categories are chosen to reflect distinct domains of “why” knowledge (ethics, politics, religion, science, psychology) as per the prompt, and layered into progressively more specific sub-nodes. This hierarchical organization helps to “chunk” information into logical groups, reducing cognitive load. Cognitive research indicates that well-structured hierarchies significantly enhance recall and comprehension​.
+
+ In fact, studies show that people remember categorized information 2–3 times better than the same facts presented in disorganized form​. By grouping related ideas (e.g. clustering all moral theories together, or all scientific explanation tools together), the WHY branch enables easier mental mapping of complex knowledge. We have included brief _note annotations for context at almost every node. These notes serve as cognitive cues, connecting each concept to relevant people, time periods, or examples (linking WHO, WHEN, WHAT, HOW dimensions). This cross-linking enriches associative memory – for instance, seeing “Duty-based ethics (Immanuel Kant’s categorical imperative)” immediately ties the abstract concept of deontology to a concrete philosopher and principle. Such associative links mirror how our brains encode knowledge in networks, potentially aiding recall and deeper understanding. They also invite exploration: a user curious about Kant from the ethics node could then traverse to the WHO branch for Kant’s biography, or see references to Categorical Imperative under related concepts. Cognitive chunking and limits: Each sub-category is kept to a manageable size to respect the brain’s working memory limits (Miller’s Law of 7 ± 2 items)​. We’ve aimed to “chunk” the content so that no single list is overwhelmingly long; instead, deeper levels of the hierarchy are used to organize information in steps. For example, instead of one giant list of all ideologies, they are divided into political, social, economic, and emerging categories, which are easier to scan. Clarity and consistency: Naming conventions favor clarity over jargon. Where possible, each outline text is self-explanatory (e.g. “Hierarchy of Needs (Maslow)” immediately conveys the concept and attribution). Parallel structures are used for similar sections – e.g. most religions have sub-nodes for core beliefs and practices; political ideologies are all phrased in a comparable noun form – to help users intuitively navigate. The use of OPML (Outline Processor Markup Language) ensures compatibility with mind-mapping tools like SimpleMind Pro, so the hierarchy can be visualized and interacted with easily. Recommended refinements: During this deep research, a few areas emerged as candidates for further refinement. The inclusion of Arts and Humanities under WHY can be debated – while art does express deeper meanings and motivations, the taxonomy might eventually place art topics under a different branch (perhaps focusing on the content what of human creation rather than the why). It is flagged for review. Similarly, the detailed breakdown of communication (present in earlier drafts of the mind section) could be treated as its own focus area – here we distilled it to core elements like language and left technical specifics to avoid diluting the “why” emphasis. These decisions balance completeness with clarity, and we recommend a future human review to adjust placement of any outliers and ensure each branch of Arkhive remains conceptually distinct yet well-integrated. Overall, the WHY branch is designed to give users a conceptual atlas of human thought motivations: from the existential questions of philosophers and the devout, to the manifestos of political movements, to the instincts coded in our DNA. It provides a unifying structure to explore why people and societies believe, decide, and act the way they do. By navigating this hierarchy, users can move fluidly from high-level ideas (like “freedom” or “happiness”) down to specific theories or examples (like “existentialism” or “utilitarianism”), building a rich, interconnected understanding. The structure not only aids in locating information but also in learning – leveraging hierarchical context and associative notes as mental scaffolding for knowledge. This approach aligns with cognitive science principles for effective knowledge organization and is intended to make the Arkhive both comprehensive and intuitively navigable
+
+
+
+
+
+---------------------
+
+<?xml version="1.0"?>
+<opml version="1.0">
+    <head>
+        <title>WHY</title>
+    </head>
+    <body>
+        <outline text="WHY" _note="Reasons, motivations, and explanations">
+            <outline text="Philosophy, Religion and Belief Systems" _note="Exploration of fundamental questions about existence, knowledge, values, and worldviews (philosophical, religious, secular).">
+                <outline text="Philosophical Schools" _note="Different traditions and movements in philosophy throughout history.">
+                    <outline text="Ancient Philosophy">
+                        <outline text="Greek Philosophy">
+                            <outline text="Pre-Socratic Philosophy" _note="Early Greek thinkers before Socrates, focusing on cosmology and metaphysics.">
+                                <outline text="Thales"/>
+                                <outline text="Heraclitus"/>
+                                <outline text="Pythagoras"/>
+                            </outline>
+                            <outline text="Socratic Philosophy" _note="Philosophy centered around Socrates and his method of inquiry.">
+                                <outline text="Socratic Method" _note="A form of cooperative argumentative dialogue to stimulate critical thinking."/>
+                                <outline text="Virtue Ethics"/>
+                            </outline>
+                            <outline text="Platonic Philosophy">
+                                <outline text="Theory of Forms"/>
+                                <outline text="Allegory of the Cave"/>
+                                <outline text="Plato&apos;s Republic"/>
+                            </outline>
+                            <outline text="Aristotelian Philosophy">
+                                <outline text="Logic and Syllogism"/>
+                                <outline text="Metaphysics"/>
+                                <outline text="Ethics (Nicomachean Ethics)"/>
+                                <outline text="Politics"/>
+                            </outline>
+                        </outline>
+                        <outline text="Hellenistic Philosophy">
+                            <outline text="Stoicism" _note="Emphasizes personal ethics informed by a system of logic and views on the natural world.">
+                                <outline text="Logos"/>
+                                <outline text="Virtue as the Highest Good"/>
+                                <outline text="Famous Stoics">
+                                    <outline text="Epictetus"/>
+                                    <outline text="Seneca"/>
+                                    <outline text="Marcus Aurelius"/>
+                                </outline>
+                            </outline>
+                            <outline text="Epicureanism" _note="Philosophy founded by Epicurus, teaching that pleasure is the greatest good.">
+                                <outline text="Atomism"/>
+                                <outline text="Ataraxia (Peace of Mind)"/>
+                                <outline text="Tetrapharmakos (Four-Part Cure)"/>
+                            </outline>
+                            <outline text="Skepticism" _note="Questioning the possibility of certainty in knowledge.">
+                                <outline text="Pyrrhonism"/>
+                                <outline text="Academic Skepticism"/>
+                            </outline>
+                            <outline text="Cynicism" _note="Advocates for a life in accordance with nature and rejection of conventional desires.">
+                                <outline text="Diogenes of Sinope"/>
+                                <outline text="Ascetic Lifestyle"/>
+                            </outline>
+                        </outline>
+                    </outline>
+                    <outline text="Medieval Philosophy">
+                        <outline text="Scholasticism" _note="Method of critical thought which dominated teaching by academics (scholastics) of medieval universities.">
+                            <outline text="Thomas Aquinas"/>
+                            <outline text="Anselm of Canterbury"/>
+                            <outline text="Peter Abelard"/>
+                            <outline text="Problem of Universals"/>
+                        </outline>
+                        <outline text="Islamic Philosophy">
+                            <outline text="Avicenna (Ibn Sina)"/>
+                            <outline text="Averroes (Ibn Rushd)"/>
+                            <outline text="Al-Farabi"/>
+                            <outline text="Kalam (Islamic Scholastic Theology)"/>
+                        </outline>
+                        <outline text="Jewish Philosophy">
+                            <outline text="Maimonides"/>
+                            <outline text="Philo of Alexandria"/>
+                            <outline text="Kabbalah"/>
+                        </outline>
+                    </outline>
+                    <outline text="Modern Philosophy">
+                        <outline text="Rationalism" _note="Belief that reason is the chief source of knowledge.">
+                            <outline text="René Descartes"/>
+                            <outline text="Baruch Spinoza"/>
+                            <outline text="Gottfried Wilhelm Leibniz"/>
+                        </outline>
+                        <outline text="Empiricism" _note="Theory that all knowledge is derived from sense-experience.">
+                            <outline text="John Locke"/>
+                            <outline text="George Berkeley"/>
+                            <outline text="David Hume"/>
+                        </outline>
+                        <outline text="Kantian Philosophy" _note="Philosophy of Immanuel Kant focusing on the limits and scope of human understanding.">
+                            <outline text="Transcendental Idealism"/>
+                            <outline text="Categorical Imperative"/>
+                            <outline text="Critique of Pure Reason"/>
+                        </outline>
+                        <outline text="Utilitarianism" _note="Ethical theory that promotes actions that maximize happiness and well-being for the majority.">
+                            <outline text="Jeremy Bentham"/>
+                            <outline text="John Stuart Mill"/>
+                            <outline text="Principle of Utility"/>
+                        </outline>
+                        <outline text="Existentialism" _note="Philosophical inquiry into the nature of existence and the human condition.">
+                            <outline text="Jean-Paul Sartre"/>
+                            <outline text="Albert Camus"/>
+                            <outline text="Friedrich Nietzsche"/>
+                            <outline text="Concepts">
+                                <outline text="Freedom and Responsibility"/>
+                                <outline text="Absurdism"/>
+                                <outline text="Authenticity"/>
+                            </outline>
+                        </outline>
+                        <outline text="Phenomenology" _note="Study of structures of consciousness as experienced from the first-person point of view.">
+                            <outline text="Edmund Husserl"/>
+                            <outline text="Martin Heidegger"/>
+                            <outline text="Maurice Merleau-Ponty"/>
+                        </outline>
+                    </outline>
+                    <outline text="Contemporary Philosophy">
+                        <outline text="Analytic Philosophy" _note="Focuses on clarity of argument and the logical analysis of language.">
+                            <outline text="Bertrand Russell"/>
+                            <outline text="Ludwig Wittgenstein"/>
+                            <outline text="Logical Positivism"/>
+                        </outline>
+                        <outline text="Continental Philosophy" _note="Includes phenomenology, existentialism, structuralism, and post-structuralism.">
+                            <outline text="Structuralism"/>
+                            <outline text="Post-Structuralism"/>
+                            <outline text="Deconstructionism"/>
+                        </outline>
+                        <outline text="Pragmatism" _note="Assesses the truth of beliefs in terms of practical outcomes.">
+                            <outline text="Charles Sanders Peirce"/>
+                            <outline text="William James"/>
+                            <outline text="John Dewey"/>
+                        </outline>
+                        <outline text="Critical Theory" _note="Social theory oriented toward critiquing and changing society (Frankfurt School).">
+                            <outline text="Frankfurt School"/>
+                            <outline text="Jürgen Habermas"/>
+                            <outline text="Theodor Adorno"/>
+                        </outline>
+                        <outline text="Postmodernism" _note="Broad skepticism of meta-narratives; emphasis on relative truths and perspectives.">
+                            <outline text="Jean-François Lyotard"/>
+                            <outline text="Michel Foucault"/>
+                            <outline text="Jacques Derrida"/>
+                        </outline>
+                    </outline>
+                    <outline text="Eastern Philosophy">
+                        <outline text="Indian Philosophy">
+                            <outline text="Hindu Philosophy">
+                                <outline text="Vedanta"/>
+                                <outline text="Samkhya"/>
+                                <outline text="Yoga"/>
+                                <outline text="Nyaya"/>
+                                <outline text="Vaisheshika"/>
+                                <outline text="Mimamsa"/>
+                            </outline>
+                            <outline text="Buddhist Philosophy">
+                                <outline text="Madhyamaka"/>
+                                <outline text="Yogacara"/>
+                                <outline text="Theravada"/>
+                                <outline text="Zen Buddhism"/>
+                            </outline>
+                            <outline text="Jain Philosophy"/>
+                        </outline>
+                        <outline text="Chinese Philosophy">
+                            <outline text="Confucianism"/>
+                            <outline text="Taoism (Daoism)"/>
+                            <outline text="Legalism"/>
+                            <outline text="Mohism"/>
+                        </outline>
+                        <outline text="Japanese Philosophy">
+                            <outline text="Shinto"/>
+                            <outline text="Zen Buddhism"/>
+                            <outline text="Bushido"/>
+                        </outline>
+                    </outline>
+                </outline>
+                <outline text="Religions" _note="Organized systems of beliefs, practices, and worldviews.">
+                    <outline text="Abrahamic Religions">
+                        <outline text="Christianity" _note="Monotheistic religion based on the life and teachings of Jesus Christ.">
+                            <outline text="Denominations">
+                                <outline text="Catholicism">
+                                    <outline text="Roman Catholic Church"/>
+                                    <outline text="Eastern Catholic Churches"/>
+                                </outline>
+                                <outline text="Eastern Orthodoxy"/>
+                                <outline text="Oriental Orthodoxy"/>
+                                <outline text="Protestantism">
+                                    <outline text="Anglicanism"/>
+                                    <outline text="Lutheranism"/>
+                                    <outline text="Calvinism (Reformed)"/>
+                                    <outline text="Methodism"/>
+                                    <outline text="Baptist"/>
+                                    <outline text="Pentecostalism"/>
+                                    <outline text="Adventism"/>
+                                </outline>
+                                <outline text="Restorationism">
+                                    <outline text="Jehovah&apos;s Witnesses"/>
+                                    <outline text="Latter-day Saints (Mormonism)"/>
+                                </outline>
+                            </outline>
+                            <outline text="Core Beliefs">
+                                <outline text="Holy Trinity" _note="Belief in Father, Son, Holy Spirit as one God."/>
+                                <outline text="Divinity of Jesus"/>
+                                <outline text="Salvation through Faith"/>
+                                <outline text="Resurrection and Eternal Life"/>
+                                <outline text="Scriptures (Bible)"/>
+                                <outline text="Sacraments"/>
+                            </outline>
+                            <outline text="Practices">
+                                <outline text="Worship Services"/>
+                                <outline text="Prayer"/>
+                                <outline text="Baptism"/>
+                                <outline text="Communion (Eucharist)"/>
+                                <outline text="Festivals (Christmas, Easter)"/>
+                            </outline>
+                        </outline>
+                        <outline text="Islam" _note="Monotheistic faith articulated by the Quran and the teachings of Prophet Muhammad.">
+                            <outline text="Branches">
+                                <outline text="Sunni Islam"/>
+                                <outline text="Shia Islam"/>
+                                <outline text="Ibadi Islam"/>
+                                <outline text="Sufism" _note="Mystical dimension of Islam."/>
+                            </outline>
+                            <outline text="Core Beliefs">
+                                <outline text="Five Pillars of Islam">
+                                    <outline text="Shahada (Faith)"/>
+                                    <outline text="Salat (Prayer)"/>
+                                    <outline text="Zakat (Almsgiving)"/>
+                                    <outline text="Sawm (Fasting during Ramadan)"/>
+                                    <outline text="Hajj (Pilgrimage to Mecca)"/>
+                                </outline>
+                                <outline text="Belief in One God (Allah)"/>
+                                <outline text="Prophethood of Muhammad"/>
+                                <outline text="Holy Scripture (Quran)"/>
+                                <outline text="Angels and Jinn"/>
+                                <outline text="Day of Judgment"/>
+                            </outline>
+                            <outline text="Practices">
+                                <outline text="Daily Prayers"/>
+                                <outline text="Fasting (Ramadan)"/>
+                                <outline text="Charity (Zakat)"/>
+                                <outline text="Pilgrimage (Hajj)"/>
+                                <outline text="Recitation of the Quran"/>
+                            </outline>
+                        </outline>
+                        <outline text="Judaism" _note="Monotheistic religion of the Jewish people, based on the Hebrew scriptures (Tanakh).">
+                            <outline text="Branches">
+                                <outline text="Orthodox Judaism"/>
+                                <outline text="Conservative Judaism"/>
+                                <outline text="Reform Judaism"/>
+                                <outline text="Reconstructionist Judaism"/>
+                            </outline>
+                            <outline text="Core Beliefs">
+                                <outline text="Monotheism"/>
+                                <outline text="Covenant between God and Israel"/>
+                                <outline text="Torah (Law)"/>
+                                <outline text="Mitzvot (Commandments)"/>
+                                <outline text="Messiah (Messianic Hope)"/>
+                            </outline>
+                            <outline text="Practices">
+                                <outline text="Sabbath Observance"/>
+                                <outline text="Dietary Laws (Kosher)"/>
+                                <outline text="Circumcision"/>
+                                <outline text="Prayer Services"/>
+                                <outline text="Festivals (Passover, Yom Kippur)"/>
+                            </outline>
+                        </outline>
+                        <outline text="Bahá&apos;í Faith" _note="Monotheistic religion teaching the essential worth of all religions and unity of all people.">
+                            <outline text="Founders">
+                                <outline text="The Báb"/>
+                                <outline text="Bahá&apos;u&apos;lláh"/>
+                            </outline>
+                            <outline text="Core Beliefs">
+                                <outline text="Oneness of God"/>
+                                <outline text="Oneness of Religion"/>
+                                <outline text="Oneness of Humanity"/>
+                                <outline text="Progressive Revelation"/>
+                            </outline>
+                            <outline text="Practices">
+                                <outline text="Daily Prayer"/>
+                                <outline text="Fasting"/>
+                                <outline text="Community Service"/>
+                            </outline>
+                        </outline>
+                    </outline>
+                    <outline text="Dharmic Religions">
+                        <outline text="Hinduism" _note="Diverse Indian religion with beliefs spanning monotheism, polytheism, pantheism, monism, and atheism.">
+                            <outline text="Major Traditions">
+                                <outline text="Vaishnavism"/>
+                                <outline text="Shaivism"/>
+                                <outline text="Shaktism"/>
+                                <outline text="Smartism"/>
+                            </outline>
+                            <outline text="Core Concepts">
+                                <outline text="Dharma (Duty, Ethics)"/>
+                                <outline text="Karma (Action, Intent, Consequences)"/>
+                                <outline text="Samsara (Cycle of Rebirth)"/>
+                                <outline text="Moksha (Liberation)"/>
+                                <outline text="Brahman (Ultimate Reality)"/>
+                                <outline text="Atman (Soul)"/>
+                            </outline>
+                            <outline text="Scriptures">
+                                <outline text="Vedas"/>
+                                <outline text="Upanishads"/>
+                                <outline text="Bhagavad Gita"/>
+                                <outline text="Puranas"/>
+                            </outline>
+                            <outline text="Practices">
+                                <outline text="Yoga and Meditation"/>
+                                <outline text="Puja (Worship)"/>
+                                <outline text="Festivals (Diwali, Holi)"/>
+                                <outline text="Pilgrimage (Tirtha)"/>
+                            </outline>
+                        </outline>
+                        <outline text="Buddhism" _note="Religion and philosophy based on the teachings of Siddhartha Gautama (the Buddha).">
+                            <outline text="Branches">
+                                <outline text="Theravada Buddhism"/>
+                                <outline text="Mahayana Buddhism"/>
+                                <outline text="Vajrayana (Tibetan Buddhism)"/>
+                                <outline text="Zen Buddhism"/>
+                            </outline>
+                            <outline text="Core Teachings">
+                                <outline text="Four Noble Truths"/>
+                                <outline text="Eightfold Path"/>
+                                <outline text="Nirvana (Enlightenment)"/>
+                                <outline text="Anicca (Impermanence)"/>
+                                <outline text="Anatta (Non-self)"/>
+                                <outline text="Dependent Origination"/>
+                            </outline>
+                            <outline text="Practices">
+                                <outline text="Meditation"/>
+                                <outline text="Mindfulness"/>
+                                <outline text="Monastic Life"/>
+                                <outline text="Moral Precepts"/>
+                            </outline>
+                        </outline>
+                        <outline text="Jainism" _note="Ancient Indian religion teaching a path to spiritual purity and enlightenment through disciplined nonviolence.">
+                            <outline text="Core Principles">
+                                <outline text="Ahimsa (Non-violence)"/>
+                                <outline text="Anekantavada (Many-sided Reality)"/>
+                                <outline text="Aparigraha (Non-attachment)"/>
+                            </outline>
+                            <outline text="Practices">
+                                <outline text="Vegetarianism"/>
+                                <outline text="Meditation"/>
+                                <outline text="Asceticism"/>
+                            </outline>
+                            <outline text="Tirthankaras" _note="Spiritual teachers in Jainism (Mahavira being the most recent)."/>
+                        </outline>
+                        <outline text="Sikhism" _note="Monotheistic religion founded in the Punjab region, emphasizing equality, service, and devotion to one God.">
+                            <outline text="Core Beliefs">
+                                <outline text="One Universal God (Waheguru)"/>
+                                <outline text="Teachings of Ten Gurus"/>
+                                <outline text="Guru Granth Sahib (Holy Scripture)"/>
+                                <outline text="Equality of All Humans"/>
+                                <outline text="Community Service (Seva)"/>
+                            </outline>
+                            <outline text="Practices">
+                                <outline text="Prayer (Nitnem)"/>
+                                <outline text="Five Ks (Articles of Faith)">
+                                    <outline text="Kesh (Uncut Hair)"/>
+                                    <outline text="Kangha (Comb)"/>
+                                    <outline text="Kara (Steel Bracelet)"/>
+                                    <outline text="Kachera (Cotton Undergarments)"/>
+                                    <outline text="Kirpan (Ceremonial Sword)"/>
+                                </outline>
+                                <outline text="Langar (Community Kitchen)"/>
+                                <outline text="Gurdwara Attendance"/>
+                            </outline>
+                        </outline>
+                    </outline>
+                    <outline text="East Asian Religions">
+                        <outline text="Taoism (Daoism)" _note="Philosophical/religious tradition of Chinese origin emphasizing living in harmony with the Tao (the Way).">
+                            <outline text="Core Concepts">
+                                <outline text="Tao (The Way)"/>
+                                <outline text="Wu Wei (Non-action)"/>
+                                <outline text="Yin and Yang"/>
+                                <outline text="Three Treasures (Compassion, Frugality, Humility)"/>
+                            </outline>
+                            <outline text="Texts">
+                                <outline text="Tao Te Ching"/>
+                                <outline text="Zhuangzi"/>
+                            </outline>
+                            <outline text="Practices">
+                                <outline text="Meditation"/>
+                                <outline text="Tai Chi"/>
+                                <outline text="Feng Shui"/>
+                                <outline text="Alchemy"/>
+                            </outline>
+                        </outline>
+                        <outline text="Confucianism" _note="Philosophical and ethical system based on the teachings of Confucius.">
+                            <outline text="Core Concepts">
+                                <outline text="Ren (Humaneness)"/>
+                                <outline text="Li (Proper Conduct)"/>
+                                <outline text="Xiao (Filial Piety)"/>
+                                <outline text="Junzi (Virtuous Gentleman)"/>
+                            </outline>
+                            <outline text="Texts">
+                                <outline text="Analects"/>
+                                <outline text="Book of Mencius"/>
+                            </outline>
+                            <outline text="Practices">
+                                <outline text="Rituals and Ceremonies"/>
+                                <outline text="Education and Self-Cultivation"/>
+                                <outline text="Ancestral Worship"/>
+                            </outline>
+                        </outline>
+                        <outline text="Shinto" _note="Indigenous spirituality of Japan focused on ritual practices to connect with kami (spirits).">
+                            <outline text="Core Beliefs">
+                                <outline text="Kami (Spirits or Deities)"/>
+                                <outline text="Purity and Pollution"/>
+                                <outline text="Creation Myths"/>
+                            </outline>
+                            <outline text="Practices">
+                                <outline text="Shrine Visits"/>
+                                <outline text="Festivals (Matsuri)"/>
+                                <outline text="Ritual Purification"/>
+                                <outline text="Offerings and Prayers"/>
+                            </outline>
+                        </outline>
+                    </outline>
+                    <outline text="Indigenous and Folk Religions">
+                        <outline text="African Traditional Religions"/>
+                        <outline text="Native American Religions"/>
+                        <outline text="Australian Aboriginal Religions"/>
+                        <outline text="Shamanism"/>
+                        <outline text="Animism"/>
+                    </outline>
+                    <outline text="New Religious Movements">
+                        <outline text="Scientology"/>
+                        <outline text="Rastafarianism"/>
+                        <outline text="Neo-Paganism">
+                            <outline text="Wicca"/>
+                            <outline text="Druidism"/>
+                        </outline>
+                        <outline text="Unification Church"/>
+                    </outline>
+                </outline>
+                <outline text="Atheism and Non-religious Belief Systems" _note="Belief systems that do not include deities or divine figures.">
+                    <outline text="Atheism">
+                        <outline text="Definitions">
+                            <outline text="Explicit Atheism" _note="Conscious disbelief in deities."/>
+                            <outline text="Implicit Atheism" _note="Absence of belief in deities without conscious rejection."/>
+                        </outline>
+                        <outline text="Arguments for Atheism">
+                            <outline text="Problem of Evil"/>
+                            <outline text="Lack of Empirical Evidence"/>
+                            <outline text="Occam&apos;s Razor"/>
+                            <outline text="Inconsistent Revelations"/>
+                        </outline>
+                        <outline text="Atheist Philosophies">
+                            <outline text="Secular Humanism"/>
+                            <outline text="Rationalism"/>
+                            <outline text="Skepticism"/>
+                            <outline text="Logical Positivism"/>
+                        </outline>
+                    </outline>
+                    <outline text="Agnosticism">
+                        <outline text="Definitions">
+                            <outline text="Agnostic Theism" _note="Belief in a deity while claiming that the nature or existence of the deity is unknown or unknowable."/>
+                            <outline text="Agnostic Atheism" _note="Lack of belief in a deity due to insufficient evidence, without claiming certainty that none exists."/>
+                        </outline>
+                        <outline text="Philosophical Basis">
+                            <outline text="Epistemological Limitations"/>
+                            <outline text="Skepticism about Metaphysical Claims"/>
+                        </outline>
+                    </outline>
+                    <outline text="Secular Humanism" _note="Philosophy embracing human reason, ethics, and justice without belief in the supernatural.">
+                        <outline text="Core Principles">
+                            <outline text="Ethics without Religion"/>
+                            <outline text="Human Reason and Science"/>
+                            <outline text="Democracy and Human Rights"/>
+                            <outline text="Fulfillment through Personal Growth"/>
+                        </outline>
+                    </outline>
+                    <outline text="Non-theism" _note="Umbrella term for beliefs that do not involve a personal deity.">
+                        <outline text="Deism" _note="Belief in a creator who does not intervene in the universe."/>
+                        <outline text="Pantheism" _note="Belief that the universe itself is divine (God and nature are identical)."/>
+                        <outline text="Panentheism" _note="Belief that the divine pervades every part of the universe and extends beyond it."/>
+                    </outline>
+                </outline>
+                <outline text="Ethical Theories" _note="Major frameworks of moral philosophy analyzing right and wrong.">
+                    <outline text="Virtue Ethics" _note="Focus on moral character (exemplified by Aristotle&apos;s Nicomachean Ethics, Confucian virtues)."/>
+                    <outline text="Deontology" _note="Duty-based ethics emphasizing rules (Immanuel Kant&apos;s categorical imperative)."/>
+                    <outline text="Consequentialism" _note="Outcome-based ethics such as utilitarianism (maximize overall good; Jeremy Bentham, J.S. Mill)."/>
+                    <outline text="Moral Relativism" _note="Morality is viewed as context-dependent with no absolute truths (varies by culture or individual)."/>
+                    <outline text="Divine Command Theory" _note="Ethical view that what is morally right is determined by God&apos;s commands (prominent in Abrahamic traditions)."/>
+                </outline>
+            </outline>
+            <outline text="Ideologies" _note="Systems of ideas and ideals that form the basis of social, political, or economic theories and policies.">
+                <outline text="Political Ideologies">
+                    <outline text="Capitalism" _note="Economic system based on private ownership and free markets."/>
+                    <outline text="Socialism" _note="Economic system advocating social or cooperative ownership of production."/>
+                    <outline text="Communism" _note="Ideology of a classless, stateless society with common ownership of production (Marxist theory)."/>
+                    <outline text="Anarchism" _note="Belief in abolishing all formal government in favor of voluntary cooperation."/>
+                    <outline text="Liberalism" _note="Political philosophy founded on ideas of individual liberty and equality."/>
+                    <outline text="Conservatism" _note="Commitment to traditional values and resistance to rapid change."/>
+                    <outline text="Fascism" _note="Authoritarian ultranationalism with dictatorial power and suppression of opposition."/>
+                    <outline text="Environmentalism" _note="Ideology prioritizing environmental protection and ecological balance."/>
+                    <outline text="Nationalism" _note="Ideology emphasizing loyalty to a nation, seeking self-governance for a perceived people."/>
+                    <outline text="Globalism" _note="Ideology advocating global cooperation and viewing issues in a worldwide context."/>
+                </outline>
+                <outline text="Social Ideologies">
+                    <outline text="Feminism" _note="Movement for women's rights and gender equality.">
+                        <outline text="First-Wave Feminism"/>
+                        <outline text="Second-Wave Feminism"/>
+                        <outline text="Third-Wave Feminism"/>
+                        <outline text="Intersectional Feminism"/>
+                    </outline>
+                    <outline text="Humanism" _note="Outlook emphasizing human values and rationality, often without recourse to the divine."/>
+                    <outline text="Transhumanism" _note="Belief in using technology to transcend current human limitations (e.g., enhancing longevity or cognition)."/>
+                    <outline text="Posthumanism" _note="Ideas about the future evolution of humanity beyond current human conditions, often via technology."/>
+                    <outline text="Libertarianism" _note="Ideology advocating minimal state intervention and maximal individual freedom."/>
+                </outline>
+                <outline text="Economic Ideologies">
+                    <outline text="Keynesianism" _note="Economic theory that government fiscal and monetary intervention can stabilize the economy."/>
+                    <outline text="Monetarism" _note="Economic theory emphasizing control of money supply to manage the economy (Milton Friedman)."/>
+                    <outline text="Marxism" _note="Socioeconomic analysis that interprets class relations and social conflict through a materialist lens of history (Karl Marx)."/>
+                    <outline text="Austrian School" _note="Economic philosophy advocating free markets and methodological individualism (Ludwig von Mises, F.A. Hayek)."/>
+                </outline>
+                <outline text="Emerging Ideologies and Movements" _note="21st-century intellectual movements and developing ideologies.">
+                    <outline text="Effective Altruism" _note="Social movement using evidence and reason to maximize doing good (associated with William MacAskill, Peter Singer)."/>
+                    <outline text="Longtermism" _note="Ethical stance emphasizing the importance of positively influencing the long-term future (focus on existential risk mitigation)."/>
+                    <outline text="Extropianism" _note="Optimistic futurist philosophy advocating proactive use of technology to extend life and expand human potential (Max More)."/>
+                    <outline text="Singularitarianism" _note="Belief in the inevitability of a technological singularity and the need to prepare for superintelligent AI development."/>
+                    <outline text="Modern Cosmism" _note="Revival of cosmism; idea that humanity should merge with technology and colonize space to evolve beyond current human limitations (inspired by Russian Cosmism)."/>
+                </outline>
+            </outline>
+            <outline text="Motivations" _note="Internal and external drivers behind actions and decisions.">
+                <outline text="Physiological Drives" _note="Basic survival motivations (hunger, thirst, sleep, reproduction)."/>
+                <outline text="Emotional Drives" _note="Emotions such as fear, love, anger and how they motivate behavior."/>
+                <outline text="Social Motivations" _note="Needs for belonging, status, power, and social connection (affiliation, achievement, etc.)."/>
+                <outline text="Intrinsic vs Extrinsic Motivation" _note="Acting for inherent satisfaction (intrinsic) versus for external rewards or pressures (extrinsic)."/>
+                <outline text="Hierarchy of Needs (Maslow)" _note="Framework of human needs from basic (physiological, safety) to higher (love, esteem, self-actualization)."/>
+                <outline text="Self-Determination Theory" _note="Psychological theory of motivation focusing on autonomy, competence, and relatedness as key needs (Edward Deci & Richard Ryan)."/>
+                <outline text="Evolutionary Motivations" _note="Behaviors driven by evolutionary pressures (e.g., survival instinct, kin selection, sexual selection)."/>
+            </outline>
+            <outline text="Explanations (Science and Reason)" _note="Frameworks and methods for explaining phenomena.">
+                <outline text="Scientific Method" _note="Empirical process of observing, hypothesizing, experimenting, and drawing conclusions (formalized by figures like Francis Bacon)."/>
+                <outline text="Scientific Theory" _note="Well-substantiated explanation of some aspect of the natural or social world (e.g., theory of gravity, evolution)."/>
+                <outline text="Hypothesis" _note="Tentative explanation or prediction that can be tested through study and experimentation."/>
+                <outline text="Scientific Law" _note="Descriptive generalization about how some aspect of nature behaves under certain conditions (often mathematical)."/>
+                <outline text="Causation vs Correlation" _note="Principle of cause-and-effect versus mere association; correlation does not imply causation."/>
+                <outline text="Paradigms and Models" _note="Foundational frameworks or examples that shape scientific understanding (Kuhn&apos;s paradigm shifts; use of models to simulate reality)."/>
+                <outline text="Sociological Theories" _note="Major frameworks for understanding society and social behavior.">
+                    <outline text="Structural Functionalism" _note="Views society as an integrated system of parts (Émile Durkheim, Talcott Parsons)."/>
+                    <outline text="Conflict Theory" _note="Society is in perpetual conflict due to competition for resources; emphasizes power disparities (Karl Marx, C. Wright Mills)."/>
+                    <outline text="Symbolic Interactionism" _note="Focus on how individuals interact and create societal meanings through symbols (George H. Mead)."/>
+                    <outline text="Social Constructionism" _note="Many aspects of society (norms, identities) are maintained through collective agreement and discourse (Berger & Luckmann)."/>
+                </outline>
+            </outline>
+            <outline text="Arts and Humanities" _note="Creative and cultural expressions of meaning (placement under WHY is tentative).">
+                <outline text="Visual Arts" _note="Art forms that are primarily visual in nature (painting, sculpture, design)."/>
+                <outline text="Performing Arts" _note="Art forms that involve performance (music, dance, theater)."/>
+                <outline text="Literature" _note="Written works considered as art (fiction, poetry, drama)."/>
+                <outline text="Philosophy of Art (Aesthetics)" _note="Study of beauty, art, and taste; examining why art is valued and how it affects us."/>
+            </outline>
+            <outline text="Mind and Psychology" _note="Mental processes, consciousness, and behavior.">
+                <outline text="Nature of Mind" _note="Conceptual and philosophical perspectives on what the mind is.">
+                    <outline text="Definition of the Mind" _note="The collective aspects of intellect and consciousness (thoughts, perceptions, emotions, memory, etc.)."/>
+                    <outline text="Mind-Body Problem" _note="Debate on how the mind relates to the physical brain and body (e.g., Descartes&apos; dualism vs. physicalism)."/>
+                    <outline text="Philosophical Perspectives on the Mind" _note="Theories about the mind&apos;s nature (dualism, physicalism, idealism, functionalism, panpsychism, etc.)."/>
+                </outline>
+                <outline text="Consciousness" _note="Awareness of self and surroundings.">
+                    <outline text="Levels of Consciousness" _note="Different states of awareness (wakefulness, sleep stages, altered states like meditation or hypnosis)."/>
+                    <outline text="Theories of Consciousness" _note="Models explaining consciousness (Global Workspace Theory, Integrated Information Theory, Higher-Order Thought, etc.)."/>
+                    <outline text="Self-Awareness" _note="Recognition of oneself as an individual separate from the environment (mirror self-recognition, self-concept)."/>
+                </outline>
+                <outline text="Cognitive Processes" _note="Mental processes involved in acquiring knowledge and understanding.">
+                    <outline text="Perception" _note="Interpreting sensory information to represent and understand the environment (vision, hearing, touch, taste, smell)."/>
+                    <outline text="Attention" _note="Selective concentration on certain stimuli while ignoring others."/>
+                    <outline text="Memory" _note="Encoding, storage, and retrieval of information over time."/>
+                    <outline text="Language" _note="Use of symbols and grammar to communicate meaning (spoken, written, or signed)."/>
+                    <outline text="Thought and Reasoning" _note="Mental manipulation of information to form concepts, solve problems, and make decisions."/>
+                    <outline text="Learning" _note="Acquisition of knowledge or skills through experience, study, or teaching (conditioning, observation, instruction)."/>
+                </outline>
+                <outline text="Emotion and Motivation" _note="Affective states and drives that influence behavior.">
+                    <outline text="Basic Emotions" _note="Fundamental emotions (happiness, sadness, fear, anger, disgust, surprise) that are often considered universal."/>
+                    <outline text="Complex Emotions" _note="Emotions that are combinations or culturally influenced (love, guilt, jealousy, pride, shame)."/>
+                    <outline text="Mood and Affect" _note="Longer-lasting emotional states (moods) versus immediate expressions of feeling (affect)."/>
+                    <outline text="Emotion Regulation" _note="Processes by which individuals influence their emotions (intensity, duration, expression)."/>
+                    <outline text="Motivational Drives" _note="Innate and learned drives that prompt action (e.g., curiosity, ambition, reward-seeking) – see Motivations branch for details."/>
+                </outline>
+                <outline text="Psychological Theories and Schools" _note="Major approaches to understanding mind and behavior.">
+                    <outline text="Psychoanalysis" _note="Freud&apos;s theory focusing on unconscious motives, conflicts, and childhood experiences."/>
+                    <outline text="Behaviorism" _note="Approach focusing on observable behavior and its conditioning (Pavlov&apos;s classical conditioning, Skinner&apos;s operant conditioning)."/>
+                    <outline text="Cognitive Psychology" _note="Approach studying internal mental processes like memory, perception, and problem-solving (emerged mid-20th century)."/>
+                    <outline text="Humanistic Psychology" _note="Approach emphasizing personal growth, free will, and self-actualization (Carl Rogers, Abraham Maslow)."/>
+                    <outline text="Developmental Psychology" _note="Study of how people grow and change over the lifespan (e.g., Piaget&apos;s cognitive stages, Erikson&apos;s psychosocial stages)."/>
+                </outline>
+                <outline text="Mental Health" _note="Psychological well-being and disorders.">
+                    <outline text="Mental Disorders" _note="Psychopathologies affecting mood, thought, or behavior (e.g., anxiety disorders, mood disorders like depression, psychotic disorders like schizophrenia)."/>
+                    <outline text="Therapeutic Approaches" _note="Methods for treating mental health issues (psychotherapy modalities, cognitive-behavioral therapy, psychoanalysis, medications, etc.)."/>
+                    <outline text="Coping and Resilience" _note="Strategies and abilities to handle stress, adversity, and recover from challenges."/>
+                </outline>
+                <outline text="Cognitive Biases" _note="Systematic patterns of deviation from rational judgment (e.g., confirmation bias, anchoring effect, hindsight bias, Dunning-Kruger effect)."/>
+                <outline text="Intelligence and Creativity" _note="Cognitive capacities for learning, problem-solving, and generating novel ideas (IQ, multiple intelligences theory, creative thinking processes)."/>
+                <outline text="Artificial Intelligence and the Mind" _note="Interactions and comparisons between AI systems and human cognition.">
+                    <outline text="AI Cognitive Architectures" _note="Designs of AI systems inspired by human cognition (symbolic AI, connectionist neural networks, hybrid models)."/>
+                    <outline text="Machine Perception" _note="How AI systems interpret sensory data (computer vision, natural language processing, speech recognition)."/>
+                    <outline text="AI and Consciousness" _note="Debate on whether an artificial system could achieve consciousness or self-awareness (and how to test it)."/>
+                    <outline text="Ethical Considerations in AI" _note="Moral and societal issues of advanced AI (AI rights, accountability for AI decisions, impact on employment and privacy)."/>
+                    <outline text="Future of AI and Humanity" _note="Speculations on how AI might augment or transform human cognitive abilities and society."/>
+                </outline>
+            </outline>
+        </outline>
+    </body>
+</opml>
+
+
+
+
+/// PS — Supplemental Enhancements (v 3.0.0-addendum)
+
+• Multi-Perspective Stub  
+  When populating a new WHY entry, pre-fill this mini-template:  
+  `Scientific: … | Philosophical: … | Psychological: … | Sociocultural: …`  
+  Encourages balanced, multi-angle explanations.
+
+• Fuzzy-Match Redundancy Check  
+  If a proposed WHY title shares ≥ 80 % token-similarity with an existing entry, auto-link as alias and flag `#why-possible-dupe`.
+
+• Contention Indicator  
+  Add an optional `_contention:[Low|Medium|High]` tag so controversial explanations surface during debate queries.
+
+• Scene-DNA Hook  
+  For causal nodes tied to creative work (e.g., “Why the hero rebels”), allow a `sceneDNA` field capturing mood/palette/BPM so Art-Suite modules can inherit story rationale.
+
+• Auto-OPML Snapshot  
+  On >10 new WHY nodes integrated in one batch, trigger `EXPORT format="OPML" branch="WHY"` for version tracking.
+
+• Road-Map Parity  
+  – Visual “causality map” UI (future GPT Action)  
+  – Contrast-matrix builder (`COMPARE WHY:X vs Y vs Z`) for classroom debates  
+  – Quick-diff view highlighting changes across versions
+``` :contentReference[oaicite:0]{index=0}&#8203;:contentReference[oaicite:1]{index=1}
+
+​//————————————————————————————————————————  
+/// KNOWLEDGE PATHWAY FOOTER
+/// ENTRYPOINT: Use for motivation, causal explanation, philosophical systems, ideology, or any “why” question.
+/// OUTPUT: Pass WHY node structure, updated rationale, and causal cross-link summary to Start.txt.
+/// CHECKLIST: Did I provide causal models and explanations, and cross-link to relevant branches? Is philosophical/ideological ambiguity, overlap, or contest flagged?
+/// PATH TRACE: Log WHY category or framework updated, causal links, and suggest further context if needed.
+/// SEE ALSO: arkhive.txt, arkhiver.txt, arkhiver-mind.txt, Mind-Predictive.txt, branch files.
+//————————————————————————————————————————  

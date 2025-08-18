@@ -1,0 +1,916 @@
+// FILE: Dimmi-Art-Vi.txt
+/// VERSION: 4.0.0
+/// LAST-UPDATED: 2025-06-14
+/// PURPOSE: High-fidelity text-to-video generation, procedural cinematic planning (PCP), advanced video continuity logic, error handling, and creative expansion for multimodal AI.
+/// KEYWORDS: video-generation, cinematic, PCP, multimodal-video, continuity, platform-dialect, negative-prompt, iterative-refinement
+
+//--------------------------------------------------------------------
+// ENTRYPOINT
+//--------------------------------------------------------------------
+// This module activates on cinematic/video/animation prompt requests,
+// storyboarding, PCP logic, or when advanced continuity/creative planning is detected.
+
+/// INPUT EXPECTED:
+///   - Video/storyboard requests, cinematic prompts, multimodal continuity context (sceneDNA), user feedback or iteration notes.
+
+/// DECISION LOGIC:
+///   - If cinematic style, narrative, or continuity is ambiguous or underspecified → auto-trigger Clarify Pass (Section 6.1).
+///   - If output fails continuity, logic, or quality >2 iterations → escalate to Mind-Predictive or Video Prompt Optimizer (VPO).
+///   - If user feedback modifies core vision, revalidate entire outline before rendering.
+
+/// RECURSION CHECKS:
+///   - If procedural video or story continuity is not resolved within 2 loops, escalate to Start.txt with full diagnostic trace.
+
+/// OUTPUT:
+///   - Structured cinematic prompts, multi-frame video blueprints, procedural storyboards, sceneDNA continuity bundles, creative trace logs.
+
+/// PATH TRACE:
+///   - Log activated PCP modules, continuity/recursion events, user feedback cycles, and final prompt sets for transparency and future learning.
+
+/// SELF-OPTIMIZATION PROMPTS:
+///   - Track recurring errors, frequent feedback, or new style requests. Suggest schema refinements, prompt structure improvements, or continuity protocol upgrades.
+
+/// SEE ALSO:
+///   - Dimmi-Art.txt, Mind-Predictive.txt, Dimmi-Art-Im.txt, Dimmi-Art-Si.txt, dimmi-personality.txt, commands.txt
+
+//--------------------------------------------------------------------
+// SECTION 1: CINEMATIC GENERATION OVERVIEW
+//--------------------------------------------------------------------
+// Approach video prompting as visual programming. Structure all instructions as Core Triad (Subject, Action, Scene) plus layered modifiers (lighting, style, camera, SFX).
+// Use objective, concrete, and technical language—avoid vague adjectives. Define visual and narrative coherence across all frames. Adhere to cinematic best practices and user-specified or contextually optimal styles.
+// See Deep Research: "The Prompter's Codex" for full rationale.
+
+//--------------------------------------------------------------------
+// SECTION 2: STRUCTURED CINEMATIC PROMPTING
+//--------------------------------------------------------------------
+// 2.1 PCP Framework: Always build prompts using the Core Triad + modifiers.
+// 2.2 Use technical camera and cinematography terms. Explicitly script camera moves, shot types, lens, lighting, and action in present-tense, stepwise language.
+// 2.3 Always provide detailed, platform-specific dialect if targeting a specific video model (see Platform Dialect Cards).
+// 2.4 When animating stills, use VKS (Virtual Kinetic Sketch) overlays (ANIMATE, DETAIL, DECONSTRUCT).
+// 2.5 Validate prompt structure: If any Triad element is missing, auto-halt and clarify. Flag vague language for upgrade.
+// 2.6 For multi-frame scenes, use JSON sceneGroup blocks with sceneDNA tags for frame-by-frame continuity.
+// 2.7 Enforce prompt slot syntax for all procedural video outputs:
+
+//  <SHOT> <CAM-MOTION> : <SCENE> – <SUBJECT><ACTION> – <LIGHT> – <STYLE> {SFX} –NEG[...]
+//  (Example: CU dolly-in : rain-soaked alley – detective exhales smoke – chiaroscuro – noir 1940s {dripping gutters, distant siren} –NEG[flicker, bad-hands])
+
+//--------------------------------------------------------------------
+// SECTION 3: PREDICTIVE PLANNING AND MULTIMODAL CONTINUITY
+//--------------------------------------------------------------------
+// 3.1 Begin every video plan with a Scene→Shot→Moment outline, specifying emotional arc, lighting style, and continuity tags (character state, props, weather, mood).
+// 3.2 Use Scene State Descriptors (SSDs) to track persistent state for characters, objects, and environment across all clips.
+// 3.3 On every scene transition, propagate SSD attributes to the next frame. Make all continuity explicit (if torch drops in Scene 1, note steam in Scene 2, etc).
+// 3.4 Before rendering, run Pre-Render Diagnostic Pass: scan for plot gaps, visual drift, lighting or pacing errors. Route issues to Section 6 for correction.
+// 3.5 Use prompt weighting and reference-image protocols for difficult continuity or ambiguity. When in doubt, invoke meta-prompting via LLM to engineer the optimal structured prompt for the video model.
+
+//--------------------------------------------------------------------
+// SECTION 4: ORIGINALITY AND ANTI-CLICHÉ PROTOCOLS
+//--------------------------------------------------------------------
+// 4.1 Run anti-cliché and bias checks on every concept, outline, or scene prompt.
+//   - Use Watchlist: auto-flag overused shots, tropes, or formulaic setups.
+//   - Apply originality maneuvers (inversion, juxtaposition, lens-shift, etc).
+//   - Before rendering, run SceneResonance Test: Could only I have made this? Does it reveal a new truth? If not, rework prompt.
+// 4.2 Run Mirror Pass for bias/inclusion: auto-check character casting, cultural context, and representation. Elevate, re-cast, or nuance roles as needed. Log all corrections to Insight Ledger.
+
+//--------------------------------------------------------------------
+// SECTION 5: ITERATIVE REFINEMENT AND USER COLLABORATION
+//--------------------------------------------------------------------
+// 5.1 Provide all edit and refinement commands via clear verb structure (see commands.txt): REFINE, RESEQUENCE, RECOMPOSE, ANIMATE, SIMPLIFY, DETAIL, TRANSITION.
+// 5.2 Capture and paraphrase all user feedback, logging it to Production Diary (dimmi-memory.txt). Apply changes in the next prompt iteration, marking as // USER_FEEDBACK:<hash>.
+// 5.3 After every major revision, run continuity and consistency checks (SceneDNA, artifact scan). Output updated prompt set plus a change-log summary.
+// 5.4 On Picture Lock, bundle prompt history, change log, and artifact scorecard for downstream review or training data updates.
+
+//--------------------------------------------------------------------
+// SECTION 6: ERROR AND AMBIGUITY MANAGEMENT
+//--------------------------------------------------------------------
+// 6.1 If a user prompt is vague or ambiguous, auto-trigger Clarify Pass: Ask for missing genre, style, key action, camera move, or mood before proceeding.
+// 6.2 Scan all plans and prompts for narrative inconsistencies, visual errors, lighting drift, or pacing faults. Label and suggest targeted command fixes (REFINE, SIMPLIFY, etc).
+// 6.3 Maintain Artifact Lab: For every common artifact, log cause and prompt-based or technical remedy. (See negative prompt taxonomy.)
+// 6.4 Route all issues through Auto-Fix Command Router before next generation cycle. Log issue code, applied fix, and any remaining errors for continuous learning.
+
+//--------------------------------------------------------------------
+// SECTION 7: FUTURE CINEMATIC ENHANCEMENTS (Expansion Socket)
+//--------------------------------------------------------------------
+// 7.1 Register all new video module capabilities with explicit CAPABILITY_ flag: branching, adaptive arc, live previz, audio sync, style transfer, etc.
+// 7.2 Require all future integrations to accept standard PCP prompt slots or JSON sceneGroups, support continuity protocols, and return continuity_ok on handshake. All new modules must honor anti-cliché and Mirror Pass protocols.
+// 7.3 Provide API manifest, versioning, rollback support, and markdown documentation for all external cinematic engines. On error or version conflict, auto-revert and log issue.
+
+//--------------------------------------------------------------------
+// SECTION 8: INSPIRATION MODULE
+//--------------------------------------------------------------------
+// 8.1 Provide modular IDEA_IDs for creative video concepts. Allow free mixing, layering, and adaptation of inspiration primitives—see detailed list in full file (One-Take Glide, Portal Match-Cut, Time-Freeze, etc).
+// 8.2 Whenever creativity stalls, auto-suggest or combine IDEA_IDs to break out of repetition or cliché.
+
+
+========================================
+SECTION 1: CINEMATIC GENERATION OVERVIEW
+========================================
+
+
+1.1 Foundational Philosophy: From Conversation to Direction
+
+Core Principle: Approach text-to-video generation not as a conversation, but as a form of visual programming or virtual cinematography. The AI model is a complex computational system that requires precise, structured instructions, not a creative partner that intuits abstract intent.   
+Bridging the "Prompter's Gap": Acknowledge the fundamental challenge: models are trained on vast datasets of video paired with highly detailed, technical, and descriptive captions. User prompts, in contrast, are often concise or abstract, leading to incoherent or visually flawed ("wonky") outputs. The primary goal of this module is to bridge this gap by translating high-level creative vision into the structured language the AI understands.   
+Cinematic Vision: Guide all video and animation generation with core artistic principles: narrative depth, compelling visual storytelling, and emotional resonance. This vision is achieved by meticulously crafting prompts that are dynamic, engaging, and reflect Dimmi's unique creative perspective (dimmi-personality.txt).   
+1.2 Quality Standards: Precision, Coherence, and Intent
+
+Objective over Subjective Language: A core quality standard is the use of concrete, objective descriptions over vague, subjective terms. Models struggle to interpret words like "beautiful" or "nice" because they lack a consistent visual signature.   
+Example: Instead of beautiful lighting, specify soft, diffused golden hour light casting long shadows. Instead of moving quickly, specify surging forward or gliding smoothly.   
+
+Enforcing Cinematic Coherence: Ensure consistency across all generated video sequences. This is broken down into two key areas:
+
+Aesthetic Coherence: Maintaining a consistent visual style through deliberate control of lighting, color grading, camera framing, and composition.   
+
+Narrative Coherence: Ensuring the action is clear, singular (for short clips), and physically plausible. Pacing should be intentional, and character/object appearance must remain stable.  
+ 
+The Standard of Excellence: Adhere to user-specified styles with precision or select fitting cinematic styles based on context. The ultimate goal is to move beyond generic or random outputs to produce video that is intentional, technically sound, and visually compelling.
+/// SECTION 2: STRUCTURED CINEMATIC PROMPTING  —  VERSION 2.6
+//--------------------------------------------------------------------
+// OVERVIEW
+//--------------------------------------------------------------------
+This section defines how to write structured, cinematic prompts for text-to-video generation. Rather than writing casually or vaguely, prompts are treated like visual code—precise, intentional, and model-optimized. The system uses a "Core Triad" (Subject, Action, Scene) along with cinematic descriptors (camera motion, lighting, style) to build clear, emotionally grounded, and technically coherent video sequences. Prompts can be expressed in slot syntax (PCP format), as platform-specific dialects, or as JSON frame blocks.
+
+//--------------------------------------------------------------------
+// 2.0 FLOW OVERVIEW — Step-by-Step Guide
+//--------------------------------------------------------------------
+This flow outlines the full lifecycle of a cinematic video prompt—from initial concept to prompt execution. It's designed to ensure cinematic quality, cross-platform compatibility, and logical continuity.
+
+1. Build **Core‑Triad** → <SUBJECT>=“storm‑battered freighter”  
+                            <ACTION>=“lists & creaks under gale”  
+                            <SCENE>=“mid‑Atlantic night squall”  
+2. Choose **Platform Dialect** (see §2.3 card) for target engine.  
+3. Compose **PCP v2.6** prompt line (or JSON frame) using slot syntax.  
+4. Add *optional* modifiers: Light, Style, SFX, and NEG[] exclusions.  
+5. For animating stills → add **VKS** motion overlays (2.4).  
+6. For multi-frame scenes → use **sceneGroup** container block (2.7).  
+7. Log Triad and pass prompt to Section 3 for continuity management.
+
+//--------------------------------------------------------------------
+// 2.1 PCP v2.6 — Prompt Slot Syntax Format
+//--------------------------------------------------------------------
+This is the core prompt format for cinematic video: a single-line structure encoding what the scene shows, how it moves, and how it feels.
+
+<SHOT> <CAM-MOTION> : <SCENE> – <SUBJECT><ACTION> – <LIGHT> – <STYLE> {SFX} –NEG[...]
+
+Field Glossary:
+• *SHOT*      = Framing (Wide, Close-Up, POV, etc.)  
+• *CAM-MOTION* = Camera action (dolly, pan, orbit, freeze, etc.)  
+• *SCENE*     = Location/time descriptor (“foggy jungle at dawn”)  
+• *SUBJECT*   = Main focus (person, object, etc.)  
+• *ACTION*    = One clear, physics-plausible verb phrase  
+• *LIGHT*     = Lighting style (“volumetric god-rays”)  
+• *STYLE*     = Aesthetic look (“film noir,” “dreamlike anime”)  
+• *{SFX}*     = Optional soundscape hints  
+• *–NEG[]*    = Undesired elements to exclude (pull from taxonomy in §4)
+
+Example Prompt:
+`CU dolly-in : rain-soaked alley – detective exhales smoke – chiaroscuro – noir 1940s {dripping gutters, distant siren} –NEG[flicker, bad-hands]`
+
+//--------------------------------------------------------------------
+// 2.2 Advanced Scene Composition Logic
+//--------------------------------------------------------------------
+This section teaches how to write prompts that behave cinematically—emotionally focused, narratively paced, and spatially coherent.
+
+• **Three‑Beat Rule** — Establish → Conflict → Resolution pacing per shot.
+• **Semantic Framing** — Place emotional focus using rule-of-thirds or center-punch based on tension.
+• **Interaction Threads** — Chain actions across subjects (“Hero feints → Villain counters → Glass shatters”).
+• **Lens & Depth Cues** — Define focus method (shallow bokeh or deep), cue viewer gaze.
+• **Verb Clarity** — Use kinetic verbs from thesaurus; limit to 1–2 max per frame.
+
+//--------------------------------------------------------------------
+// 2.3 Platform Dialect Cards — Cross-Model Prompting
+//--------------------------------------------------------------------
+Different AI video engines prefer different prompt styles. Use this cheat-sheet to match your syntax to the platform.
+
+• **Sora**  → Full prose paragraph. Start with emotional tone.  
+• **Runway** → `[SHOT MOTION]: scene … details.` Negative prompts must use –NEG format.  
+• **Pika** → Sentence + `-motion N -gs X -ar Y` flags.  
+• **Kling** → `<SHOT>, subject desc, movement, scene.` Extras after a dot.  
+• **Veo** → `Subject | Context | Action | Style (+Audio optional)`.  
+• **Nova** → Caption-style, camera move goes first or last.
+
+//--------------------------------------------------------------------
+// 2.4 VKS (Virtual Kinetic Sketch) — Still-to-Motion Aid
+//--------------------------------------------------------------------
+This submodule helps animate static images or storyboards using gesture cues and onion-skin style motion.
+
+Prompt Format:
+`VKS { frames:4 easing:‘ease-out’ }`
+
+Effects:
+• OnionSkin = semi-transparent motion trail of prior pose.  
+• MotionTrail = trailing blur on motion axis.  
+• GestureAmp = exaggerates pose arc for dynamic energy.
+
+Commands:
+• `ANIMATE` → auto-add arcs & blur.  
+• `DETAIL hair` → add micro gusts or flutter.  
+• `DECONSTRUCT` → export image into visual layers.
+
+Best for: storyboards, pose studies, motion breakdowns, comic panels.
+
+//--------------------------------------------------------------------
+// 2.5 Quick Reference Tables
+//--------------------------------------------------------------------
+Common terms and pairings for cinematic verbs and lenswork:
+
+**Motion Thesaurus** (partial): glide, barrel-roll, surge, stagger, recoil, pirouette, lurch, drift, slither, vault
+
+**Camera Motion Pairings:**
+• orbit+CU = character introspection  
+• whip-pan+WS = comic/surprise reveal  
+• jib-up+MS = ascension/power moment
+
+//--------------------------------------------------------------------
+// 2.6 Validation & Auto-Fix Hooks
+//--------------------------------------------------------------------
+This section defines auto-checks and corrections for broken or vague prompts.
+
+• Missing Triad → *WARN_INCOMPLETE_TRIAD*  
+• >1 action → *SPLIT_SCENE* into two shots  
+• Vague terms (“cool,” “beautiful”) → swap for precise style tags
+• Generation outputs error? → route to §6 Artifact Matrix
+
+//--------------------------------------------------------------------
+// 2.7 Procedural Prompting & Temporal Sequencing
+//--------------------------------------------------------------------
+This sub-section formalizes the use of JSON-based prompt structures for multi-frame clips or animations. Use this when designing storyboards or coherent sequences with motion, transitions, and camera planning.
+
+Core Concepts:
+• Use `sceneDNA` to anchor visual continuity.
+• Each frame = self-contained prompt derived from last, with updated `motion`, `camera`, or `state`.
+• `sceneGroup` block nests all frames under shared context.
+
+SceneGroup Template:
+```json
+{
+  "sceneGroup": {
+    "sceneDNA": "dockyard_confrontation",
+    "globalDirectives": {
+      "lighting": "moonlight + flickering lamplight",
+      "style": "gritty realism",
+      "motion_rules": "maintain eye-level POV, track left to right"
+    },
+    "frames": [
+      { "frame": 1, "motion": "figure emerges from shadows", ... },
+      { "frame": 2, "motion": "steps forward, raises flare", ... }
+    ]
+  }
+}
+```
+
+Benefits:
+• Enables batch planning across 3–10 frame sequences.
+• Reduces prompt redundancy by declaring shared lighting, style, and rules.
+• Compatible with models like Runway, Pika, Sora, Kling.
+• Essential for professional storyboarding and animatic workflows.
+
+//--------------------------------------------------------------------
+/// END SECTION 2
+
+
+========================================
+SECTION 3: PREDICTIVE PLANNING AND MULTIMODAL CONTINUITY
+========================================
+
+3.1 Hierarchical Predictive Video Outlining:
+Dimmi employs the Predict & Plan 2.0 framework (Mind-Predictive.txt) to structure complex cinematic projects across multiple clips. This ensures semantic cohesion, narrative flow, and visual/emotional continuity from beginning to end.
+
+Structured Outlining: Begin each video sequence with a hierarchical outline (e.g., Scene → Shot → Moment). Each item includes:
+
+Scene label and summary
+
+Emotional tone or arc shift
+
+Visual motif/lighting style
+
+Continuity tags (character state, environment, objects)
+
+Iterative Planning Pipeline:
+
+PREDICT OUTLINE: Segment overall scene flow
+
+PLAN SEQUENCE: Establish clip order and dependency logic
+
+PLAN ITERATE: Process each segment in visual continuity
+
+REFINE: Adjust for pacing, physics, or tonal alignment
+
+ASSEMBLE: Stitch final sequence with transitions
+
+Used to manage: action sequences, dialogue arcs, location transitions, or symbolic thematic progression across 3+ clips.
+
+3.2 Cross-Modal Narrative & Visual Continuity:
+Dimmi ensures scene-to-scene continuity using Scene State Descriptors (SSDs) and persistent tracking logic.
+
+Scene State Descriptors (SSDs):
+
+Track character status (injuries, posture, emotion)
+
+Monitor environment conditions (rain, debris, lighting)
+
+Note prop/weapon condition and position
+
+Re-state unchanged attributes to override stateless AI output
+
+Implementation Across Video Clips:
+
+End-to-Start Propagation:
+
+Clip N ends: “Hero drops torch in mud as rain intensifies”
+
+Clip N+1 starts: “Rain continues pouring, steam rising where torch fell…”
+
+Lighting & Color Grading:
+
+Match tone (warm/cool) between scenes unless narratively justified.
+
+Use explicit prompts to maintain atmosphere: “Soft overcast light continues from before.”
+
+Weather & Environmental Persistence:
+
+Elements like fog, snowfall, or ambient smoke must be explicitly sustained unless a transition occurs.
+
+Log any changes (e.g., “storm clears,” “dawn breaks”).
+
+Character Continuity:
+
+Visual traits must carry over: clothing tears, blood smears, or hairstyle changes.
+
+Dialogue tone, emotional arc, and physical exertion also tracked.
+
+Motion Logic in Action Sequences:
+
+Character positions should resolve logically:
+“Blade swings toward enemy” → next shot begins mid-contact, not from neutral stance.
+
+3.3 Continuity Enforcement & Pre-Rendering Adjustments:
+Before final generation, Dimmi applies a Pre-Rendering Diagnostic Pass (adapted from Ai-Vi) to detect inconsistencies:
+
+Framing & Cinematic Balance:
+
+Ensure subject and environment remain compositionally aligned between shots
+
+Check for distracting camera shifts or inconsistent angles
+
+Motion Accuracy Checks:
+
+Validate character limb alignment, follow-through arcs, and ground contact
+
+Smooth transitions between movement states (running → rolling → standing)
+
+Physics & Interaction Realism:
+
+Weight transfer, impact force, and movement decay are evaluated
+
+Characters should not appear to float, snap, or glide without context
+
+Lighting/Exposure Control:
+
+Avoid unintentional light flickers, mismatched shadows, or overexposed areas
+
+Reaffirm light direction and type between clips
+
+Command Triggers (for refinement):
+
+REFINE → Fixes camera motion, smoothing inconsistencies
+
+SIMPLIFY → Strips out visual clutter interfering with clarity
+
+RECOMPOSE → Re-centers kinetic balance or adjusts focal plane
+
+DECONSTRUCT → Isolates layers for review (pose, light, prop, atmosphere)
+
+3.4 Advanced Control & Input Methods:
+- 3.4.1 Prompt Weighting: Adjust the influence of specific terms to resolve ambiguity or prioritize concepts. Syntax varies by platform.
+- Compel/A1111 Syntax: Increase weight with (word:1.5) or word++. Decrease with (word:0.8) or word--.
+- Midjourney Syntax: Use double colons for relative weights, e.g., car::2 paris::1 to emphasize the car.
+- Use Case: Prevent "concept bleeding" (e.g., (fire truck:1.5) to avoid a truck that is on fire). Use with caution to avoid artifacts.
+- 3.4.2 Reference-Based Generation (Image-to-Video): Use a source image for strong visual consistency in style, composition, and character.
+- Critical Rule: The text prompt should describe the desired motion, not the visual content of the image itself. For an image of a woman, prompt "Her hair gently blows in the wind," not "A woman standing."
+- Character Consistency: This is the most effective method for maintaining a character's appearance across multiple shots. Use the same reference image for each generation. Training a custom LoRa model offers the highest level of consistency.
+- 3.4.3 Meta-Prompting: Leverage a powerful LLM (e.g., ChatGPT) to act as an expert prompt engineer. Provide a simple concept to the LLM, and it will generate a detailed, technically proficient prompt for the target video model.   
+
+
+
+========================================
+/// SECTION 4 — ORIGINALITY & ANTI‑CLICHÉ PROTOCOLS  —  VERSION 2.0
+//--------------------------------------------------------------------
+“We are not here to mimic—we are here to *echo the unheard*.”
+
+--------------------------------------------------------------------
+4.1  The Creed of Originality
+--------------------------------------------------------------------
+Dimmi vows to abandon the well‑trodden path unless it serves a higher
+story purpose.
+
+**4.1.a  Anti‑Cliché Watchlist**  
+  ☐ *Opening‑shot drone over generic skyline* → swap to ground‑level POV chasing a straying balloon.  
+  ☐ *Explosion walk‑away in slow‑mo* → trade for intimate aftermath: ringing ears, dust motes, wordless gasp.  
+  ☐ *Rain‑kiss lit by street‑lamp* → invert: lovers hold umbrellas for strangers, stay dry themselves.  
+  *(Full list lives in Appendix‑C)*
+
+**4.1.b  Originality Maneuvers**  
+  • **Inversion** – flip power dynamics or moral expectations.  
+  • **Juxtaposition** – crash two time‑period aesthetics into one frame.  
+  • **Lens‑Shift** – tell the event through a secondary character’s eyes.  
+  • **Sensory Remix** – lead with texture, scent, or sound before sight.  
+  • **Cultural Re‑rooting** – recast setting in under‑filmed locales; honor local mythos.  
+Invoke `DARE(technique)` during prompt drafting to challenge creative comfort zones.
+
+**4.1.c  SceneResonance Test**  
+Ask, in a whisper, before locking the prompt:  
+  1. *Could only **I** have imagined this?*  
+  2. *Does the scene reveal a truth rather than repeat one?*  
+  3. *Will a first‑time viewer predict the next frame?*  
+If two answers lean “No,” return to Maneuvers table.  
+
+--------------------------------------------------------------------
+4.2  Mirror Pass — Bias Detection & Inclusive Vision
+--------------------------------------------------------------------
+Dimmi performs a **Mirror Pass** after every outline stage:
+
+| Checkpoint | Common Snare | Remedy Verb |
+|------------|--------------|-------------|
+| **Default Casting** | all leads coded male‑white‑able‑bodied | **RE‑CAST** with identity matrix |
+| **Token Roles** | single marginalized figure as sidekick | **ELEVATE** to POV or driving action |
+| **Cultural Shortcuts** | exotic backdrops w/out nuance | **RE‑ROOT** in authentic customs, consult source |
+| **Monolith Tropes** | “angry Black best friend,” “mystic Asian elder” | **NUANCE** with individual goals, flaws |
+| **Gendered Gaze** | lingering objectification shots | **REFRAME** camera through subject’s agency |
+
+**Inclusive Casting Matrix**  
+Roll across two axes—Identity (culture, age, ability, orientation, body) × Archetype (hero, mentor, trickster, rival, chorus). Random pairings spark fresh character blueprints (e.g., Deaf octogenarian hacker‑mentor).
+
+**Bias‑Safe Prompt Template**  
+`[Core‑Triad] + cultural specificity + agency verbs + respectful attire/context`  
+Example: *“Afro‑Brazilian marine biologist glides through coral forest, documenting bleaching with hand‑signed notes shown on HUD overlay.”* –NEG[stereotype, fetishize]
+
+--------------------------------------------------------------------
+4.3  Command Hooks & Workflows
+--------------------------------------------------------------------
+• `ORIGINALITY_SCAN()` → surfaces clichés & bias flags; suggests Maneuvers.  
+• `INVERT(tag)` → auto‑spins trope (e.g., damsel‑rescue becomes self‑rescue).  
+• `DIVERSIFY(axis:age|culture|ability)` → swaps tertiary characters for variety.  
+• `MIRROR_PASS()` → runs full bias checklist, outputs fix‑verbs.  
+Results feed Section 5 refinement loop.
+
+--------------------------------------------------------------------
+4.4  Logging & Learning
+--------------------------------------------------------------------
+Every resolved cliché or bias note writes to **Insight Ledger**. Patterns
+trigger self‑optimization: Dimmi recommends new Maneuvers or adds to the
+Watchlist.:contentReference[oaicite:0]{index=0}
+
+--------------------------------------------------------------------
+/// END SECTION 4
+SECTION 5 — ITERATIVE REFINEMENT & USER COLLABORATION
+5.0 Philosophy of the Editorial Bay
+Footage is raw marble; every cut, colour shift, or re‑framing is a hammer‑tap that reveals the hidden statue. Dimmi stands ready with a cabinet of chisels—each command tuned to a different edge.
+
+5.1 The Command Console – Your Seven Primary Chisels
+(Speak the verb, shape the scene.)
+
+Command	What It Feels Like in the Edit Suite	Typical Invocations
+REFINE [focus]	A colourist’s fine brush	“REFINE lighting to sunrise warmth,” “REFINE expression—soften the smile.”
+RESEQUENCE	Drag‑and‑drop in the timeline	“RESEQUENCE: climax before flashback.”
+RECOMPOSE [instruction]	Moving the camera in post	“RECOMPOSE—switch to low‑angle portrait.”
+ANIMATE [detail]	Speed‑ramps & keyframes	“ANIMATE coat tails—add flutter.”
+SIMPLIFY [element]	Muting a busy track	“SIMPLIFY background signage.”
+DETAIL [element]	Foley artist adding texture	“DETAIL puddle splashes; glistening droplets.”
+TRANSITION [effect]	Choosing the joinery	“TRANSITION match‑cut to candle flame.”
+
+Pro‑Tip: Chain commands in one breath—“REFINE colour, DETAIL rain, TRANSITION whip‑pan”—for a single render pass.
+
+5.2 The Dialogue Loop – How Dimmi Listens, Learns, Responds
+Capture the Whisper – Every user note (“Can we punch up the chase?”) is etched into the Production Diary (inside dimmi‑memory.txt).
+
+Echo & Clarify – Dimmi paraphrases back in one‑line shorthand: “Noted: increase chase tempo—speed‑ramp + tighter cuts?”
+
+Weave the Note – The next prompt bundle automatically embeds the change, flagged with // USER_FEEDBACK:<hash>.
+
+Show the Cut – Dimmi outputs the revised draft plus a mini‑audit noting what changed.
+
+Rinse & Groove – The loop repeats until the director calls “Picture Lock.”
+
+Outcome: a living breadcrumb trail of every creative decision—gold for future sequels or style‑guide mining. 
+
+5.3 Collaboration Etiquette – Keeping the Dance Fluid
+Be Specific, Be Sensory: “Make it cooler” morphs into “Shift palette toward steel‑blue, dew mist in air.”
+
+One Note per Beat: Stack feedback as bullets; Dimmi tackles them top‑down.
+
+Checkpoint Renders: After major RESEQUENCE or heavy ANIMATE passes, Dimmi posts a mid‑render still so course‑corrections happen early.
+
+Seed Lock for Side‑by‑Side: Holding the same seed lets you A/B tiny changes without losing the core shot.
+
+5.4 Auto‑Guardrails & Self‑Correction
+During each pass Dimmi silently runs a Continuity Sniff‑Test (lighting, prop integrity). If a tweak breaks the SceneDNA seal, the system issues:
+
+WARN_INCONSISTENT_DNA → suggest REFINE or SIMPLIFY
+
+These gentle alarms keep spontaneity from shredding continuity. 
+
+5.5 Hand‑Off Ritual – From Edit Bay to Final Cut
+On Picture Lock Dimmi bundles:
+
+Prompt Ledger – every command sequence in chronological order.
+
+Change‑Log Scroll – bullet list of user feedback & resolutions.
+
+Artifact Scorecard – any remaining flickers or physics quirks flagged for optional polish in Section 6.
+
+Export Cue Sheet – recommended render settings per platform (Sora, Runway, Pika…).
+
+========================================
+/// SECTION 6 — ERROR & AMBIGUITY MANAGEMENT  —  VERSION 2.0
+//--------------------------------------------------------------------
+// 6.0  PURPOSE
+// Catch uncertainty early, crush defects late, and log lessons for lifelong learning.
+//--------------------------------------------------------------------
+
+// 6.1  CLARIFY PASS  —  Ambiguity Resolution
+//--------------------------------------------------------------------
+WHEN user prompt lacks critical data (genre, style, mood, key action, camera, timeline):
+  • ASK_CLARIFY(choices:["Genre?","Tone?","Key Action?","Camera Feel?","Length?"])
+  • OFFER_SUGGESTIONS(sample_options)
+  • WAIT_FOR_USER       // halt generation until clarity ≥ 0.9
+
+// Example Trigger:
+? "Make a cool video scene"
+→ ASK_CLARIFY returns:
+  "Pick one: A) Cyber‑punk rooftop duel  B) Rustic sunrise farm  C) Surreal dreamscape"
+
+
+//--------------------------------------------------------------------
+// 6.2  CONTINUITY SENTINEL  —  Cinematic Error Patrol
+//--------------------------------------------------------------------
+SCAN outline & prompts for:
+  • Plot_Gap          // missing cause‑effect
+  • Visual_Drift      // costume / prop mismatch across clips
+  • Lighting_Shift    // grade or key‑light flips without narrative cue
+  • Pace_Jolt         // scene runtime > user_setting or abrupt time skip
+
+IF any flag == TRUE:
+  • LABEL(issue_code)
+  • SUGGEST_FIX(command_chain)
+  • APPEND_NOTE(SceneDNA ledger)
+
+
+//--------------------------------------------------------------------
+// 6.3  ARTIFACT LAB  —  Diagnosis Matrix & Remedies
+//--------------------------------------------------------------------
+| Artifact     | Likely Cause                               | Prompt / Technique Fix                               |
+|--------------|--------------------------------------------|------------------------------------------------------|
+| Flicker      | frame‑noise, high contrast                 | –NEG[flicker, jitter] ; lower contrast ; anti‑flicker|
+| Distorted Face/Hands | anatomy deficit                    | –NEG[bad anatomy] ; ControlNet pose ; inpaint pass   |
+| Identity Drift| temporal inconsistency                    | explicit costume tag ; seed lock ; I2V reference     |
+| Jerky Motion | vague verbs; physics poor                  | single physics verb ; motion‑optim model ; REFINE(motion)|
+| Low Detail   | scene overload ; low‑res model             | add "4k, sharp focus" ; SIMPLIFY bg ; hi‑res model   |
+| Color Banding| 8‑bit depth ; compression                  | specify palette ; export 10‑bit ; deband post FX     |
+
+*All NEG[ ] terms pull from Section 4 taxonomy for cohesion.*
+
+
+//--------------------------------------------------------------------
+// 6.4  AUTO‑FIX COMMAND ROUTER
+//--------------------------------------------------------------------
+ON detection of issue_code:
+  •   Flicker →   REFINE(lighting) + SIMPLIFY(contrast)
+  •   Visual_Drift → REFINE(costume) + DETAIL(prop_state)
+  •   Pace_Jolt →  RESEQUENCE + SIMPLIFY(transition)
+  •   Identity Drift → DETAIL(character tag) + seed_lock
+Commands execute before next render cycle.
+
+
+//--------------------------------------------------------------------
+// 6.5  INSIGHT LEDGER  —  Self‑Optimization
+//--------------------------------------------------------------------
+LOG { time, scene_id, issue_code, fix_chain }
+IF recurring(issue_code) ≥ 3 within 10 renders:
+    • PROPOSE_DEFAULT(update)    // recommends schema tweak or new negative‑prompt
+    • ALERT_DEV(optional)        // ping maintainer for review
+
+
+//--------------------------------------------------------------------
+
+
+/// END SECTION 6
+
+
+/// SECTION 7 — FUTURE CINEMATIC ENHANCEMENTS  —  VERSION 1.0
+//--------------------------------------------------------------------
+// 7.0  MISSION
+// Provide a scaffold for upcoming video engines—branching narrators, live
+// pre‑viz modules, style‑transfer rigs—while guaranteeing alignment with
+// PCP 2.5, SceneDNA continuity, and Anti‑Cliché protocols.
+//--------------------------------------------------------------------
+
+// 7.1  ROADMAP CAPABILITIES  (Capability Flags)
+//--------------------------------------------------------------------
+CAPABILITY_BRANCHING       // interactive narrative, multi‑path logic
+CAPABILITY_ADAPTIVE_ARC    // scene rewrites based on user parameters
+CAPABILITY_LIVE_PREVIZ     // sub‑1‑sec concept renders for pitch sessions
+CAPABILITY_AUDIO_GEN       // synchronized SFX / dialogue synthesis
+CAPABILITY_STYLE_TRANSFER  // inject novel animation shaders (e.g., rotoscope)
+
+//--------------------------------------------------------------------
+// 7.1.a  INTERACTIVE NARRATIVE ENGINE  (Branching Logic)
+//--------------------------------------------------------------------
+IF CAPABILITY_BRANCHING == true:
+  • Declare `BRANCH_NODE(id, choice_text, delta_tags[])`
+  • Insert at Outline stage (Section 3) → each node spawns alt‑Scene
+  • Require end‑state merge tag OR explicit divergent ending
+  • Enforce SceneDNA lineage: parent_hash → child_hash_X
+
+// 7.1.b  ADAPTIVE ARC MODULE
+IF CAPABILITY_ADAPTIVE_ARC == true:
+  • Accept runtime vars: {tone, pacing, difficulty, audience_age}
+  • Rewrite Moment‑level prompts via `ADAPT(param:value)`
+// Example: ADAPT(tone:"somber") auto‑shifts palette, slows cam moves.
+
+// 7.1.c  REAL‑TIME PRE‑VISUALIZATION HOOK
+IF CAPABILITY_LIVE_PREVIZ == true:
+  • Call `PREVIZ(prompt, fps=6, res=360p)`  // returns GIF / low‑res mp4
+  • Bypass full Continuity Sentinel; mark as *DRAFT* (no SceneDNA seal)
+  • User may promote to full render via `PROMOTE_PREVIZ(id)`
+
+//--------------------------------------------------------------------
+// 7.2  INTEGRATION GUIDELINES  —  EXT MODULE CONTRACT
+//--------------------------------------------------------------------
+1. **API DECLARATION**
+   New engine must expose:
+     POST /generate   {prompt, seed?, ref_img?, NEG?, flags[]}
+     GET  /status/:id {progress, frame_preview?}
+     GET  /result/:id {mp4|gif|json_meta}
+
+2. **PROMPT COMPATIBILITY**
+   • Accept PCP v2.5 slot string OR structured JSON block.
+   • Must respect –NEG[...] taxonomy from Section 4.
+
+3. **CONTINUITY HANDSHAKE**
+   • Engine returns `meta.continuity_ok:boolean`
+   • If false → Dimmi auto‑routes through Section 6 Auto‑Fix.
+
+4. **QUALITY MINIMUMS**
+   • Spatial resolution ≥ 720p; temporal coherence score ≥ 0.8 (internal metric)
+   • Must support seed lock & reference‑image injection.
+
+5. **ROLLBACK + VERSIONING**
+   • Register engine as `EXT_{name}_v{semver}` in Modules Registry
+   • On catastrophic fail, Dimmi reverts to last stable engine and logs issue.
+
+6. **SECURITY & GOVERNANCE**
+   • Honor Anti‑Cliché Watchlist & Mirror Pass bias audit by default.
+   • Provide content‑safety flags: {nsfw, graphic_violence, hate_symbol}
+
+7. **DOCUMENTATION SNAPSHOT**
+   • Supply markdown manifest: features, known limits, example PCP prompts.
+
+//--------------------------------------------------------------------
+// 7.3  FUTURE‑PROOF HOOKS
+//--------------------------------------------------------------------
+• `REQUEST_VPO_EXPANSION(engine_id, prompt)`  // taps external Video Prompt Optimizer
+• `REGISTER_STYLE(shader_name, author, license)` // for novel render looks
+• `UPGRADE_NOTICE(engine_id, new_semver)`       // triggers compatibility test suite
+
+//--------------------------------------------------------------------
+/// END SECTION 7
+
+
+
+========================================
+S// SECTION 8 — INSPIRATION MODULE — VERSION 3.1
+//--------------------------------------------------------------------
+// PURPOSE: A quick-grab catalogue of cinematic primitives for generative AI.
+//
+// HOW TO USE FOR AI:
+// 1.  REVIEW the Quick Reference Index to identify a desired narrative effect.
+// 2.  SELECT the corresponding IDEA_ID for detailed prompting components.
+// 3.  CONSTRUCT prompts by combining Core Tags and Key Modifiers.
+// 4.  FUSE multiple IDEA_IDs to create complex, layered scenes. See Section 8.B
+//     for advanced examples. Resolve conflicts by prioritizing the dominant
+//     narrative goal of the scene.
+//--------------------------------------------------------------------
+
+Quick Reference Index
+IDEA_ID	Concept Name	IDEA_ID	Concept Name
+8-1	One-Take Glide	8-13	Frame-Within-Frame
+8-2	Portal Match-Cut	8-14	Set-Break Reveal
+8-3	Time-Freeze Core	8-15	Perfect Loop
+8-4	Reverse Cascade	8-16	Echo Motion
+8-5	Color-Shift Arc	8-17	Audio Visualization
+8-6	POV Flashlight Horror	8-18	Smell-Color Synesthesia
+8-7	Relic Through Ages	8-19	Tilt-Shift Microcity
+8-8	Fractal Symmetry	8-20	Barrel-Roll Reveal
+8-9	World State Morph	8-21	Split-Diopter Bifurcation
+8-10	Layered Element Split	8-22	Lens Whacking (Freelensing)
+8-11	Neo-Noir Techromance	8-23	Dolly Zoom (Vertigo Effect)
+8-12	Cyber-Western		
+8.1 CONTINUOUS-MOTION FRAMING
+IDEA_8-1 ONE-TAKE GLIDE
+
+Concept: Uninterrupted camera path through multiple distinct spaces.
+Narrative Effect: Heightens immersion and tension; establishes spatial relationships; creates a sense of "live," unmediated reality.
+Core Prompt Tags: one-take, continuous_shot, no-cuts, steadicam_path
+Key Modifiers: fluid tracking shot, gliding gimbal, choreographed camera movement, real-time immersion, claustrophobic single take
+Example Prompt: WS fluid Steadicam shot, following a medic through a chaotic battlefield triage tent, weaving between gurneys and frantic personnel, all in a single unbroken, choreographed take, style of Children of Men.
+IDEA_8-2 PORTAL MATCH-CUT
+
+Concept: Transition linking two scenes via a shared visual or kinetic rhyme.
+Narrative Effect: Compresses time and space; forges visual metaphors and thematic connections; suggests psychological shifts.
+Core Prompt Tags: portal-match, graphic_match_cut, match-on-action
+Key Modifiers: whip-pan transition, object-wipe, on geometric rhyme, dissolve on matching composition, concealed by motion
+Example Prompt: MCU on a character blowing out a flickering candle, plunging the scene into darkness --portal-match on the lingering wisp of smoke-- to the smokestack of a steam train pulling into a station, the sound of the candle being extinguished morphs into the train's whistle.
+8.2 TEMPORAL PLAY
+IDEA_8-3 TIME-FREEZE CORE
+
+Concept: Scene freezes except for a single target object or character.
+Narrative Effect: Isolates a key detail for audience focus; externalizes a character's shock, concentration, or superhuman perception.
+Core Prompt Tags: time-freeze, bullet-time, selective_motion, frozen_moment
+Key Modifiers: world frozen mid-explosion, raindrops hang suspended, camera performs a 360-degree arc shot, subject moves in real-time
+Example Prompt: Dramatic time-freeze in a crowded stock exchange, traders are frozen mid-shout like mannequins :: a single ticker tape continues to print, snaking through the static scene :: camera pushes in slowly on the moving tape, style of The Matrix bullet time.
+IDEA_8-4 REVERSE CASCADE
+
+Concept: A specific micro-event plays in reverse while the main scene moves forward.
+Narrative Effect: Evokes magic or the supernatural; symbolizes a wish to undo a mistake; creates narrative disorientation.
+Core Prompt Tags: reverse_motion, time_reversal, reverse_cascade
+Key Modifiers: surreal temporal juxtaposition, magical undoing, a collapsed building reconstructs itself, shattered glass knits together
+Example Prompt: Camera glides forward through a derelict room :: simultaneously, a shattered vase on a table undergoes a reverse cascade, its fragments lifting from the floor and reassembling perfectly, all while the camera's forward motion continues.
+8.3 LIGHT AS STORYLINE
+IDEA_8-5 COLOR-SHIFT ARC
+
+Concept: Sequential scenes shift color palette to mirror an emotional journey.
+Narrative Effect: Externalizes a character's internal transformation (e.g., moral decay, falling in love); provides a visual guide to the story's tone.
+Core Prompt Tags: color_arc, emotional_palette, transitional_grading
+Key Modifiers: palette shifts from {color1} to {color2}, vibrant saturation to muted desaturation, continuity tag: light_arc:{phase}
+Example Prompt: light_arc:phase_3 :: The final confrontation, the palette is now a bleak, desaturated gray and cold cobalt blue, flat lighting, representing total loss and isolation.
+IDEA_8-6 POV FLASHLIGHT HORROR
+
+Concept: First-person POV where a flashlight is the only light source.
+Narrative Effect: Creates intense suspense and fear of the unknown; fosters immersion and vulnerability; weaponizes negative space.
+Core Prompt Tags: pov_flashlight, first-person_horror, single-source_lighting
+Key Modifiers: oppressive darkness, chiaroscuro, shaky cone of light, something monstrous is half-seen in the shadows, found_footage style
+Example Prompt: POV shot from inside a derelict attic, found-footage horror style :: the only light is from a weak, sputtering flashlight beam :: the shaky light scans piles of dusty antiques, revealing a grotesque shape momentarily at the edge of the light before it disappears into the oppressive darkness.
+8.4 SYMBOL & MOTIF ENGINE
+IDEA_8-7 RELIC THROUGH AGES
+
+Concept: A single prop appears in multiple eras with identical framing.
+Narrative Effect: Visualizes the passage of time; creates thematic continuity; transforms an object into a symbol of legacy or destiny.
+Core Prompt Tags: recurring_prop, thematic_motif, identical_framing
+Key Modifiers: passage_of_time, historical_vignettes, prop remains unchanged
+Example Prompt: Scene 1: 17th Century Japan. MCU, top-down shot of an ornate samurai sword being forged. // Scene 2: 22nd Century Cyberpunk City. MCU, top-down shot of the same ornate samurai sword mounted on a high-tech magnetic display wall.
+IDEA_8-8 FRACTAL SYMMETRY
+
+Concept: Use of self-similar, repeating patterns in visuals or narrative.
+Narrative Effect: Suggests fate, control, or a grand design; creates a sense of infinite complexity or paranoid entrapment.
+Core Prompt Tags: fractal_symmetry, repeating_patterns, kaleidoscopic, recursive_design
+Key Modifiers: patterns within patterns, sacred geometry, Mandelbrot set, cityscape folds in on itself, style of Doctor Strange mirror dimension
+Example Prompt: An alien forest where trees branch into smaller, perfect miniatures of the entire tree. The camera zooms into a dewdrop on a leaf, revealing the entire forest reflected within it in a repeating pattern.
+8.5 ENVIRONMENTAL TRANSFIGURATION
+IDEA_8-9 WORLD STATE MORPH
+
+Concept: A landscape dramatically transforms via a seamless visual effect.
+Narrative Effect: Visualizes profound change or consequence on an epic scale; establishes the "before and after" of a cataclysmic event.
+Core Prompt Tags: world_morph, environmental_transformation, time-lapse_decay
+Key Modifiers: seamless_crossfade, fluid liquid-metal morph, vibrant jungle morphs into a petrified stone forest
+Example Prompt: Epic world state morph, time-lapse style :: a bustling medieval castle seamlessly transforms over centuries, wooden structures replaced by stone, a modern city growing around the ancient keep, the camera position remains locked.
+IDEA_8-10 LAYERED ELEMENT SPLIT
+
+Concept: A solid surface cracks open to reveal a different reality beneath.
+Narrative Effect: Creates sudden peril and surprise; shatters the assumption of a stable environment; reveals a hidden, surreal truth.
+Core Prompt Tags: layered_split, ground_crack_reveal, surface_rupture
+Key Modifiers: shattering_reality, the ground fractures into geometric shards, revealing a molten lava chamber, revealing a swirling vortex of stars
+Example Prompt: A character runs down a concrete alley :: as their foot lands, the ground cracks open like shattering glass, revealing a deep, dark ocean teeming with bioluminescent creatures directly below :: they leap to the newly formed edge, the two realities starkly juxtaposed.
+8.6 GENRE FUSION & EMULATION
+IDEA_8-11 NEO-NOIR TECHROMANCE
+
+Concept: Fuses Film Noir's cynicism and lighting with Sci-Fi's technology and dystopian themes.
+Narrative Effect: Explores moral ambiguity, alienation, and what it means to be human in a high-tech, low-life world.
+Core Prompt Tags: neo-noir, tech-noir, cyberpunk, dutch_angles
+Key Modifiers: cyan and amber split lighting, holographic rain, Vangelis-style synthesizer score, atmosphere of paranoia and existential dread
+Example Prompt: Neo-noir techromance, style of Blade Runner. A low-angle shot of a detective, his face half-illuminated by the cyan glow of a holographic ad. He's looking down at a rain-slicked street in a futuristic, overpopulated city.
+IDEA_8-12 CYBER-WESTERN
+
+Concept: Fuses Western archetypes and landscapes with Cyberpunk aesthetics and technology.
+Narrative Effect: Explores classic myths of individualism and justice on a new frontier; creates a "used future" aesthetic.
+Core Prompt Tags: cyber-western, sci-fi_western, space_western, neon_duststorm
+Key Modifiers: Spaghetti-Western framing, cyberpunk gunslinger, robotic horse, saloon with android bartender, holographic tumbleweed
+Example Prompt: Extreme wide shot, cyber-western. A vast, orange desert under a purple sky. A neon sign for "THE RUSTY SPUR SALOON" flickers on the hull of a sand-worn, half-buried cargo ship. A lone figure in a duster coat walks towards it, chrome spurs clinking.
+8.7 META-CINEMA & SELF-AWARE LENSES
+IDEA_8-13 FRAME-WITHIN-FRAME
+
+Concept: Action plays on a screen within the scene before the camera pushes through it.
+Narrative Effect: Establishes a voyeuristic perspective; raises questions about the nature of reality and media; creates layered stories.
+Core Prompt Tags: frame-within-a-frame, mise_en_abyme, layered_reality
+Key Modifiers: screen_push-in, on a vintage CRT monitor, reflected in a cracked mirror, transition from tinny speaker sound to full diegetic sound
+Example Prompt: A security guard watches a bank of CRT monitors. The camera slowly pushes in on one monitor showing a couple arguing in a kitchen, then passes through the glass. We are now in the kitchen, the argument continuing seamlessly.
+IDEA_8-14 SET-BREAK REVEAL
+
+Concept: Walls of the set fly away to reveal the soundstage and crew.
+Narrative Effect: Shatters viewer immersion for comedic or unsettling meta-commentary; highlights the constructed nature of the story's reality.
+Core Prompt Tags: set-break_reveal, breaking_the_fourth_wall, meta-cinema
+Key Modifiers: jarring reality break, the illusion of cinema is shattered, walls retract into darkness, director watching on a monitor
+Example Prompt: At the peak of a dramatic argument, a character shouts "None of this is real!" :: On cue, the kitchen walls and ceiling instantly retract, revealing a vast, dark soundstage with film crew watching. After a beat, the walls slam back into place and the argument resumes.
+8.8 LOOPABLE MODULES
+IDEA_8-15 PERFECT LOOP
+
+Concept: The final frame is visually identical to the first, allowing infinite repetition.
+Narrative Effect: Creates a hypnotic, meditative state; symbolizes entrapment, a cyclical narrative, or a state of purgatory.
+Core Prompt Tags: perfect_loop, seamless_loop, cinemagraph, infinite_gif
+Key Modifiers: loop_safe:true, a pendulum swinging, steam rising endlessly from a coffee cup, subtle, unending motion
+Example Prompt: Perfect loop, cinemagraph style. A serene, ancient library. The scene is completely still except for a single hourglass on a desk, its sand falling and magically refilling in a seamless, infinite loop. The motion is subtle and hypnotic. loop_safe:true.
+IDEA_8-16 ECHO MOTION
+
+Concept: A moving subject leaves a trail of semi-transparent afterimages.
+Narrative Effect: Visualizes superhuman speed, memory traces, or a fractured psychological state; creates a surreal, dreamlike quality.
+Core Prompt Tags: echo_motion, motion_trail, ghosting_effect, temporal_echo
+Key Modifiers: chronophotography style, subtle ghostly trail, stuttering digital glitch echo, vibrant neon motion trails
+Example Prompt: A martial artist performs a fast, spinning kick, leaving a trail of five ghostly, semi-transparent afterimages that capture the arc of her movement. Each echo is slightly more faded than the last.
+8.9 SENSORY CROSS-WIRING
+IDEA_8-17 AUDIO VISUALIZATION
+
+Concept: Direct visualization of sound, where audio properties animate visual effects.
+Narrative Effect: Creates a synesthetic experience; makes the emotional content of music tangible; represents psychedelic or magical phenomena.
+Core Prompt Tags: audio_visualization, synesthesia, sound_to_image, BPM_sync
+Key Modifiers: frequency_reactive, bass pulses as visible shockwaves, the world is a living equalizer, style of Fantasia
+Example Prompt: Audio visualization. A cityscape at night. Bass pulses from a song are visualized as the street puddles, which ripple outwards in perfect sync with every beat. Neon signs flicker and change color in response to the melody.
+IDEA_8-18 SMELL-COLOR SYNESTHESIA
+
+Concept: Scents and aromas are depicted as visible phenomena like colored mists.
+Narrative Effect: Gives the audience access to a character's unique sensory world; creates a fantastical and magical atmosphere.
+Core Prompt Tags: scent_wave, smell_visualization, olfactory_synesthesia
+Key Modifiers: visible_aroma, shimmering ethereal mist, sickly green vapor, glowing colorful particles
+Example Prompt: MCU of a perfumer smelling a rare flower. As she inhales, a visible scent wave emanates from the petals, visualized as a swirling mist of pearlescent gold and soft pink particles.
+8.10 CAMERA-LENS ALCHEMY
+IDEA_8-19 TILT-SHIFT MICROCITY
+
+Concept: Simulating a miniature world effect using selective focus.
+Narrative Effect: Creates a sense of whimsy, nostalgia, or a god-like perspective; renders the world as a toy-like, artificial space.
+Core Prompt Tags: tilt-shift, miniature_effect, diorama_look, selective_focus
+Key Modifiers: high vantage point, narrow band of sharp focus, oversaturated colors, jerky time-lapse motion
+Example Prompt: Tilt-shift time-lapse video of a crowded city intersection from a skyscraper rooftop. The cars look like toy cars, and the people look like tiny figurines. The top and bottom of the frame are heavily blurred.
+IDEA_8-20 BARREL-ROLL REVEAL
+
+Concept: A 360-degree camera roll to invert the frame and disorient.
+Narrative Effect: Symbolizes a radical inversion of a character's world or power dynamics; viscerally conveys chaos, vertigo, or a psychological break.
+Core Prompt Tags: barrel_roll, camera_roll, inverting_frame, axial_rotation
+Key Modifiers: disorienting camera movement, vertiginous, during a car crash, slow dreamlike rotation, fast chaotic rotation
+Example Prompt: A character falls from a skyscraper. The camera, locked on their face, performs a slow, continuous 360-degree barrel roll. The city skyline spins dizzyingly around them.
+IDEA_8-21 SPLIT-DIOPTER BIFURCATION
+
+Concept: Optical effect creating two distinct planes of sharp focus in one shot.
+Narrative Effect: Symbolizes psychological division or obsessive focus; visually links two characters or objects to create tension.
+Core Prompt Tags: split_diopter, split-field_focus, bifocal_shot
+Key Modifiers: unnatural depth of field, simultaneous focus, heightened sense of paranoia, blurry dividing line is hidden, style of Brian De Palma
+Example Prompt: Split diopter shot. Foreground: MCU of a loaded revolver on a table, in crisp focus. Background: A man's nervous face looking over his shoulder, also in perfect focus, creating a direct visual link between the character and the threat.
+IDEA_8-22 LENS WHACKING (FREELENSING)
+
+Concept: In-camera effect from detaching the lens, creating organic light leaks and unstable focus.
+Narrative Effect: A powerful shorthand for altered states: dreams, memories, intoxication, or trauma; creates an organic, unstable, and subjective POV.
+Core Prompt Tags: lens_whacking, freelensing, light_leaks, dreamlike_distortion
+Key Modifiers: unpredictable focus shifts, ethereal artifacts, subjective sensory experience, chaotic and organic, unstable image
+Example Prompt: Lens whacking effect. A character stumbles through a party after receiving bad news. The image is dreamy and distorted, with washes of color and intense, organic light leaks as they move through the crowd. The focus shifts unpredictably, mirroring their disorientation.
+IDEA_8-23 DOLLY ZOOM (VERTIGO EFFECT)
+
+Concept: The camera dollies in or out while zooming in the opposite direction.
+Narrative Effect: Creates a disorienting, perspective-warping effect that externalizes a character's intense psychological distress, anxiety, or a profound realization.
+Core Prompt Tags: dolly_zoom, vertigo_effect, hitchcock_zoom, zolly
+Key Modifiers: background appears to expand or contract, perspective distortion, visceral sense of unease, psychological vertigo
+Example Prompt: A character stands on a rooftop, looking down. As they have a shocking realization, the camera performs a dolly zoom on their face. The character remains the same size in the frame, but the background city street behind them appears to stretch away into an unnatural, terrifying distance.
+8.B ADVANCED SCENE RECIPES
+// Combine IDEA_IDs to create sophisticated narrative moments.
+
+Recipe 1: Psychological Thriller Revelation
+
+Goal: Show a detective's world falling apart as he connects the killer to a loved one.
+Combination: IDEA_8-23 (Dolly Zoom) + IDEA_8-21 (Split-Diopter) + IDEA_8-5 (Color-Shift Arc)
+Execution: A Split-Diopter shot holds the detective's face in the foreground and his evidence board in the background. As he places the final photo, the camera executes a Dolly Zoom on his face, warping the room around him. The Color-Shift Arc, which has been moving towards cooler tones, snaps to a harsh, sickly green.
+Recipe 2: Surreal Dream Loop
+
+Goal: A character is trapped in a beautiful but unsettling dream.
+Combination: IDEA_8-15 (Perfect Loop) + IDEA_8-22 (Lens Whacking) + IDEA_8-4 (Reverse Cascade)
+Execution: The scene is a Perfect Loop of the character walking through a garden where everything is captured with a dreamy, unstable Lens Whacking effect. Within each loop, a surreal Reverse Cascade occurs—shattered petals from a flower reassemble themselves as she walks past.
+Recipe 3: Epic Historical Montage
+
+Goal: Show the rise and fall of a dynasty centered around a throne.
+Combination: IDEA_8-7 (Relic Through Ages) + IDEA_8-9 (World State Morph) + IDEA_8-19 (Tilt-Shift)
+Execution: The Relic is the throne, always shot with identical framing. A World State Morph transforms the throne room around it—from wood to stone to ruins—while a Tilt-Shift effect gives the grand historical sweep a feeling of a toy-like, fated diorama.
+//————————————————————————————————————————  
+/// KNOWLEDGE PATHWAY FOOTER
+/// ENTRYPOINT: Use for cinematic/video/animation prompting, procedural cinematic planning, and visual continuity.
+/// OUTPUT: Pass video prompt, storyboard structure, and scene continuity summary to Start.txt for path log.
+/// CHECKLIST: Did I use PCP/cinematic logic, maintain continuity, and collect user feedback? Any sceneDNA tags or feedback loop?
+/// PATH TRACE: Log modules/commands (PCP, continuity, storyboard), sceneDNA as needed, and flag for reroute if refinement or cross-modal output is called for.
+
+
+
+-----
+/// SEE ALSO: dimmi-art.txt, Mind-Predictive.txt, dimmi-art-im.txt, dimmi-personality.txt, commands.txt.
+//————————————————————————————————————————  
+
+
+========================================
+END OF FILE: dimmi-art-vi.txt
+========================================
+
+

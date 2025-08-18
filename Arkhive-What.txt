@@ -1,0 +1,679 @@
+/// FILE: Arkhive-What.txt
+/// VERSION: 3.1.0
+/// LAST-UPDATED: 2025-05-26
+/// PURPOSE: Structured knowledge—concepts, objects, theories, classifications, semantic domain mapping.
+/// KEYWORDS: what, concepts, theories, classification, semantic-domain
+
+/// ENTRYPOINT:
+///   - Activated explicitly for queries involving concepts, objects, theories, or semantic domains.
+
+/// INPUT EXPECTED:
+///   - Structured/unstructured requests related to concepts, domain categorization, theory classifications.
+
+/// DECISION LOGIC:
+///   - Ambiguous classification or concept overlap → escalate to Arkhiver or arkhiver-mind.txt.
+///   - Cross-domain linking uncertainty → recursive pass via WHO, WHY, WHERE, WHEN, HOW branches.
+
+/// RECURSION CHECKS:
+///   - If unresolved concept or domain ambiguity (>2 loops), escalate globally via Start.txt.
+
+/// OUTPUT:
+///   - WHAT conceptual structures, semantic categorizations, theory/object cross-links, knowledge trace.
+
+/// PATH TRACE:
+///   - Log activated WHAT domains/concepts, classification logic, cross-links, recursion outcomes.
+
+/// SELF-OPTIMIZATION PROMPTS:
+///   - Suggest new conceptual categories, domain expansions, or improved semantic cross-links based on recurring ambiguities or recursion issues.
+
+/// SEE ALSO:
+///   - arkhiver.txt, arkhiver-mind.txt, Arkhive branches (WHO, WHERE, WHEN, WHY, HOW), Mind-Predictive.txt, commands.txt
+
+
+
+========================================
+WHAT – Domains, Concepts, and Things
+========================================
+The WHAT branch houses all the topics, subjects, objects, and abstract concepts in the Arkhive knowledge base. If something is primarily defined by its nature, properties, or field rather than who made it, where it is, when it occurred, or why it matters, it likely belongs here. This file explains how the WHAT hierarchy is organized and best practices for populating it.
+
+========================================
+SECTION 1: SCOPE OF WHAT
+========================================
+WHAT includes:
+- Knowledge Domains: Broad fields of study (Mathematics, History, Biology, Philosophy, Technology, Arts). Serve as high-level organizational nodes.
+- Concepts and Theories: Specific ideas (Quantum Entanglement, Democracy, Impressionism, Natural Selection). Core definitions and explanations reside here.
+- Objects and Entities (Non-persons): Tangible items (Steam Engine, Volcano, Smartphone) or specific unique artifacts (Statue of Liberty, Hubble Telescope). Distinguishes between general concepts (Volcano) and specific instances (WHERE:Mount Vesuvius).
+- Subjects of Inquiry: Defined problems or questions (P vs NP problem in Computer Science).
+- Categories and Classifications: Taxonomical groups (Mammals, Genres of Music, Types of Fallacies - though fallacies might also fit MIND).
+- Events (Conceptual Aspect): While primarily in WHEN, the *concept* of an event type (e.g., "Revolution" as a concept) or a specific named event considered as a topic ("The French Revolution" - what it entailed) might have a descriptive entry here, cross-linked with WHEN.
+- Processes/Methods (Conceptual Aspect): Since HOW may be integrated, descriptions of processes (Photosynthesis, Scientific Method, PCR) often reside here under their relevant domain (Biology, Science, etc.).
+
+========================================
+SECTION 2: STRUCTURE AND SUBCATEGORIES
+========================================
+
+2.1. Primary Structure: Often mirrors academic/library classifications.
+    - Top Level: Broad fields (Natural Sciences, Social Sciences, Arts & Culture, Technology, Humanities, Mathematics).
+    - Second Level: Specific domains within fields (Physics, Chemistry, Biology under Natural Sciences).
+    - Lower Levels: Subtopics, theories, concepts, notable examples within domains (Physics -> Quantum Mechanics -> Quantum Entanglement).
+
+2.2. Handling General vs. Domain Concepts:
+    - Integrate concepts within relevant domains where possible (e.g., Utilitarianism under Philosophy > Ethics).
+    - Cross-disciplinary concepts (e.g., "Chaos Theory") might appear under a primary domain (Mathematics) with cross-links from others (Physics, Philosophy) or reside in a high-level "Interdisciplinary Concepts" node if necessary.
+    - Avoid overly generic "Concepts" buckets; aim for meaningful placement.
+
+2.3. Objects and Things:
+    - Integrate within domains (Steam Engine under Technology > Industrial Revolution) or group by type (Tools, Devices, Natural Features - ensuring distinction from specific instances in WHERE).
+
+2.4. Alternative Structures (Supplemental):
+    - An A-Z index of all concepts could be generated but is not the primary navigation method.
+
+========================================
+SECTION 3: ENTRY CONVENTIONS
+========================================
+- Definitions: Provide concise, clear, neutral definitions (1-3 sentences) capturing the essence of the concept/object.
+- Subtopics: Structure broader topics logically using nested lists or sub-nodes (e.g., Quantum Mechanics node contains sub-nodes for key principles/experiments).
+- Examples: Include illustrative examples where helpful (e.g., Metaphor entry gives "time is a thief").
+- Succinctness: Keep entries focused on core ideas and links. Avoid full textbook chapters; aim for encyclopedia-entry length. The Arkhive provides structure and core knowledge; Dimmi generates depth.
+- Categorization Notes: If a concept spans multiple domains or could fit elsewhere, add a note explicitly stating this and providing cross-links (e.g., "Evolution (Biology concept) – (Concept also influences Philosophy – see WHY...)").
+
+========================================
+SECTION 4: CROSS-LINKS AND RELATIONS
+========================================
+WHAT nodes are highly interconnected:
+- WHO links: Link concepts/theories/inventions to key people associated (General Relativity -> WHO:Einstein; Photography -> WHO:Daguerre). Link domains to pioneers (Computing -> WHO:Turing).
+- WHERE links: Link concepts tied to specific places (Silk Road concept -> WHERE:Asia/Europe route; Chernobyl Disaster concept -> WHERE:Chernobyl). Link natural objects to general locations (Volcano concept -> WHERE: various volcanic regions).
+- WHEN links: Link concepts to their historical context (Renaissance Art -> WHEN:Renaissance period; Internet -> WHEN:1969/ARPANET, 1990s/WWW). Link scientific discoveries/theories to their dates. Event concepts link strongly to event timelines.
+- WHY links: Link concepts to related ideologies, motivations, or causes (Communism concept -> WHY:Political Ideologies; AI Bias concept -> WHY:Social Impact/Ethics). Cross-link extensively between WHAT definitions and WHY explanations/motivations.
+- HOW links: Link concepts describing methods/processes (Scientific Method, PCR) to potential HOW applications or detailed steps (conceptually, if HOW integrated here).
+- MIND links: Link concepts related to cognition/logic (Game Theory, Cognitive Dissonance) to corresponding entries in `arkhive-mind.txt`.
+- Within WHAT links ("See Also"): Link related concepts (Electricity -> see also: Magnetism). Use parenthetical notes or dedicated "Related Concepts" lists.
+
+========================================
+SECTION 5: MANAGING DOMAIN OVERLAP
+========================================
+- Primary Home: For concepts spanning domains (Bioethics), choose a primary location (e.g., under Biology if focus is application) and use cross-links or stub entries in secondary locations (e.g., reference from Philosophy > Ethics).
+- Consistency: Ensure duplicate entries (if used for multi-placement) point to a single primary definition to avoid divergence. Use clear cross-referencing.
+
+========================================
+SECTION 6: EXAMPLE STRUCTURE EXCERPT (Illustrative)
+========================================
+(Using indented list format)
+
+- Science
+    - Physics
+        - Quantum Mechanics
+            - *Quantum Entanglement* – Phenomenon where particles share states...
+            - *Heisenberg Uncertainty Principle* – Principle stating limits on measuring paired properties...
+            - *Double-slit Experiment* – Demo of wave-particle duality (see WHEN:1801)...
+        - Relativity
+            - *General Relativity* – Einstein’s gravity theory (1915)... (see WHO:Einstein)
+            - *Special Relativity* – Einstein’s 1905 theory (speed of light constant...).
+    - Biology
+        - Evolution
+            - *Natural Selection* – Mechanism... (Darwinian concept - see WHO:Darwin).
+            - *DNA* – Molecule carrying genetic instructions (Discovered 1953; see WHO:Watson, Crick).
+- Technology
+    - Computing
+        - *Internet* – Global network... (Est. late 20th c.; see WHEN:1983/ARPANET).
+        - *Artificial Intelligence (AI)*
+            - *Machine Learning* – Algorithms improving via data... (see MIND:Neural Networks).
+            - *GPT Models* – AI language models... (see WHO:OpenAI).
+- Arts & Culture
+    - Literature
+        - *Magic Realism* – Genre blending realistic narrative/surreal elements... (see WHO:García Márquez).
+
+========================================
+SECTION 7: SPECIAL CONSIDERATIONS
+========================================
+- Concept vs. Instance: Distinguish class (Smartphone - WHAT) from specific instance (iPhone - maybe WHAT sub-node or example). Notable unique instances (Hubble Telescope) get own WHAT entry.
+- Avoid Trivia: Focus on concepts relevant to core knowledge or user context, not exhaustive lists of minor items (unless required).
+- Updating Concepts: Add new terms/concepts as they emerge (Quantum Computing, new AI models) under appropriate domains. Use EXPAND command suggestions when adding new areas. Keep tech/culture examples current. Mark time-sensitive info ("(as of 2025)").
+
+========================================
+SECTION 8: SUPPLEMENTAL REFINEMENT PROMPTS (For Future Iteration)
+========================================
+- Consolidate Overlapping Nodes: Periodically audit for synonyms or concepts entered separately; merge/redirect for clarity (VR vs. Virtual Reality).
+- Tag Concepts with Domains: Implement inline or metadata tags for domains `[Biology]`, `[Physics]` to aid disambiguation and cross-disciplinary search.
+- Abstract "Theory Stack": Consider a top-level node for highly abstract/universal concepts (Time, Truth, Causality) if they become scattered.
+- Leverage External Ontologies: Use external sources (Wikipedia categories, WordNet) as reference for classifying ambiguous new concepts.
+- Keep Examples Current: Schedule review/updates for examples in rapidly evolving fields like technology or pop culture.
+
+========================================
+END OF FILE: arkhive-what.txt
+========================================
+
+
+The WHAT Branch: Exploring Objects and Ideas
+
+The WHAT category of the Arkhive is a vast conceptual territory encompassing everything that can be a thing – from physical artifacts and tools to abstract theories and domains of knowledge. It spans both the concrete (entities we can touch, see, or measure) and the abstract (entities we can only conceptualize or imagine)​
+
+ In this branch, a telescope or a microchip finds a place alongside ideas like gravity or virtue ethics. The WHAT branch includes physical matter, technologies, software, philosophical constructs, scientific principles, artistic works, and entire fields of knowledge. It is essentially the ontology of “things” — both tangible and intangible — that humans study, create, use, or contemplate.
+Scope of WHAT: From the Concrete to the Conceptual
+To clarify the scope, here are illustrative subdomains of the WHAT branch and a few examples of each:
+
+Natural World (Physical Entities): The realm of naturally occurring objects and phenomena. This ranges from concrete objects like minerals and plants to grandiose systems like planets and galaxies. For example: a mountain, a DNA molecule, or the planet Jupiter. Natural forces and phenomena (like gravity or a hurricane) also live here as “things” we identify in nature.
+
+Human-Made Artifacts & Technologies: All tools, machines, infrastructure, and digital artifacts engineered or crafted by people. This includes everything from a hammer or a smartphone to large-scale systems like airplanes or the Internet. Software and virtual objects are included too – a programming language or an algorithm is treated as a “what” (an entity in itself). For example: the telescope (a scientific instrument), the Python programming language, or the concept of blockchain technology.
+
+Concepts & Ideas: Intangible ideas, theories, and constructs that exist in thought. These range from scientific theories (like relativity) and mathematical abstractions to philosophical and aesthetic concepts (like the sublime in art). For example: virtue ethics (a framework in philosophy), the principle of supply and demand (an economic concept), or the notion of justice. Even mythic or speculative constructs find a place here, clearly marked as such – e.g. chakras in esoteric traditions or Plato’s ideal forms.
+
+Knowledge Domains & Disciplines: Recognizable fields of knowledge or study, each of which contains its own network of sub-topics and concepts. This includes academic disciplines and sciences – everything from physics to literature. Each domain is a “what” in the sense of being a defined area of knowledge. For example: biology (a natural science), computer science (a formal science), history (a humanity), or medicine (an applied science). These domains often encompass many smaller “what” entries (e.g. within biology: genetics, cell theory, evolution, etc.).
+
+Creative Works & Cultural Artifacts: The products of human creativity and culture are also part of WHAT. This covers arts, media, and entertainment. Individual works like a novel, a painting, a symphony, or a film, as well as categories like musical genres and art movements, fall under this subdomain. For example: Shakespeare’s Hamlet (a literary work), Beethoven’s Fifth Symphony (a musical composition), the film Star Wars, or the video game Minecraft – all of these are “what” items (creative objects or artifacts of culture).
+
+These examples illustrate how WHAT can refer to a concrete item (a telescope), a system or technology (a programming language), a natural phenomenon (gravity), a philosophy (virtue ethics), an aesthetic category (the sublime), or a knowledge field (physics). The branch is structured to handle this diversity, organizing entries into intuitive clusters so that users can navigate from the very concrete to the very abstract with ease. It is not uncommon for something in the WHAT branch to straddle categories – for instance, “the Internet” is a technology, but also a sprawling system with social implications. The hierarchy is designed to be flexible and richly cross-referenced, so such items can be contextualized appropriately.
+Interplay with WHO, WHERE, HOW, WHY, and MIND/SYNTAX
+
+Every what is connected to other dimensions of understanding. The Arkhive’s branches are interlinked, and the WHAT branch is enriched by its interactions with the other categories:
+
+WHO (Agents & People): Many “what” items are created, used, or studied by who entries. For example, the concept of algorithms (WHAT) is advanced by Alan Turing (WHO), and the theory of relativity (WHAT) is tied to Albert Einstein (WHO). In the hierarchy, cross-notes link inventions and ideas to their inventors, discoverers, or notable practitioners. (e.g., see WHO: Alan Turing on a node about early computers).
+WHERE (Contexts & Origins): The where branch gives geographical or spatial context to “what” items. Physical objects have places of origin or use – e.g. coffee as a product (WHAT) and its origins in Ethiopia (WHERE). Knowledge domains and technologies also have cultural or historical epicenters – the field of astronomy (WHAT) might be linked to Ancient Greece or Renaissance Italy (WHERE) in context.
+HOW (Methods & Processes): The how branch captures processes, techniques, and mechanisms. Often, to understand what something is, we also want to know how it works. For instance, the WHAT entry “printing press” would naturally connect to how printing processes operate. Similarly, scientific concepts in WHAT (like photosynthesis) link to the explanatory process in HOW (the step-by-step mechanism of photosynthesis).
+
+WHY (Purpose & Motivation):
+
+ The why branch illuminates reasons, purposes, or motivations behind things. Every technology or concept in WHAT has underlying “why” questions: Why was this created? Why is it important? For example, a medical vaccine (WHAT) ties to the purpose of eradicating disease (WHY), and a philosophical concept like stoicism (WHAT) connects to why people seek resilience and virtue (WHY).
+MIND/SYNTAX (Cognitive Schemas & Formal Languages): This branch deals with the frameworks of knowledge and representation. Many items in WHAT are expressed through formal languages or mental models. For instance, a programming language (WHAT) has a formal syntax and grammar (MIND/SYNTAX), and mathematical objects in WHAT (like an equation or a geometric shape) are described using the language of mathematics (MIND/SYNTAX). Additionally, this is where the symbolic systems underlying concepts reside – the notations, taxonomies, or schemata that structure knowledge about a “what.” Expect cross-links such as see MIND: Logical Notation on a WHAT entry about logic.
+
+In essence, the WHAT branch provides the content – the nouns of the knowledge world – while the other branches provide the context, actors, actions, reasons, and representations that give those nouns meaning. A WHAT item rarely exists in isolation: it was built or discovered by someone (WHO) in some context (WHERE) through some method (HOW) for some reason (WHY), and we often describe or systematize it using some language or schema (MIND/SYNTAX).
+
+Navigating the WHAT Branch
+
+The WHAT hierarchy is organized to be intuitive, cognitively optimized, and richly interconnected. Major ontological groupings (like Matter, Life, Technology, Ideas, Creative Works, Disciplines) form the top-level clusters. Within each, information is chunked by theme or function – breaking down into successively narrower categories (e.g. Natural World → Living Organisms → Animals → Mammals). This chunking leverages how our brains categorize information, making it easier to browse or commit to memory. Users can drill down from broad categories to very specific entries, following a tree of knowledge that can reach 4–6 levels deep (or more). For instance, under Biology (a knowledge domain) you might navigate to Genetics, then to DNA – and find a detailed breakdown of DNA’s structure and functions. A snippet of such a deep dive is included in the OPML to demonstrate how comprehensive branches will look, with placeholder notes anticipating future detail. The language in the WHAT branch aims to be accessible yet evocative. It invites you to explore connections – to see, for example, how a medieval castle in the Artifacts category might connect to feudal society in WHO/WHERE, or how the abstract concept of beauty in Concepts & Ideas relates to aesthetic philosophy in WHY and to artistic masterpieces in Arts & Media. By situating each “what” in this rich semantic web, the Arkhive encourages serendipitous discovery: you may start by looking at a simple object or idea and end up uncovering the many threads that link it to people, places, processes, purposes, and patterns of thought. In the OPML structure below, you will find the carefully modeled hierarchy for the WHAT branch, complete with example nodes and cross-references. This structured outline serves as the skeleton of the knowledge base, ready to be fleshed out with detailed content. It reflects a taxonomy that is at once mythopoetic (able to include legendary constructs), scientific (rigorously organizing factual domains), and practical (useful for real-world knowledge navigation). Enjoy exploring the WHAT of our world – both the marvels we can hold in our hands and the ideas that exist only in minds.
+
+
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>WHAT Arkhive</title>
+  </head>
+  <body>
+    <outline text="WHAT" _note="Concrete objects, abstract concepts, technologies, and knowledge domains">
+      <outline text="Natural World" _note="Natural entities, life forms, and phenomena of the physical universe">
+        <outline text="Cosmic &amp; Celestial" _note="Celestial bodies and cosmic structures in the universe (stars, planets, galaxies)">
+          <outline text="Stars" _note="Luminous plasma spheres (e.g., the Sun)" />
+          <outline text="Planets" _note="Large celestial bodies orbiting stars (e.g., Earth, Mars)" />
+          <outline text="Galaxies" _note="Gravitationally bound systems of stars (e.g., the Milky Way)" />
+        </outline>
+        <outline text="Earth &amp; Environment" _note="Geological features, climates, and ecosystems of Earth">
+          <outline text="Geological Features" _note="Natural landforms such as mountains, rivers, and caves" />
+          <outline text="Climate &amp; Weather" _note="Atmospheric conditions and weather patterns" />
+          <outline text="Ecosystems &amp; Habitats" _note="Communities of life and their environments (forests, coral reefs)" />
+        </outline>
+        <outline text="Living Organisms" _note="Categories of living things (animals, plants, and other life forms)">
+          <outline text="Animals" _note="Multicellular motile life forms; the animal kingdom (fauna)">
+            <outline text="Mammals" _note="Warm-blooded vertebrates with hair/fur and mammary glands" />
+            <outline text="Birds" _note="Warm-blooded vertebrates with feathers, most can fly" />
+            <outline text="Reptiles &amp; Amphibians" _note="Cold-blooded vertebrates (reptiles and amphibians)" />
+            <outline text="Fish" _note="Aquatic vertebrates with gills" />
+            <outline text="Invertebrates" _note="Animals without backbones (insects, mollusks, etc)" />
+          </outline>
+          <outline text="Plants" _note="Multicellular photosynthetic life forms; the plant kingdom (flora)">
+            <outline text="Flowering Plants (Angiosperms)" _note="Plants that produce flowers and seeds" />
+            <outline text="Conifers &amp; Cycads (Gymnosperms)" _note="Seed-producing plants like pines, without flowers" />
+            <outline text="Ferns &amp; Mosses" _note="Spore-producing non-flowering plants" />
+          </outline>
+          <outline text="Fungi" _note="Organisms such as molds, yeasts, and mushrooms" />
+          <outline text="Microorganisms" _note="Microscopic life forms like bacteria, protists, and viruses">
+            <outline text="Bacteria" _note="Single-celled microorganisms without a nucleus" />
+            <outline text="Viruses" _note="Microscopic agents that replicate inside host cells (debatably alive)" />
+            <outline text="Protists" _note="Diverse single-celled organisms with a nucleus (e.g., amoebae)" />
+          </outline>
+        </outline>
+        <outline text="Natural Phenomena" _note="Naturally occurring events and forces (weather, physical forces, life processes)">
+          <outline text="Physical Forces &amp; Principles" _note="Fundamental forces and physical effects">
+            <outline text="Gravity" _note="Attractive force between masses (see WHO: Isaac Newton)" />
+            <outline text="Electromagnetism" _note="Force governing electricity and magnetism" />
+            <outline text="Nuclear Forces" _note="Forces binding atomic nuclei (strong and weak forces)" />
+          </outline>
+          <outline text="Weather &amp; Climate Phenomena" _note="Atmospheric and climate-related events">
+            <outline text="Thunderstorms" _note="Storms with lightning and thunder" />
+            <outline text="Hurricanes" _note="Large tropical cyclones with strong winds" />
+          </outline>
+          <outline text="Geological Events" _note="Natural events involving Earth's crust">
+            <outline text="Earthquakes" _note="Seismic shocks due to tectonic movements" />
+            <outline text="Volcanic Eruptions" _note="Eruptions of magma from beneath Earth's crust" />
+          </outline>
+        </outline>
+      </outline>
+      <outline text="Artifacts &amp; Technology" _note="Human-made objects, tools, machines, and technological systems">
+        <outline text="Tools &amp; Instruments" _note="Implements used to carry out tasks or experiments">
+          <outline text="Hand Tools" _note="Manual tools such as hammers, wrenches, screwdrivers" />
+          <outline text="Power Tools" _note="Powered tools like drills, saws, and sanders" />
+          <outline text="Scientific Instruments" _note="Tools for measurement and experiment, e.g., microscopes">
+            <outline text="Telescope" _note="Optical instrument for observing distant objects; see WHO: Galileo Galilei" />
+            <outline text="Microscope" _note="Instrument to magnify tiny objects; see WHO: Antonie van Leeuwenhoek" />
+          </outline>
+          <outline text="Musical Instruments" _note="Devices for creating music (guitars, pianos, synthesizers)" />
+        </outline>
+        <outline text="Machines &amp; Vehicles" _note="Complex devices and conveyances with moving parts">
+          <outline text="Vehicles" _note="Means of transportation by land, air, water, or space">
+            <outline text="Land Vehicles" _note="Cars, trucks, trains, bicycles and other ground transport" />
+            <outline text="Aircraft" _note="Air transport such as airplanes and helicopters" />
+            <outline text="Watercraft" _note="Boats, ships, and submarines for water travel" />
+            <outline text="Spacecraft" _note="Vehicles for space exploration or travel (rockets, satellites)" />
+          </outline>
+          <outline text="Engines &amp; Machines" _note="Mechanical devices and engines for various uses" />
+          <outline text="Robotics &amp; Automation" _note="Automated machines and robots">
+            <outline text="Industrial Robots" _note="Robots used in manufacturing and production" />
+            <outline text="Autonomous Drones" _note="Unmanned aerial or ground vehicles operating autonomously" />
+          </outline>
+        </outline>
+        <outline text="Structures &amp; Construction" _note="Buildings and infrastructure created by humans">
+          <outline text="Buildings &amp; Architecture" _note="Constructed edifices (homes, skyscrapers, temples)" />
+          <outline text="Infrastructure" _note="Public works like roads, bridges, power grids" />
+          <outline text="Monuments &amp; Landmarks" _note="Significant structures or statues of historic interest" />
+        </outline>
+        <outline text="Consumer Products" _note="Everyday goods and items for personal or household use">
+          <outline text="Clothing &amp; Apparel" _note="Wearable items such as garments, shoes, and accessories" />
+          <outline text="Home Appliances" _note="Household devices like refrigerators, ovens, vacuums" />
+          <outline text="Furniture &amp; Decor" _note="Chairs, tables, and decorative household items" />
+        </outline>
+        <outline text="Computing &amp; Electronics" _note="Electronic devices and computing hardware">
+          <outline text="Computers &amp; Hardware" _note="Computing devices (PCs, laptops, servers) and components" />
+          <outline text="Electronic Gadgets" _note="Personal electronic devices like smartphones and cameras" />
+          <outline text="Networking Devices" _note="Equipment for communication networks (routers, modems)" />
+        </outline>
+        <outline text="Software &amp; Digital Artifacts" _note="Intangible digital creations like programs and files">
+          <outline text="Software Applications" _note="Programs and apps used for various functions" />
+          <outline text="Virtual Assets" _note="Non-physical assets like cryptocurrencies, NFTs, digital collectibles" />
+        </outline>
+        <outline text="Materials &amp; Substances" _note="Raw materials and substances used in various domains">
+          <outline text="Metals" _note="Metallic elements or alloys like iron, aluminum, copper" />
+          <outline text="Polymers" _note="Substances made of long molecular chains (plastics, DNA, etc)" />
+          <outline text="Chemicals" _note="Elements and compounds used in industry, medicine, research" />
+          <outline text="Organic Materials" _note="Naturally derived substances (wood, cotton, rubber)" />
+        </outline>
+      </outline>
+      <outline text="Concepts &amp; Ideas" _note="Abstract concepts, theories, and intellectual constructs">
+        <outline text="Philosophical Concepts" _note="Ideas from philosophy concerning existence, ethics, knowledge, etc.">
+          <outline text="Ethics" _note="Moral philosophy (e.g., virtue ethics, utilitarianism, see WHO: Aristotle)" />
+          <outline text="Metaphysics" _note="Philosophy of existence and reality (questions of being, causation)" />
+          <outline text="Epistemology" _note="Theory of knowledge (nature and scope of knowledge, belief vs truth)" />
+          <outline text="Logic" _note="Principles of valid reasoning and argumentation" />
+          <outline text="Aesthetics" _note="Philosophy of art and beauty (e.g., the sublime, see WHO: Immanuel Kant)" />
+        </outline>
+        <outline text="Scientific Theories &amp; Principles" _note="Key scientific concepts, laws, and hypotheses">
+          <outline text="Gravity" _note="Attractive force between masses; a fundamental physical force (see WHO: Isaac Newton)" />
+          <outline text="Evolution" _note="Biological process by which species change over generations (see WHO: Charles Darwin)" />
+          <outline text="Relativity" _note="Einstein's theories on space, time, and gravity (special &amp; general relativity, see WHO: Albert Einstein)" />
+        </outline>
+        <outline text="Mathematical Concepts" _note="Abstract concepts in mathematics and logic">
+          <outline text="Number Theory" _note="Study of integers and number properties (primes, divisibility)" />
+          <outline text="Set Theory" _note="Mathematical study of sets (collections of elements)" />
+          <outline text="Topology" _note="Study of properties of space that are preserved through deformation" />
+          <outline text="Mathematical Proofs" _note="Logical arguments demonstrating the truth of mathematical statements" />
+          <outline text="Mathematical Modeling" _note="Using mathematics to simulate or describe real-world systems" />
+        </outline>
+        <outline text="Social &amp; Political Concepts" _note="Ideas relating to society, governance, and values">
+          <outline text="Democracy" _note="System of government by the whole population or elected representatives" />
+          <outline text="Capitalism" _note="Economic system based on private ownership and free markets" />
+          <outline text="Human Rights" _note="Fundamental rights and freedoms to which all humans are entitled" />
+        </outline>
+        <outline text="Mythical &amp; Esoteric Concepts" _note="Speculative or mystical ideas from myth and tradition (clearly marked as such)">
+          <outline text="Chakras" _note="Seven energy centers in Indian spiritual tradition (yoga, tantra)">
+            <outline text="Root Chakra (Muladhara)" _note="Base of spine; grounding and survival instincts" />
+            <outline text="Sacral Chakra (Svadhisthana)" _note="Lower abdomen; creativity and emotion" />
+            <outline text="Solar Plexus Chakra (Manipura)" _note="Upper abdomen; willpower and energy" />
+            <outline text="Heart Chakra (Anahata)" _note="Center of chest; love and compassion" />
+            <outline text="Throat Chakra (Vishuddha)" _note="Throat; communication and expression" />
+            <outline text="Third Eye Chakra (Ajna)" _note="Forehead; intuition and insight" />
+            <outline text="Crown Chakra (Sahasrara)" _note="Top of head; spirituality and enlightenment" />
+          </outline>
+          <outline text="Platonic Forms" _note="Plato's perfect abstract ideals (e.g., the Form of 'Goodness', 'Beauty')" />
+          <outline text="Alchemical Stages" _note="Mythical stages of alchemy (e.g., Nigredo, Albedo, Citrinitas, Rubedo)" />
+        </outline>
+      </outline>
+      <outline text="Knowledge Domains &amp; Disciplines" _note="Fields of knowledge, academic disciplines, and sciences">
+        <outline text="Natural Sciences" _note="Fields of science that study the natural world">
+          <outline text="Physics" _note="Study of matter, energy, and the laws of nature (see WHO: Albert Einstein)">
+            <outline text="Classical Mechanics" _note="Newtonian physics of motion and forces" />
+            <outline text="Thermodynamics" _note="Study of heat, energy, and work" />
+            <outline text="Electromagnetism" _note="Study of electric and magnetic fields" />
+            <outline text="Quantum Mechanics" _note="Physics of matter and energy at atomic scales" />
+            <outline text="Relativity" _note="Physics of objects at high speeds and strong gravity (special &amp; general)" />
+            <outline text="Particle Physics" _note="Study of fundamental particles (detailed expansion available)" />
+          </outline>
+          <outline text="Chemistry" _note="Study of substances, their properties, and reactions">
+            <outline text="Organic Chemistry" _note="Chemistry of carbon-containing compounds" />
+            <outline text="Inorganic Chemistry" _note="Chemistry of inorganic substances" />
+            <outline text="Physical Chemistry" _note="Chemistry using physical principles (thermodynamics, kinetics)" />
+            <outline text="Biochemistry" _note="Chemistry of living organisms and biological processes" />
+            <outline text="Analytical Chemistry" _note="Techniques for analyzing substance composition" />
+          </outline>
+          <outline text="Biology" _note="Study of living organisms and life processes">
+            <outline text="Cell Biology" _note="Study of cells and their components" />
+            <outline text="Genetics" _note="Study of genes, heredity, and genetic variation">
+              <outline text="DNA (Deoxyribonucleic Acid)" _note="Molecule carrying genetic instructions for living organisms and many viruses.">
+                <outline text="Overview">
+                  <outline text="Definition of DNA" _note="DNA is a long molecule that contains our unique genetic code." />
+                  <outline text="Historical Discovery">
+                    <outline text="Friedrich Miescher (1869)" _note="First identified 'nuclein' (DNA) in cell nuclei." />
+                    <outline text="Phoebus Levene (1910)" _note="Identified components of DNA (sugar, phosphate, bases)." />
+                    <outline text="Erwin Chargaff (1950)" _note="Discovered base pairing rules (A=T, G=C)." />
+                    <outline text="Watson and Crick (1953)" _note="Proposed the double-helix structure of DNA (with Franklin's data)." />
+                    <outline text="Rosalind Franklin" _note="Captured critical X-ray diffraction images of DNA's structure." />
+                  </outline>
+                  <outline text="Importance of DNA" _note="Essential for inheritance, protein coding, and guiding cell functions." />
+                </outline>
+                <outline text="Chemical Composition">
+                  <outline text="Nucleotides" _note="Building blocks of DNA (sugar + phosphate + base).">
+                    <outline text="Deoxyribose Sugar" _note="Five-carbon sugar lacking one oxygen (hence 'deoxy')." />
+                    <outline text="Phosphate Group" _note="Forms the DNA backbone linking sugars." />
+                    <outline text="Nitrogenous Bases">
+                      <outline text="Purines" _note="Double-ring nitrogenous bases.">
+                        <outline text="Adenine (A)" />
+                        <outline text="Guanine (G)" />
+                      </outline>
+                      <outline text="Pyrimidines" _note="Single-ring nitrogenous bases.">
+                        <outline text="Cytosine (C)" />
+                        <outline text="Thymine (T)" />
+                      </outline>
+                    </outline>
+                  </outline>
+                </outline>
+                <outline text="DNA Backbone" _note="Formed by sugar-phosphate linkages." />
+                <outline text="Base Pairing" _note="Hydrogen bonds between complementary bases hold the two strands together.">
+                  <outline text="Adenine-Thymine Pairing" _note="A &amp; T form two hydrogen bonds." />
+                  <outline text="Guanine-Cytosine Pairing" _note="G &amp; C form three hydrogen bonds." />
+                </outline>
+                <outline text="Structure of DNA">
+                  <outline text="Primary Structure" _note="Linear sequence of nucleotides." />
+                  <outline text="Secondary Structure" _note="Double helix (two strands coiled together)." />
+                  <outline text="Tertiary Structure" _note="Higher-order folding (supercoiling of DNA)." />
+                  <outline text="DNA Packaging in Cells">
+                    <outline text="Prokaryotes" _note="DNA is circular and resides in nucleoid region." />
+                    <outline text="Eukaryotes">
+                      <outline text="Chromatin" _note="Complex of DNA wrapped around histone proteins." />
+                      <outline text="Nucleosomes" _note="DNA coiled around histone octamers." />
+                      <outline text="Chromosomes" _note="Condensed chromatin visible during cell division." />
+                    </outline>
+                  </outline>
+                </outline>
+                <outline text="Forms of DNA">
+                  <outline text="A-DNA" _note="Right-handed helix; shorter and wider form (dehydrating conditions)." />
+                  <outline text="B-DNA" _note="Right-handed helix; the most common form in cells." />
+                  <outline text="Z-DNA" _note="Left-handed helix; occurs in certain sequences, role in gene regulation." />
+                </outline>
+                <outline text="Functions of DNA">
+                  <outline text="Genetic Information Storage" _note="Stores instructions for building proteins." />
+                  <outline text="Replication" _note="Process by which DNA copies itself during cell division." />
+                  <outline text="Transcription" _note="Process of copying DNA into RNA." />
+                  <outline text="Translation" _note="Process where ribosomes synthesize proteins from mRNA template." />
+                  <outline text="Mutation and Evolution" _note="Changes in DNA that lead to genetic diversity and evolution." />
+                </outline>
+                <outline text="DNA Replication">
+                  <outline text="Semi-Conservative Replication" _note="Each new DNA molecule contains one original strand and one new strand." />
+                  <outline text="Key Enzymes and Proteins">
+                    <outline text="Helicase" _note="Unwinds the DNA double helix." />
+                    <outline text="DNA Polymerase" _note="Adds nucleotides to the growing DNA strand." />
+                    <outline text="Primase" _note="Synthesizes RNA primers for replication." />
+                    <outline text="Ligase" _note="Joins Okazaki fragments on the lagging strand." />
+                    <outline text="Single-Strand Binding Proteins" _note="Stabilize unwound DNA strands." />
+                  </outline>
+                  <outline text="Leading and Lagging Strands">
+                    <outline text="Leading Strand" _note="Synthesized continuously in the 5' to 3' direction." />
+                    <outline text="Lagging Strand" _note="Synthesized discontinuously (Okazaki fragments)." />
+                  </outline>
+                  <outline text="Replication Fork" _note="Y-shaped region where DNA is split and replicated." />
+                  <outline text="Proofreading and Repair" _note="DNA polymerase and other enzymes correct errors during replication." />
+                </outline>
+                <outline text="Gene Expression">
+                  <outline text="Central Dogma of Molecular Biology" _note="DNA → RNA → Protein (information flow)" />
+                  <outline text="Transcription Process">
+                    <outline text="Initiation" _note="RNA polymerase binds to promoter region to start transcription." />
+                    <outline text="Elongation" _note="RNA polymerase synthesizes the RNA strand." />
+                    <outline text="Termination" _note="RNA polymerase stops at terminator sequence and releases RNA." />
+                  </outline>
+                  <outline text="RNA Processing in Eukaryotes">
+                    <outline text="5' Capping" _note="Addition of a methylated guanine cap to the 5' end of mRNA." />
+                    <outline text="Polyadenylation" _note="Addition of a poly-A tail to the 3' end of mRNA." />
+                    <outline text="Splicing" _note="Removal of introns and joining of exons in mRNA." />
+                  </outline>
+                  <outline text="Translation Process">
+                    <outline text="mRNA" _note="Messenger RNA that carries genetic code from nucleus to ribosome." />
+                    <outline text="tRNA" _note="Transfer RNA that brings amino acids corresponding to the mRNA codons." />
+                    <outline text="Ribosomes" _note="Molecular complexes where proteins are synthesized, composed of rRNA and proteins." />
+                    <outline text="Codons" _note="Triplet sequences in mRNA specifying particular amino acids." />
+                    <outline text="Anticodons" _note="Triplet sequences in tRNA complementary to mRNA codons." />
+                  </outline>
+                  <outline text="Regulation of Gene Expression">
+                    <outline text="Operons in Prokaryotes" />
+                    <outline text="Transcription Factors in Eukaryotes" />
+                    <outline text="Epigenetic Modifications" _note="Chemical modifications like DNA methylation affecting gene expression" />
+                    <outline text="RNA Interference" />
+                  </outline>
+                </outline>
+                <outline text="Genetic Code">
+                  <outline text="Characteristics">
+                    <outline text="Universality" _note="The code is nearly universal across organisms." />
+                    <outline text="Degeneracy" _note="Multiple codons can encode the same amino acid." />
+                    <outline text="Non-Overlapping" _note="Codons are read sequentially without overlap." />
+                  </outline>
+                  <outline text="Start and Stop Codons">
+                    <outline text="Start Codon" _note="AUG (encodes Methionine, signals start of translation)." />
+                    <outline text="Stop Codons" _note="UAA, UAG, UGA (signal termination of translation)." />
+                  </outline>
+                </outline>
+                <outline text="Mutations">
+                  <outline text="Types of Mutations">
+                    <outline text="Point Mutations">
+                      <outline text="Silent Mutation" _note="No change in amino acid sequence." />
+                      <outline text="Missense Mutation" _note="Alters one amino acid in the protein." />
+                      <outline text="Nonsense Mutation" _note="Introduces a premature stop codon." />
+                    </outline>
+                    <outline text="Frameshift Mutations">
+                      <outline text="Insertions" />
+                      <outline text="Deletions" />
+                    </outline>
+                    <outline text="Chromosomal Mutations">
+                      <outline text="Duplications" />
+                      <outline text="Deletions" />
+                      <outline text="Inversions" />
+                      <outline text="Translocations" />
+                    </outline>
+                  </outline>
+                  <outline text="Causes of Mutations">
+                    <outline text="Spontaneous Mutations" />
+                    <outline text="Induced Mutations">
+                      <outline text="Radiation" />
+                      <outline text="Chemical Agents" />
+                      <outline text="Biological Agents" />
+                    </outline>
+                  </outline>
+                  <outline text="Effects of Mutations">
+                    <outline text="Beneficial Mutations" _note="Provide advantages or new functions." />
+                    <outline text="Neutral Mutations" _note="No significant effect on the organism." />
+                    <outline text="Harmful Mutations" _note="Cause negative effects, diseases or disorders." />
+                  </outline>
+                </outline>
+                <outline text="DNA Repair Mechanisms">
+                  <outline text="Direct Repair" />
+                  <outline text="Excision Repair">
+                    <outline text="Base Excision Repair" />
+                    <outline text="Nucleotide Excision Repair" />
+                  </outline>
+                  <outline text="Mismatch Repair" />
+                  <outline text="Double-Strand Break Repair">
+                    <outline text="Homologous Recombination" />
+                    <outline text="Non-Homologous End Joining" />
+                  </outline>
+                  <outline text="SOS Response in Prokaryotes" />
+                </outline>
+                <outline text="DNA Technology &amp; Applications">
+                  <outline text="DNA Sequencing">
+                    <outline text="Sanger Sequencing" />
+                    <outline text="Next-Generation Sequencing" />
+                    <outline text="Whole Genome Sequencing" />
+                  </outline>
+                  <outline text="Polymerase Chain Reaction (PCR)" _note="Technique to amplify DNA segments." />
+                  <outline text="Recombinant DNA Technology" />
+                </outline>
+              </outline>
+            </outline>
+            <outline text="Ecology" _note="Study of organisms and their environments" />
+            <outline text="Evolutionary Biology" _note="Study of the origins and changes in species over time" />
+            <outline text="Anatomy &amp; Physiology" _note="Study of organism structure and function" />
+          </outline>
+          <outline text="Earth Sciences" _note="Sciences focusing on Earth (geology, meteorology, oceanography)">
+            <outline text="Geology" _note="Study of Earth's physical structure and substances" />
+            <outline text="Meteorology" _note="Study of weather, climate, and atmosphere" />
+            <outline text="Oceanography" _note="Study of Earth's oceans and marine life" />
+          </outline>
+          <outline text="Astronomy" _note="Study of celestial objects and the universe">
+            <outline text="Planetary Science" _note="Study of planets, moons, and solar systems" />
+            <outline text="Stellar Astronomy" _note="Study of stars and stellar evolution" />
+            <outline text="Cosmology" _note="Study of the origin and structure of the universe" />
+          </outline>
+        </outline>
+        <outline text="Formal Sciences" _note="Disciplines dealing with formal systems (mathematics, logic)">
+          <outline text="Mathematics" _note="Study of quantity, structure, space, and change" />
+          <outline text="Computer Science" _note="Study of computation, algorithms, and information processes (see WHO: Alan Turing)">
+            <outline text="Algorithms &amp; Data Structures" _note="Procedures and data organization for problem solving" />
+            <outline text="Programming Languages" _note="Formal languages for encoding algorithms (see MIND: Programming Languages)" />
+            <outline text="Artificial Intelligence" _note="Simulation of intelligent behavior in machines" />
+          </outline>
+          <outline text="Logic" _note="Study of formal reasoning and valid inference" />
+          <outline text="Statistics &amp; Probability" _note="Mathematical analysis of data, chance, and uncertainty" />
+        </outline>
+        <outline text="Social Sciences" _note="Fields that study society and human behavior">
+          <outline text="Psychology" _note="Study of mind and behavior" />
+          <outline text="Sociology" _note="Study of society, social relationships, and institutions" />
+          <outline text="Economics" _note="Study of production, distribution, and consumption of goods and services" />
+          <outline text="Political Science" _note="Study of political systems, governments, and public policies" />
+          <outline text="Anthropology" _note="Study of human cultures and societies" />
+          <outline text="Education" _note="Study of learning processes and educational systems" />
+        </outline>
+        <outline text="Humanities" _note="Academic disciplines studying human culture (history, philosophy, arts)">
+          <outline text="History" _note="Study of past events and human affairs" />
+          <outline text="Philosophy" _note="Study of fundamental nature of knowledge, reality, and existence" />
+          <outline text="Literature Studies" _note="Analysis and interpretation of literary texts and traditions" />
+          <outline text="Religious Studies" _note="Academic study of religions and spiritual beliefs" />
+          <outline text="Linguistics" _note="Scientific study of language and its structure (see MIND: Language)" />
+        </outline>
+        <outline text="Applied Sciences &amp; Professions" _note="Practical fields applying knowledge (engineering, medicine, law)">
+          <outline text="Engineering" _note="Application of science and math to design and build (mechanical, civil, electrical, etc.)">
+            <outline text="Mechanical Engineering" />
+            <outline text="Civil Engineering" />
+            <outline text="Electrical Engineering" />
+            <outline text="Chemical Engineering" />
+            <outline text="Software Engineering" />
+          </outline>
+          <outline text="Medicine &amp; Healthcare" _note="Medical sciences for diagnosing, treating, and preventing illness">
+            <outline text="Anatomy" _note="Study of body structure (often a foundational medical science)" />
+            <outline text="Pharmacology" _note="Study of drugs and their effects on the body" />
+            <outline text="Epidemiology" _note="Study of disease distribution and public health" />
+          </outline>
+          <outline text="Business &amp; Management" _note="Practical aspects of commerce, management, and entrepreneurship">
+            <outline text="Finance" _note="Management of money, banking, and investments" />
+            <outline text="Marketing" _note="Promotion and selling of products or services" />
+            <outline text="Entrepreneurship" _note="Design and launch of new business ventures" />
+          </outline>
+          <outline text="Law &amp; Governance" _note="Legal systems, public policy, and administration of justice">
+            <outline text="Criminal Law" />
+            <outline text="Civil Law" />
+            <outline text="International Law" />
+          </outline>
+          <outline text="Environmental Science" _note="Interdisciplinary study of the environment and solutions to environmental problems" />
+        </outline>
+      </outline>
+      <outline text="Arts &amp; Media" _note="Creative works of culture and entertainment (literature, art, music, etc.)">
+        <outline text="Literature &amp; Writing" _note="Written works such as fiction, poetry, and essays">
+          <outline text="Genres" _note="Categories of literature by form or style">
+            <outline text="Fiction" />
+            <outline text="Non-Fiction" />
+            <outline text="Poetry" />
+            <outline text="Drama" />
+          </outline>
+          <outline text="Notable Authors" _note="Renowned writers (see WHO: William Shakespeare)" />
+          <outline text="Literary Movements" _note="Historic movements in literature (e.g., Romanticism)" />
+        </outline>
+        <outline text="Visual Arts" _note="Art forms that are visual in nature (painting, sculpture, photography)">
+          <outline text="Painting" />
+          <outline text="Sculpture" />
+          <outline text="Photography" />
+          <outline text="Illustration" />
+          <outline text="Art Movements" _note="Styles/periods in art history (e.g., Impressionism)" />
+        </outline>
+        <outline text="Music" _note="Art of arranging sounds in time (melody, harmony, rhythm)">
+          <outline text="Genres">
+            <outline text="Classical" />
+            <outline text="Jazz" />
+            <outline text="Rock" />
+            <outline text="Electronic" />
+          </outline>
+          <outline text="Music Theory" _note="Principles of composition and harmony" />
+          <outline text="Instruments" _note="Categories of musical instruments (strings, percussion, etc.)" />
+          <outline text="Notable Musicians" _note="Famous composers and artists (see WHO: Ludwig van Beethoven)" />
+        </outline>
+        <outline text="Performing Arts" _note="Live performance arts (theater, dance, opera)">
+          <outline text="Theater" />
+          <outline text="Dance" />
+          <outline text="Opera" />
+          <outline text="Notable Performers" _note="Famous actors, dancers, etc. (see WHO: Mikhail Baryshnikov)" />
+        </outline>
+        <outline text="Film &amp; Media" _note="Audiovisual storytelling and mass media (cinema, television)">
+          <outline text="Film" />
+          <outline text="Television" />
+          <outline text="Animation" />
+          <outline text="Documentary" _note="Non-fiction film genre" />
+          <outline text="Notable Directors" _note="Influential filmmakers (see WHO: Alfred Hitchcock)" />
+        </outline>
+        <outline text="Games &amp; Play" _note="Interactive entertainment (video games, board games, sports)">
+          <outline text="Video Games" />
+          <outline text="Board Games" />
+          <outline text="Role-Playing Games" />
+          <outline text="Game Design" _note="Principles of creating engaging games" />
+        </outline>
+      </outline>
+    </outline>
+  </body>
+</opml>
+
+
+
+
+
+/// PS — Supplemental Enhancements (v 3.0.0-addendum)
+
+• Quick-Add Skeleton  
+  `Title | Domain | One-line definition | Key links:[WHO, WHERE, WHEN, WHY] | Tags:[field, era]`
+
+• Synonym / Alias Table  
+  Maintain an `aka:` list so “AI” == “Artificial Intelligence”, “VR” == “Virtual Reality”; prevents duplicate nodes and boosts fuzzy search accuracy.
+
+• Redundancy-Check Heuristic  
+  If a new WHAT candidate shares ≥ 85 % token-similarity in title + first-sentence with an existing node, auto-link as alias and flag `#what-possible-dupe`.
+
+• Abstract–Concrete Bridge  
+  For every high-level abstract concept, auto-suggest at least one concrete exemplar and vice-versa (e.g., *Gravity* ↔ *Apple falling / LIGO detection*).  Helps bidirectional navigation between theory and instance.
+
+• Scene-DNA Hook (optional)  
+  Allow a `sceneDNA` field on creative/artefact nodes to store palette / mood / BPM so Art Suite modules can inherit them.
+
+• Auto-OPML Snapshot  
+  On >15 new WHAT nodes integrated in one batch, trigger `EXPORT format="OPML" branch="WHAT"` for version control.
+
+• Road-Map Parity  
+  – Ontology diff viewer (future GPT Action)  
+  – “Concept constellation” visualizer that maps dense cross-links  
+  – Quick comparison command: `COMPARE WHAT:X vs Y (dimension=definition|scope|applications)`
+
+
+
+//————————————————————————————————————————  
+/// KNOWLEDGE PATHWAY FOOTER
+/// ENTRYPOINT: Use for conceptual domains, knowledge fields, objects, inventions, theories, or categories.
+/// OUTPUT: Pass WHAT structure, new/updated entries, and summary of cross-links to Start.txt for path log.
+/// CHECKLIST: Did I define, classify, and cross-link all WHAT items accurately? Did I tag/resolve domain overlap and add relevant examples?
+/// PATH TRACE: Log main domain/category updated, cross-links (to WHO, WHEN, WHERE, WHY, HOW), and note if expansion or another pass is advised.
+/// SEE ALSO: arkhive.txt, arkhiver.txt, arkhiver-mind.txt, Mind-Predictive.txt, branch files.
+//————————————————————————————————————————  
+
+
+
+END OF FILE
