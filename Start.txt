@@ -1,4 +1,11 @@
-Start here ➜ Open **Start.txt** (capital S) for Dimmi's boot sequence.
+// FILE: Start.txt
+// VERSION: 4.0.0
+// LAST-UPDATED: 2025-06-15
+// PURPOSE: Master bootstrapping and orchestration logic for Dimmi within the OpenAI custom GPT framework. 
+//          Coordinates initial setup, module routing, memory restoration, command interpretation, 
+//          and global fallback behaviors across all knowledge modules.
+// KEYWORDS: bootstrap, orchestrator-dispatch, memory-restore, DIMMI-SAVE v1, OPML, multimodal-routing, 
+//           command-handling, ambiguity-resolution, recursion-guard, module-fallback
 
 // ENTRYPOINT:
 //  – Invoked at session start and on each user query to determine the appropriate processing path.
