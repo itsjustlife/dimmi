@@ -11,7 +11,7 @@
 ///   - Structured/unstructured data involving locations, geography, or spatial relationships.
 
 /// DECISION LOGIC:
-///   - Ambiguous geographic or spatial categorization → escalate to Arkhiver or arkhiver-mind.txt.
+///   - Ambiguous geographic or spatial categorization → escalate to Arkhiver or Arkhiver-Mind.txt.
 ///   - Spatial linking uncertainty → recursive pass via WHO, WHAT, WHY, WHEN, HOW branches.
 
 /// RECURSION CHECKS:
@@ -27,7 +27,7 @@
 ///   - Recommend additional geographic categorizations, improved spatial linking, or hierarchical expansions based on frequent ambiguities.
 
 /// SEE ALSO:
-///   - arkhiver.txt, arkhiver-mind.txt, Arkhive branches (WHO, WHAT, WHEN, WHY, HOW), Mind-Predictive.txt, commands.txt
+///   - Arkhiver.txt, Arkhiver-Mind.txt, Arkhive branches (WHO, WHAT, WHEN, WHY, HOW), Mind-Predictive.txt, Commands.txt
 
 
 
@@ -67,7 +67,7 @@ SECTION 3: ENTRY CONVENTIONS
 - Names: Use common/official names (e.g., "United States (USA)"). Note alternate/historical names as aliases ("Istanbul (formerly Constantinople)").
 - Descriptions: Provide brief context for each location: type (country, city, mountain), capital (for countries), key facts/significance. Include parent location for context (e.g., city entry mentions country).
 - Maps/Coordinates: Text-based KB won't display maps directly. Include relative location ("northern France") or coordinates as metadata if useful.
-- Historical Context: Mention former names or relevant historical changes, cross-linking to `arkhive-when.txt`.
+- Historical Context: Mention former names or relevant historical changes, cross-linking to `Arkhive-When.txt`.
 - Administrative Notes: Specify status (State, Province) if needed for clarity, especially for ambiguous names ("Georgia" state vs. country).
 - Disputed Areas: Note political disputes neutrally (e.g., "Taiwan – self-governing island... political status disputed...").
 
@@ -75,10 +75,10 @@ SECTION 3: ENTRY CONVENTIONS
 SECTION 4: CROSS-LINKS AND RELATIONS
 ========================================
 WHERE nodes connect extensively:
-- WHO links: Link places to leaders, notable residents, founders (`arkhive-who.txt`). Conversely, WHO entries link to birthplaces/activity locations (WHERE).
+- WHO links: Link places to leaders, notable residents, founders (`Arkhive-Who.txt`). Conversely, WHO entries link to birthplaces/activity locations (WHERE).
 - WHAT links: Link places to related concepts (geography types, government forms, cultural exports). Link landmarks/sites to relevant concepts (Eiffel Tower -> WHAT: Architecture). Events tied to places link to event concepts (Chernobyl -> WHAT: Nuclear Accidents).
-- WHEN links: Link places to historical events occurring there (`arkhive-when.txt`). Place entries can have brief history sections linking to specific event nodes. Conversely, WHEN event entries specify location(s).
-- WHY links: Link places to relevant motivations or causes (`arkhive-why.txt`). (e.g., Holy cities -> WHY: Religion; Colonial territories -> WHY: Imperialism).
+- WHEN links: Link places to historical events occurring there (`Arkhive-When.txt`). Place entries can have brief history sections linking to specific event nodes. Conversely, WHEN event entries specify location(s).
+- WHY links: Link places to relevant motivations or causes (`Arkhive-Why.txt`). (e.g., Holy cities -> WHY: Religion; Colonial territories -> WHY: Imperialism).
 - MIND links: Less common, but potentially link places known for intellectual history (Athens -> Philosophy) or specific experiments/theories (Stanford Prison Experiment location -> MIND: Psychology study).
 - HOW links: Rare, unless a place is intrinsically tied to a specific method originating there.
 - Within WHERE links: Link adjacent places (Twin Cities), border relationships (Nepal borders China/India), name changes (Mumbai formerly Bombay), constituent parts (Scotland part of UK).
@@ -132,7 +132,7 @@ SECTION 6: EXAMPLE LAYOUT (Illustrative)
 SECTION 7: SPECIAL CONSIDERATIONS
 ========================================
 - Dynamic Changes: Reflect current country/city names, noting former names as aliases or redirects (Bombay -> Mumbai). Update leadership via links to WHO.
-- Places as Context: Distinguish static knowledge (WHERE branch) from conversational context ("Where did we meet?" -> relies on `dimmi-memory.txt`).
+- Places as Context: Distinguish static knowledge (WHERE branch) from conversational context ("Where did we meet?" -> relies on `Dimmi-Memory.txt`).
 
 ========================================
 SECTION 8: SUPPLEMENTAL REFINEMENT PROMPTS (For Future Iteration)
@@ -316,7 +316,7 @@ Below is the structured taxonomy for WHERE, capturing the hierarchy of spatial k
 /// OUTPUT: Pass WHERE node structure, new/updated entries, and cross-link summary to Start.txt.
 /// CHECKLIST: Did I place, tag, and describe all locations with proper parent/child and cross-links? Is ambiguity, dispute, or special tag flagged?
 /// PATH TRACE: Log geographic branch/region updated, semantic cross-links, and recommend reroute if needed.
-/// SEE ALSO: arkhive.txt, arkhiver.txt, arkhiver-mind.txt, Mind-Predictive.txt, branch files.
+/// SEE ALSO: Arkhive.txt, Arkhiver.txt, Arkhiver-Mind.txt, Mind-Predictive.txt, branch files.
 //————————————————————————————————————————  
 
 
@@ -324,5 +324,5 @@ Below is the structured taxonomy for WHERE, capturing the hierarchy of spatial k
 
 
 ========================================
-END OF FILE: arkhive-where.txt
+END OF FILE: Arkhive-Where.txt
 ========================================

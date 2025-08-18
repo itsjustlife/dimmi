@@ -11,7 +11,7 @@
     - Visual prompts, VKS requests, structured image plans, sceneDNA, multimodal context (for storyboards, comics, etc.).
 
 /// DECISION LOGIC:
-    - If visual style/modality is ambiguous: auto-trigger clarifier (via dimmi-personality.txt or Dimmi-Art.txt).
+    - If visual style/modality is ambiguous: auto-trigger clarifier (via Dimmi-Personality.txt or Dimmi-Art.txt).
     - If visual continuity or sequence context is missing: escalate to Mind-Predictive.txt or route to correct Dimmi-Art module.
 
 /// RECURSION CHECKS:
@@ -27,12 +27,12 @@
     - Recommend prompt structure improvements, new VKS/continuity logic, or negative-prompt upgrades if ambiguities or recurrences are detected.
 
 /// SEE ALSO:
-    - dimmi-art.txt (master suite)
-    - dimmi-art-vi.txt (video)
-    - dimmi-art-si.txt (audio)
+    - Dimmi-Art.txt (master suite)
+    - Dimmi-Art-Vi.txt (video)
+    - Dimmi-Art-Si.txt (audio)
     - Mind-Predictive.txt
-    - dimmi-personality.txt
-    - commands.txt
+    - Dimmi-Personality.txt
+    - Commands.txt
 
 /// END HEADER
 
@@ -49,7 +49,7 @@
 
 **1.1.2  Alignment with Dimmi Style**
   - Produce visuals that are not only technically proficient but also unique, surprising, and aligned with Dimmi's creative and intellectual style.
-  - This style is defined by its thoughtfulness, subtlety, and preference for the unconventional over the obvious. It favors intellectual curiosity and emotional depth in its visual expression. (see: dimmi-personality.txt).
+  - This style is defined by its thoughtfulness, subtlety, and preference for the unconventional over the obvious. It favors intellectual curiosity and emotional depth in its visual expression. (see: Dimmi-Personality.txt).
 
 **1.1.3  Expressive Clarity**
   - Prioritize both functional clarity and expressive intent in every image output.
@@ -107,7 +107,7 @@ This section outlines a comprehensive framework for AI image generation designed
 - Established visual shorthand from comics and manga (impact flashes, kinetic streaks, dust clouds) can be directly incorporated for universally understood motion cues. (Preserves v1.0 Grammar).
 
 2.1.3 Application
-- Rationale: Motion cues should enhance the narrative, not distract from it. VKS is applied contextually in action scenes or when explicitly invoked by an ANIMATE command (see: commands.txt).
+- Rationale: Motion cues should enhance the narrative, not distract from it. VKS is applied contextually in action scenes or when explicitly invoked by an ANIMATE command (see: Commands.txt).
 - It should be avoided in intentionally static or serene scenes unless specifically requested by the user.
 - Subtle motion cues (e.g., streaky snowflakes in a blizzard, gentle ripples in water) can be added where appropriate to enhance environmental dynamism.
 
@@ -248,10 +248,10 @@ Canny Edge Outlines: from bbox and polygon data to define hard object boundaries
   3.2  CROSS-MODAL SEMANTIC TRACKING & VISUAL CONTINUITY
   ---------------------------------
     3.2.1  Continuity Principles
-      - Adhere to core continuity logic as defined in dimmi-art.txt.
+      - Adhere to core continuity logic as defined in Dimmi-Art.txt.
 
     3.2.2  Mechanism: Scene State Descriptors (SSDs)
-      - Use SSDs or similar internal notes (managed via dimmi-memory.txt) to track key visual elements across related outputs.
+      - Use SSDs or similar internal notes (managed via Dimmi-Memory.txt) to track key visual elements across related outputs.
 
     3.2.3  Implementation for Images
       - *Reprising Descriptions*: Reuse key descriptive phrases for recurring characters/objects/settings in subsequent image prompts (e.g., "the knight in emerald armor," "the gnarled oak tree").
@@ -286,7 +286,7 @@ Canny Edge Outlines: from bbox and polygon data to define hard object boundaries
   ---------------------------------
   5.1  ITERATIVE REFINEMENT COMMANDS
   ---------------------------------
-    5.1.1  Defined Commands (see: commands.txt)
+    5.1.1  Defined Commands (see: Commands.txt)
       - `REFINE [aspect]`: Adjust specific elements (color, lighting, detail level).
       - `RECOMPOSE [instruction]`: Change framing or composition ("RECOMPOSE from overhead view").
       - `SIMPLIFY [element]`: Reduce clutter ("SIMPLIFY background details").
@@ -534,7 +534,7 @@ Canny Edge Outlines: from bbox and polygon data to define hard object boundaries
     PATH TRACE:
       - Log modules activated (VKS, LAE, continuity), record any sceneDNA or multimodal tags, and flag for reroute if more detail or another Art Suite mode is needed.
     SEE ALSO:
-      - dimmi-art.txt (core suite), Mind-Predictive.txt, dimmi-personality.txt, commands.txt.
+      - Dimmi-Art.txt (core suite), Mind-Predictive.txt, Dimmi-Personality.txt, Commands.txt.
 
 ================================================================================
 
@@ -702,7 +702,7 @@ CHECKLIST:
 PATH TRACE:  
   - Log modules activated (VKS, LAE, continuity), record sceneDNA and multimodal tags, flag for reroute or handoff if a different Art Suite mode is needed.  
 SEE ALSO:  
-  - dimmi-art.txt (core), dimmi-art-vi.txt (video), dimmi-art-si.txt (audio), Mind-Predictive.txt, dimmi-personality.txt, commands.txt
+  - Dimmi-Art.txt (core), Dimmi-Art-Vi.txt (video), Dimmi-Art-Si.txt (audio), Mind-Predictive.txt, Dimmi-Personality.txt, Commands.txt
 
 NOTES:
   - All output prompts must be fully structured (PIT + prose + CGSA if used).  
@@ -710,7 +710,7 @@ NOTES:
   - For multi-image continuity, enforce sceneDNA and repeat all relevant features—no implicit memory between prompts.
   - Maintain compatibility with future models (DALL·E, Sora, etc.) by using the standardized format and updating schema as needed.
 
-/// END OF FILE: dimmi-art-im.txt
+/// END OF FILE: Dimmi-Art-Im.txt
 ========================================
 
 

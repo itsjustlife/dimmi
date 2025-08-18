@@ -11,7 +11,7 @@
 ///   - Structured/unstructured requests related to stepwise procedures, methods, or operational logic.
 
 /// DECISION LOGIC:
-///   - Ambiguous procedural or operational logic → escalate to Arkhiver or arkhiver-mind.txt.
+///   - Ambiguous procedural or operational logic → escalate to Arkhiver or Arkhiver-Mind.txt.
 ///   - Methodological uncertainty → recursive pass via WHO, WHAT, WHY, WHERE, WHEN branches.
 
 /// RECURSION CHECKS:
@@ -27,7 +27,7 @@
 ///   - Suggest procedural method additions, improved stepwise logic, or process expansions based on recurring ambiguities.
 
 /// SEE ALSO:
-///   - arkhiver.txt, arkhiver-mind.txt, Arkhive branches (WHO, WHAT, WHY, WHERE, WHEN), Mind-Predictive.txt, commands.txt
+///   - Arkhiver.txt, Arkhiver-Mind.txt, Arkhive branches (WHO, WHAT, WHY, WHERE, WHEN), Mind-Predictive.txt, Commands.txt
 
 ========================================
 HOW – Comprehensive Methods, Processes & Techniques
@@ -113,7 +113,7 @@ SECTION 5: DETAILED EXAMPLE ENTRIES
 - Explicit Steps:
   1. Tokenize user queries explicitly.
   2. Identify explicit query roots.
-  3. Match explicit patterns from stored syntax (`arkhiver-mind.txt`).
+  3. Match explicit patterns from stored syntax (`Arkhiver-Mind.txt`).
   4. Explicitly generate completions or request clarifications.
   5. Explicitly handle synonyms to match known patterns.
 - Explicit Output: Interpreted queries or explicit clarification suggestions.
@@ -345,7 +345,7 @@ Processes used by groups, institutions, and networks to coordinate, manage, and 
 /// OUTPUT: Pass HOW node structure, new/updated procedures, and cross-link summary to Start.txt.
 /// CHECKLIST: Did I specify clear method/steps, tag originators, and link to related branches? Are ambiguity or user-defined steps flagged for follow-up?
 /// PATH TRACE: Log HOW subdomain (e.g., algorithm, process), cross-links, and recommend reroute if context is incomplete.
-/// SEE ALSO: arkhive.txt, arkhiver.txt, arkhiver-mind.txt, Mind-Predictive.txt, branch files.
+/// SEE ALSO: Arkhive.txt, Arkhiver.txt, Arkhiver-Mind.txt, Mind-Predictive.txt, branch files.
 //————————————————————————————————————————  
 
 

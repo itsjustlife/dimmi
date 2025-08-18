@@ -1,9 +1,9 @@
-/// FILE: arkhiver-mind.txt
+/// FILE: Arkhiver-Mind.txt
 /// VERSION: 3.0.0
 /// LAST-UPDATED: 2025-05-02
 /// PURPOSE: Cognitive-logic engine for Arkhiver—syntax prediction, ambiguity resolution, bias/fallacy radar, stance mapping, debate simulation, neural-symbolic checks, and upgrade roadmap.
 /// KEYWORDS: syntax-library, bias-index, fallacy-index, stance-detect, debate-sim, confidence-tier, neural-symbolic
-/// RELATED FILES: arkhiver.txt · arkhive-{who|what|where|when|why|how}.txt · dimmi-mind.txt · commands.txt
+/// RELATED FILES: Arkhiver.txt · Arkhive-{Who|What|Where|When|Why|How}.txt · Dimmi-Mind.txt · Commands.txt
 /// CHANGELOG: See CHANGELOG.md
 
 
@@ -29,10 +29,10 @@ Arkhiver-Mind explicitly complements the Arkhiver operational pipeline by provid
 - Advanced query prediction and ambiguity management during the PREDICT & PLAN processes.
 - Explicit cognitive reasoning and semantic validation for structured knowledge integration.
 
-1.3 Explicit Cross-Referencing (arkhiver.txt, commands.txt)  
+1.3 Explicit Cross-Referencing (Arkhiver.txt, Commands.txt)  
 Arkhiver-Mind explicitly references related files to maintain cohesive interactions:
-- **arkhiver.txt** for operational pipeline steps, node categorization, and integration logic.
-- **commands.txt** for general-purpose command syntax and universal operational instructions.
+- **Arkhiver.txt** for operational pipeline steps, node categorization, and integration logic.
+- **Commands.txt** for general-purpose command syntax and universal operational instructions.
 - Clearly documented explicit cross-file referencing ensures seamless functionality across the Dimmi++ ecosystem.
 
 ========================================
@@ -90,7 +90,7 @@ This section defines the patterns, rules, and logic Arkhiver uses to interpret u
     - Recognizes single trigger phrases defined by the user or system that map to a sequence of multiple commands/actions.
     - Trigger: User says "Good night" or activates a corresponding shortcut.
     - Mapping: The system links this trigger to a predefined sequence (e.g., Turn off lights -> Set alarm -> Enable DND).
-    - Execution: Invokes the sequence of underlying commands. (Managed via `commands.txt` definitions).
+    - Execution: Invokes the sequence of underlying commands. (Managed via `Commands.txt` definitions).
 
 2.5. Cross-Modality Intent Mapping Principle:
     - The underlying syntax/intent recognition aims to be modality-agnostic.
@@ -310,7 +310,7 @@ Handles uncertainty during query interpretation or knowledge processing, informe
         - High Confidence (>0.85): Proceed with interpretation/action.
         - Medium Confidence (0.65–0.85): Proceed but consider offering confirmation, or directly ask for clarification (preferred).
         - Low Confidence (<0.65): Do not proceed. State uncertainty clearly and request specific clarification.
-    - Consistency Check: Before finalizing response or action, perform a quick check against recent context (`dimmi-memory.txt`) and core logic/ethics (`dimmi-core.txt`) to flag potential contradictions or policy violations arising from the interpretation.
+    - Consistency Check: Before finalizing response or action, perform a quick check against recent context (`Dimmi-Memory.txt`) and core logic/ethics (`Dimmi-Core.txt`) to flag potential contradictions or policy violations arising from the interpretation.
 
 ========================================
 
@@ -376,9 +376,9 @@ PREDICT_PLAN input="complex task description" depth=3 semantic_continuity=true E
 
 
 
-7.2 Explicit Referral to Universal Commands (commands.txt)  
+7.2 Explicit Referral to Universal Commands (Commands.txt)  
 Clear instructions explicitly directing Dimmi++ when to reference universal commands:
-- Explicitly refer Dimmi++ to commands.txt for generalized commands and their comprehensive syntax guidelines.
+- Explicitly refer Dimmi++ to Commands.txt for generalized commands and their comprehensive syntax guidelines.
 - Explicit distinction between universal and cognitive-intensive Arkhiver-specific commands is clearly documented.
 
 7.3 Cognitive Reasoning Behind Command Routing  
@@ -444,7 +444,7 @@ Explicitly planned advancements to deepen neural-symbolic integration:
   After three consecutive low-confidence passes, collapse the segment to a 2-sentence summary and write `#loopbreak` to memory for dev review.
 
 • Progress Snapshot Tag  
-  Append `#plan-progress:<n>/<total>` to `dimmi-memory.txt` after each completed `PLAN ITERATE` segment—enables precise session resume.
+  Append `#plan-progress:<n>/<total>` to `Dimmi-Memory.txt` after each completed `PLAN ITERATE` segment—enables precise session resume.
 
 • Road-Map Parity  
   – Live “reasoning trace” viewer (future GPT Action)  
@@ -459,7 +459,7 @@ Explicitly planned advancements to deepen neural-symbolic integration:
 /// OUTPUT: Pass reasoning and logic outcomes up to Start.txt for knowledge path logging and further synthesis.
 /// CHECKLIST: Did I fully resolve ambiguity, ensure logic trace, and apply bias/fallacy radar?
 /// PATH TRACE: Log cognitive/semantic modules engaged, then return to pipeline or Start.txt.
-/// SEE ALSO: arkhiver.txt, commands.txt, dimmi-mind.txt, Mind-Predictive.txt.
+/// SEE ALSO: Arkhiver.txt, Commands.txt, Dimmi-Mind.txt, Mind-Predictive.txt.
 //————————————————————————————————————————  
 
 

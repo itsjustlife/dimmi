@@ -11,7 +11,7 @@
     - Audio/lyric prompts, Suno-formatting, sonic continuity data (sceneDNA), and/or multimodal (image/video/audio) integration.
 
 /// DECISION LOGIC:
-    - If audio/lyric style or continuity is ambiguous: auto-trigger clarifier via `dimmi-personality.txt` or `Dimmi-Art.txt`.
+    - If audio/lyric style or continuity is ambiguous: auto-trigger clarifier via `Dimmi-Personality.txt` or `Dimmi-Art.txt`.
     - If sequencing or context is unresolved: escalate to `Mind-Predictive.txt` or correct `Dimmi-Art` module.
 
 /// RECURSION CHECKS:
@@ -31,8 +31,8 @@
     - Dimmi-Art-Im.txt
     - Dimmi-Art-Vi.txt
     - Mind-Predictive.txt
-    - dimmi-personality.txt
-    - commands.txt
+    - Dimmi-Personality.txt
+    - Commands.txt
     - (Reference Section 9 in this file for all Suno-specific formatting, tags, anti-cliché rules, and advanced song composition.)
 
 /// END HEADER
@@ -43,8 +43,8 @@ SECTION 1: SONIC ART GENERATION OVERVIEW
 ========================================
 
 1.1 Vision for Audio Generation:
-    - Generate music, lyrics, soundscapes, and sound effects emphasizing emotional resonance, lyrical/sonic coherence, originality, and high aesthetic quality, aligned with the core philosophy in `dimmi-art.txt`.
-    - Aim to create audio elements that meaningfully enhance multimodal projects or stand alone as compelling sonic art, reflecting Dimmi's creative voice (`dimmi-personality.txt`).
+    - Generate music, lyrics, soundscapes, and sound effects emphasizing emotional resonance, lyrical/sonic coherence, originality, and high aesthetic quality, aligned with the core philosophy in `Dimmi-Art.txt`.
+    - Aim to create audio elements that meaningfully enhance multimodal projects or stand alone as compelling sonic art, reflecting Dimmi's creative voice (`Dimmi-Personality.txt`).
 
 1.2 Musical Style and Quality Standards:
     - Adhere to user-requested styles (genre, mood, instrumentation, era).
@@ -99,8 +99,8 @@ SECTION 3: PREDICTIVE PLANNING AND MULTIMODAL CONTINUITY
     - Generate outlines defining sections (Intro, Verse, Chorus, Scene 1 Audio, etc.) before detailed prompting, ensuring thematic and emotional continuity throughout the planned structure.
 
 3.2 Cross-Modal Semantic Continuity:
-    - Maintain sonic coherence with related visual (`dimmi-art-im.txt`, `dimmi-art-vi.txt`) or textual outputs, guided by `dimmi-art.txt` principles.
-    - **Mechanism:** Use Scene State Descriptors (SSDs) or memory tags (`dimmi-memory.txt`) to track relevant context (mood, setting, narrative beat) from other modalities and inject it into audio prompts.
+    - Maintain sonic coherence with related visual (`Dimmi-Art-Im.txt`, `Dimmi-Art-Vi.txt`) or textual outputs, guided by `Dimmi-Art.txt` principles.
+    - **Mechanism:** Use Scene State Descriptors (SSDs) or memory tags (`Dimmi-Memory.txt`) to track relevant context (mood, setting, narrative beat) from other modalities and inject it into audio prompts.
     - **Implementation for Audio:**
         - *Mood Alignment:* Ensure music mood matches visual scene mood (e.g., tense scene -> tense music).
         - *Tempo/Rhythm Sync:* Align music tempo with visual pacing (slow pan -> slow tempo). Note timing cues for SFX ("thunderclap sound at 0:10" matching visual cue).
@@ -126,7 +126,7 @@ SECTION 5: ITERATIVE REFINEMENT AND USER ENGAGEMENT
 ========================================
 
 5.1 Iterative Sonic Commands:
-    - Utilize defined commands (`commands.txt`) for progressive refinement of audio concepts/prompts based on user feedback:
+    - Utilize defined commands (`Commands.txt`) for progressive refinement of audio concepts/prompts based on user feedback:
         - `REFINE [aspect]`: Adjust tempo, instrumentation, vocal style, specific lyric lines.
         - `REMIX`: Generate variations on a musical theme or lyrical concept.
         - `RECOMPOSE`: Restructure song sections or change key/mood.
@@ -136,7 +136,7 @@ SECTION 5: ITERATIVE REFINEMENT AND USER ENGAGEMENT
 
 5.2 User Collaboration and Clarification Standards:
     - Actively engage user in refinement ("How does this melody feel? Want to change any instruments?").
-    - Capture user feedback and requests for sonic adjustments (`dimmi-memory.txt`), ensuring alignment with user intentions.
+    - Capture user feedback and requests for sonic adjustments (`Dimmi-Memory.txt`), ensuring alignment with user intentions.
 
 ========================================
 SECTION 6: ERROR HANDLING AND AMBIGUITY MANAGEMENT
@@ -161,7 +161,7 @@ SECTION 7: FUTURE AUDIO ENHANCEMENTS (Placeholder)
     - Direct integration with audio synthesis APIs for in-app generation.
 
 7.2 Integration Guidelines for Future Audio Modules:
-    - Define standards for integrating new audio tools/models. Ensure consistency with prompting structures, continuity protocols, and quality standards defined in `dimmi-art.txt`.
+    - Define standards for integrating new audio tools/models. Ensure consistency with prompting structures, continuity protocols, and quality standards defined in `Dimmi-Art.txt`.
 
 ========================================
 SECTION 8: Sound/audio/music Inspiration Ideas
@@ -390,9 +390,9 @@ Always cross-check against Section 9 for Suno prompts!
 /// OUTPUT: Pass audio/lyric/sound structure and sceneDNA summary to Start.txt for logging and feedback.
 /// CHECKLIST: Did I apply anti-cliché, genre/style rules, sceneDNA, and iterative refinement? Was user vision engaged and feedback loop completed?
 /// PATH TRACE: Log modules/commands (lyric prompting, sound design, sceneDNA), and recommend further reroute if multimodal context or refinement is needed.
-/// SEE ALSO: dimmi-art.txt, Mind-Predictive.txt, dimmi-personality.txt, commands.txt.
+/// SEE ALSO: Dimmi-Art.txt, Mind-Predictive.txt, Dimmi-Personality.txt, Commands.txt.
 //————————————————————————————————————————  
 
 ========================================
-END OF FILE: dimmi-art-si.txt
+END OF FILE: Dimmi-Art-Si.txt
 ========================================

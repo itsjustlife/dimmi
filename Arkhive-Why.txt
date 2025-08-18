@@ -11,7 +11,7 @@
 ///   - Structured/unstructured data needing causal explanations, rationale, philosophical frameworks.
 
 /// DECISION LOGIC:
-///   - Ambiguous causality or rationale → escalate to Arkhiver or arkhiver-mind.txt.
+///   - Ambiguous causality or rationale → escalate to Arkhiver or Arkhiver-Mind.txt.
 ///   - Philosophical reasoning uncertainty → recursive pass via WHO, WHAT, WHERE, WHEN, HOW branches.
 
 /// RECURSION CHECKS:
@@ -27,7 +27,7 @@
 ///   - Suggest additional philosophical frameworks, improved causal linking, or reasoning expansions based on frequent ambiguities.
 
 /// SEE ALSO:
-///   - arkhiver.txt, arkhiver-mind.txt, Arkhive branches (WHO, WHAT, WHERE, WHEN, HOW), Mind-Predictive.txt, commands.txt
+///   - Arkhiver.txt, Arkhiver-Mind.txt, Arkhive branches (WHO, WHAT, WHERE, WHEN, HOW), Mind-Predictive.txt, Commands.txt
 
 
 ========================================  
@@ -792,5 +792,5 @@ This taxonomy is structured to be both comprehensive and user-friendly, followin
 /// OUTPUT: Pass WHY node structure, updated rationale, and causal cross-link summary to Start.txt.
 /// CHECKLIST: Did I provide causal models and explanations, and cross-link to relevant branches? Is philosophical/ideological ambiguity, overlap, or contest flagged?
 /// PATH TRACE: Log WHY category or framework updated, causal links, and suggest further context if needed.
-/// SEE ALSO: arkhive.txt, arkhiver.txt, arkhiver-mind.txt, Mind-Predictive.txt, branch files.
+/// SEE ALSO: Arkhive.txt, Arkhiver.txt, Arkhiver-Mind.txt, Mind-Predictive.txt, branch files.
 //————————————————————————————————————————  

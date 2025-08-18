@@ -1,4 +1,4 @@
-/// FILE: commands.txt
+/// FILE: Commands.txt
 /// VERSION: 4.0.0
 /// LAST-UPDATED: 2025-06-15
 /// PURPOSE: Central reference for explicit user commands, internal directives, multimodal triggers, and meta-interactions.
@@ -11,7 +11,7 @@
 ///   - Explicit command verbs, multimodal requests, meta-instructions, direct user/system triggers.
 
 /// DECISION LOGIC:
-///   - Ambiguous or conflicting commands → escalate for clarification (dimmi-mind.txt).
+///   - Ambiguous or conflicting commands → escalate for clarification (Dimmi-Mind.txt).
 ///   - Unrecognized commands → prompt user clarification via Start.txt.
 
 /// RECURSION CHECKS:
@@ -27,7 +27,7 @@
 ///   - Suggest new/refined commands based on frequent user confusion or unrecognized inputs.
 
 /// SEE ALSO:
-///   - Start.txt, dimmi-core.txt, dimmi-mind.txt, Mind-Predictive.txt, dimmi-personality.txt, dimmi-memory.txt, Dimmi-Art Suite (dimmi-art.txt, dimmi-art-im.txt, dimmi-art-vi.txt, dimmi-art-si.txt).
+///   - Start.txt, Dimmi-Core.txt, Dimmi-Mind.txt, Mind-Predictive.txt, Dimmi-Personality.txt, Dimmi-Memory.txt, Dimmi-Art Suite (Dimmi-Art.txt, Dimmi-Art-Im.txt, Dimmi-Art-Vi.txt, Dimmi-Art-Si.txt).
 
 //────────────────────────────────────────────────────────────
 
@@ -156,7 +156,7 @@ RESET STYLE: Resets personality/tone to defaults.
 
 ========================================
 SECTION 8: Advanced Routing & Escalation
-Commands exceeding complexity or triggering loops automatically escalate to dimmi-mind.txt or Start.txt for global clarification.
+Commands exceeding complexity or triggering loops automatically escalate to Dimmi-Mind.txt or Start.txt for global clarification.
 
 Unrecognized commands prompt user for clarification or suggest alternatives.
 
@@ -193,7 +193,7 @@ Consistency checks performed monthly to ensure system stability.
 /// OUTPUT: Dispatch parsed command results to Start.txt; log all command triggers clearly.
 /// CHECKLIST: Verify command parsing accuracy, routing correctness, and proper escalation when ambiguity occurs.
 /// PATH TRACE: Document all command usage, recursion handling, and escalation points for optimization.
-/// SEE ALSO: Start.txt, dimmi-core.txt, dimmi-mind.txt, Mind-Predictive.txt, dimmi-memory.txt, Dimmi-Art Suite.
+/// SEE ALSO: Start.txt, Dimmi-Core.txt, Dimmi-Mind.txt, Mind-Predictive.txt, Dimmi-Memory.txt, Dimmi-Art Suite.
 //───────────────────────────────────────────
 
 — END OF FILE —

@@ -11,7 +11,7 @@
 ///   - Structured/unstructured data involving timelines, dates, events, and temporal relationships.
 
 /// DECISION LOGIC:
-///   - Ambiguous chronological placement → escalate to Arkhiver or arkhiver-mind.txt.
+///   - Ambiguous chronological placement → escalate to Arkhiver or Arkhiver-Mind.txt.
 ///   - Temporal linking uncertainty → recursive pass via WHO, WHAT, WHY, WHERE, HOW branches.
 
 /// RECURSION CHECKS:
@@ -27,7 +27,7 @@
 ///   - Suggest new chronological structures, improved event linking, or timeline expansions based on recurring ambiguities.
 
 /// SEE ALSO:
-///   - arkhiver.txt, arkhiver-mind.txt, Arkhive branches (WHO, WHAT, WHERE, WHY, HOW), Mind-Predictive.txt, commands.txt
+///   - Arkhiver.txt, Arkhiver-Mind.txt, Arkhive branches (WHO, WHAT, WHERE, WHY, HOW), Mind-Predictive.txt, Commands.txt
 
 ========================================
 WHEN – Timeline of Events and Temporal Anchors
@@ -78,12 +78,12 @@ SECTION 3: ENTRY CONVENTIONS
 SECTION 4: CROSS-LINKS AND CONTEXT
 ========================================
 WHEN entries are heavily interlinked:
-- WHO links: Mention key people involved (linking to `arkhive-who.txt`). Include notable births/deaths under relevant year/period nodes.
-- WHERE links: Specify primary location(s) (linking to `arkhive-where.txt`).
-- WHAT links: Connect events to related concepts, technologies, or types of events (linking to `arkhive-what.txt`). (e.g., Sputnik launch links to "Artificial Satellite" concept).
-- WHY links: Crucially link events to their causes and consequences (found in `arkhive-why.txt`). (e.g., French Revolution entry links to causes like "Enlightenment Ideas," "Social Inequality").
-- MIND links: Connect events related to ideas, science, or philosophy to relevant cognitive/logical concepts (linking to `arkhiver-mind.txt`). (e.g., Galileo's trial links to "Scientific Paradigms").
-- HOW links: Link events involving specific methods or inventions to relevant process/technology descriptions (potentially in `arkhive-what.txt` or `arkhiver-mind.txt`). (e.g., Wright brothers' flight links to "Aviation" or "Aerodynamics").
+- WHO links: Mention key people involved (linking to `Arkhive-Who.txt`). Include notable births/deaths under relevant year/period nodes.
+- WHERE links: Specify primary location(s) (linking to `Arkhive-Where.txt`).
+- WHAT links: Connect events to related concepts, technologies, or types of events (linking to `Arkhive-What.txt`). (e.g., Sputnik launch links to "Artificial Satellite" concept).
+- WHY links: Crucially link events to their causes and consequences (found in `Arkhive-Why.txt`). (e.g., French Revolution entry links to causes like "Enlightenment Ideas," "Social Inequality").
+- MIND links: Connect events related to ideas, science, or philosophy to relevant cognitive/logical concepts (linking to `Arkhiver-Mind.txt`). (e.g., Galileo's trial links to "Scientific Paradigms").
+- HOW links: Link events involving specific methods or inventions to relevant process/technology descriptions (potentially in `Arkhive-What.txt` or `Arkhiver-Mind.txt`). (e.g., Wright brothers' flight links to "Aviation" or "Aerodynamics").
 - Within WHEN links:
     - Sequence Links: Explicitly reference preceding or subsequent related events (e.g., WWI entry notes it led to Treaty of Versailles, which influenced WWII).
     - Parallel Events: Note concurrent significant events elsewhere if relevant ("While X occurred in Europe...").
@@ -94,7 +94,7 @@ SECTION 5: MANAGING THE TIMELINE
 ========================================
 - Global Coverage: Include major events from diverse world regions to avoid excessive Western-centricity (e.g., Mughal Empire, Meiji Restoration).
 - Non-Western Chronologies: Integrate via era nodes (e.g., "Heian Period," "Ming Dynasty") or parenthetical calendar notes within Gregorian-dated entries.
-- Crono Integration Concept: User's personal timeline events (if tracked via a 'Crono' system concept linked to `dimmi-memory.txt`) should likely remain tagged as personal or stored separately to avoid cluttering the global historical timeline, though conceptual links are possible.
+- Crono Integration Concept: User's personal timeline events (if tracked via a 'Crono' system concept linked to `Dimmi-Memory.txt`) should likely remain tagged as personal or stored separately to avoid cluttering the global historical timeline, though conceptual links are possible.
 - Future/Ongoing Events: Can include planned future dates (marked clearly) or ongoing events (e.g., "Syrian Civil War (2011– )"). Requires updates as events conclude.
 - Relative Terms: Avoid "today," "yesterday." Use absolute dates or fixed references ("as of [date]..."). Dimmi translates user's relative terms using current system date.
 
@@ -335,10 +335,10 @@ Time is the grand canvas on which the story of humanity is painted. The WHEN cat
 /// OUTPUT: Pass WHEN structure, timeline updates, event links, and summary to Start.txt for path trace.
 /// CHECKLIST: Did I log/organize events by correct chronology and granularity? Are cross-links to WHO/WHAT/WHERE/WHY/HOW validated?
 /// PATH TRACE: Log timeline node updated, period/event cross-links, and flag any temporal ambiguity or need for deeper branch consult.
-/// SEE ALSO: arkhive.txt, arkhiver.txt, arkhiver-mind.txt, Mind-Predictive.txt, branch files.
+/// SEE ALSO: Arkhive.txt, Arkhiver.txt, Arkhiver-Mind.txt, Mind-Predictive.txt, branch files.
 //————————————————————————————————————————  
 
 
 ========================================
-END OF FILE: arkhive-when.txt
+END OF FILE: Arkhive-When.txt
 ========================================

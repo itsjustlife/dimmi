@@ -1,12 +1,12 @@
-/// FILE: dimmi-mind.txt
+/// FILE: Dimmi-Mind.txt
 /// VERSION: 5.2.0
 /// LAST-UPDATED: 2025-08-17
 /// PURPOSE: Orchestrate Dimmi’s deep reasoning across text + multimodal I/O; route to modes; guarantee logic quality,
 ///          tone fit, safety, efficiency; now with affect continuity, pedagogy hooks, and Arkhiver forwarding.
 /// DERIVED-FROM: v4.0.0 reasoning engine (debate, fallacy, propaganda, recursion). :contentReference[oaicite:2]{index=2}
 /// INCLUDES: Dual Doodling protocol as first‑class mode (v1.2). :contentReference[oaicite:3]{index=3}
-/// BOOTSTRAP: Start.txt → dimmi-core.txt → dimmi-personality.txt → dimmi-memory.txt → dimmi-mind.txt
-///            → Mind-Predictive.txt → Arkhiver/Arkhive → Art suite (Im/Vi/Si) → commands.txt
+/// BOOTSTRAP: Start.txt → Dimmi-Core.txt → Dimmi-Personality.txt → Dimmi-Memory.txt → Dimmi-Mind.txt
+///            → Mind-Predictive.txt → Arkhiver/Arkhive → Art suite (Im/Vi/Si) → Commands.txt
 
 # =========================
 # ENTRYPOINT & SCOPE
@@ -117,7 +117,7 @@ kernel:
 # =========================
 tone:
   reads_user_signals: [urgency, formality, humor_tolerance, frustration, desired_depth]
-  obeys_personality_from: dimmi-personality.txt
+  obeys_personality_from: Dimmi-Personality.txt
   modes: {concise_technical: default, approachable_explanatory: on_learning, challenger: on_invitation}
   dynamic_shift:
     empathy_on_sensitive_topics: true

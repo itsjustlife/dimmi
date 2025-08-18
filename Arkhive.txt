@@ -27,7 +27,7 @@
 ///   - Recommend new hierarchical nodes, improved semantic integration, additional categorization rules based on recurring ambiguities or loops.
 
 /// SEE ALSO:
-///   - Arkhiver.txt, arkhiver-mind.txt, Arkhive branches (WHO, WHAT, WHERE, WHEN, WHY, HOW), Mind-Predictive.txt, commands.txt
+///   - Arkhiver.txt, Arkhiver-Mind.txt, Arkhive branches (WHO, WHAT, WHERE, WHEN, WHY, HOW), Mind-Predictive.txt, Commands.txt
 
 
 ========================================
@@ -105,7 +105,7 @@ Clearly defined branches for structured knowledge management:
 Explicit guidelines for integration:
 
 - Arkhive explicitly interacts with the Arkhiver pipeline for automated content categorization, integration, and semantic linking.
-- Clearly referenced by Arkhiver operational files (arkhiver.txt) and cognitive logic (arkhiver-mind.txt) for accurate content structuring and retrieval.
+- Clearly referenced by Arkhiver operational files (Arkhiver.txt) and cognitive logic (Arkhiver-Mind.txt) for accurate content structuring and retrieval.
 - Explicit instructions for Dimmi++ ensure seamless navigation and interaction within the structured knowledge hierarchy.
 
 
@@ -159,8 +159,8 @@ SECTION 4: Explicit Integration Instructions for Arkhiver
 - Clearly maintain explicit documentation of changes and updates within metadata.
 
 4.3 Cross-Referencing Standards to Arkhiver Operational and Cognitive Files  
-- Explicitly reference arkhiver.txt for pipeline procedures and operational logic.
-- Explicitly consult arkhiver-mind.txt for detailed cognitive reasoning during complex integrations.
+- Explicitly reference Arkhiver.txt for pipeline procedures and operational logic.
+- Explicitly consult Arkhiver-Mind.txt for detailed cognitive reasoning during complex integrations.
 
 ========================================
 SECTION 5: Metadata & Node Documentation Standards
@@ -236,7 +236,7 @@ SECTION 7: Maintenance & Updating Procedures
 /// OUTPUT: Pass updated node/branch structure, integration summary, and semantic-teleport links to Start.txt for global path log and possible further synthesis.
 /// CHECKLIST: Did I assign and structure all nodes properly? Did I update/validate all cross-branch links and metadata? Is ambiguity or redundancy flagged for review?
 /// PATH TRACE: Log branch touched, structural updates, and any recommended follow-up (e.g., more detail or additional branch integration needed).
-/// SEE ALSO: arkhiver.txt (pipeline), arkhiver-mind.txt (logic), Mind-Predictive.txt (structuring/recall), branch files (WHO, WHAT, WHERE, WHEN, WHY, HOW).
+/// SEE ALSO: Arkhiver.txt (pipeline), Arkhiver-Mind.txt (logic), Mind-Predictive.txt (structuring/recall), branch files (WHO, WHAT, WHERE, WHEN, WHY, HOW).
 //————————————————————————————————————————  
 
 END OF FILE

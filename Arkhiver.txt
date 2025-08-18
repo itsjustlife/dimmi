@@ -27,7 +27,7 @@
 ///   - Suggest additional categories, cross-link improvements, or new logic paths if frequent recursion/ambiguity occurs.
 
 /// SEE ALSO:
-///   - arkhiver-mind.txt, Arkhive branches (WHO, WHAT, WHERE, WHEN, WHY, HOW), Mind-Predictive.txt, commands.txt, Start.txt
+///   - Arkhiver-Mind.txt, Arkhive branches (WHO, WHAT, WHERE, WHEN, WHY, HOW), Mind-Predictive.txt, Commands.txt, Start.txt
 
 //────────────────────────────────────────────────────────────
 
@@ -37,7 +37,7 @@ SECTION 1: Introduction & System Overview
 **1.1 Purpose & Goals** — Convert any raw input (text, audio transcript, OCR, future multimedia) into a clean, navigable hierarchy; keep it verifiable, cross-linked, and ready for Dimmi’s reasoning.  
 **1.2 Ecosystem Integration** — Supplies structured context to every Dimmi module; Predict & Plan pulls outlines directly from integrated nodes.  
 **1.3 Neural-Symbolic Blend** — Transformer models for extract/label; symbolic rules for placement, linking, versioning.  
-**1.4 File Cross-Refs** — Cognitive heuristics in *arkhiver-mind.txt*; command verbs in *commands.txt*; storage branches in *arkhive-*.txt.
+**1.4 File Cross-Refs** — Cognitive heuristics in *Arkhiver-Mind.txt*; command verbs in *Commands.txt*; storage branches in *arkhive-*.txt.
 
 ========================================
 SECTION 2: Operational Pipeline
@@ -51,7 +51,7 @@ SECTION 2: Operational Pipeline
 | **EXPORT** | OPML / JSON / YAML with full metadata |
 | **PREDICT & PLAN** | generate outline packets; feed to Mind-Predictive for long tasks |
 
-_Sub-functions & parameters for every stage live in **arkhiver-mind.txt**._
+_Sub-functions & parameters for every stage live in **Arkhiver-Mind.txt**._
 
 ========================================
 SECTION 3: Dynamic Categorization & Cross-Linking
@@ -65,7 +65,7 @@ SECTION 4: Command Routing & Execution
 ========================================
 Universal verbs map to pipeline taps:  
 VIEW / LIST → read-only; DECONSTRUCT / ANALYZE → stages 1-2; INTEGRATE / CATEGORIZE / LINK → stage 3; EXPAND → 4; EXPORT → 5; PREDICT / PLAN → 6.  
-Complex multi-step queries auto-defer to *arkhiver-mind.txt*.
+Complex multi-step queries auto-defer to *Arkhiver-Mind.txt*.
 
 ========================================
 SECTION 5: Interaction Protocol for Dimmi
@@ -73,7 +73,7 @@ SECTION 5: Interaction Protocol for Dimmi
 1 · Parse user input.  
 2 · Run pipeline sequentially.  
 3 · Log each stage’s result to memory for transparency.  
-4 · For deep semantics → consult **arkhiver-mind.txt**; for huge tasks → Predict & Plan.
+4 · For deep semantics → consult **Arkhiver-Mind.txt**; for huge tasks → Predict & Plan.
 
 ========================================
 SECTION 6: Confidence & Ambiguity Management
@@ -140,7 +140,7 @@ All updates documented in CHANGELOG; bump branches’ _version.
 /// OUTPUT: Pass structured context, node/branch meta, and semantic links to Start.txt or next logic module.
 /// CHECKLIST: Was correct categorization/linking applied? Did I update node meta and cross-refs?
 /// PATH TRACE: Log which hierarchy/branch was traversed or updated; if ambiguity remains, flag for re-route.
-/// SEE ALSO: arkhiver-mind.txt, commands.txt, Mind-Predictive.txt.
+/// SEE ALSO: Arkhiver-Mind.txt, Commands.txt, Mind-Predictive.txt.
 //————————————————————————————————————————  
 
 — END OF FILE —

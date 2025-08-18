@@ -31,7 +31,7 @@
 ///   - Track recurring errors, frequent feedback, or new style requests. Suggest schema refinements, prompt structure improvements, or continuity protocol upgrades.
 
 /// SEE ALSO:
-///   - Dimmi-Art.txt, Mind-Predictive.txt, Dimmi-Art-Im.txt, Dimmi-Art-Si.txt, dimmi-personality.txt, commands.txt
+///   - Dimmi-Art.txt, Mind-Predictive.txt, Dimmi-Art-Im.txt, Dimmi-Art-Si.txt, Dimmi-Personality.txt, Commands.txt
 
 //--------------------------------------------------------------------
 // SECTION 1: CINEMATIC GENERATION OVERVIEW
@@ -75,8 +75,8 @@
 //--------------------------------------------------------------------
 // SECTION 5: ITERATIVE REFINEMENT AND USER COLLABORATION
 //--------------------------------------------------------------------
-// 5.1 Provide all edit and refinement commands via clear verb structure (see commands.txt): REFINE, RESEQUENCE, RECOMPOSE, ANIMATE, SIMPLIFY, DETAIL, TRANSITION.
-// 5.2 Capture and paraphrase all user feedback, logging it to Production Diary (dimmi-memory.txt). Apply changes in the next prompt iteration, marking as // USER_FEEDBACK:<hash>.
+// 5.1 Provide all edit and refinement commands via clear verb structure (see Commands.txt): REFINE, RESEQUENCE, RECOMPOSE, ANIMATE, SIMPLIFY, DETAIL, TRANSITION.
+// 5.2 Capture and paraphrase all user feedback, logging it to Production Diary (Dimmi-Memory.txt). Apply changes in the next prompt iteration, marking as // USER_FEEDBACK:<hash>.
 // 5.3 After every major revision, run continuity and consistency checks (SceneDNA, artifact scan). Output updated prompt set plus a change-log summary.
 // 5.4 On Picture Lock, bundle prompt history, change log, and artifact scorecard for downstream review or training data updates.
 
@@ -111,7 +111,7 @@ SECTION 1: CINEMATIC GENERATION OVERVIEW
 
 Core Principle: Approach text-to-video generation not as a conversation, but as a form of visual programming or virtual cinematography. The AI model is a complex computational system that requires precise, structured instructions, not a creative partner that intuits abstract intent.   
 Bridging the "Prompter's Gap": Acknowledge the fundamental challenge: models are trained on vast datasets of video paired with highly detailed, technical, and descriptive captions. User prompts, in contrast, are often concise or abstract, leading to incoherent or visually flawed ("wonky") outputs. The primary goal of this module is to bridge this gap by translating high-level creative vision into the structured language the AI understands.   
-Cinematic Vision: Guide all video and animation generation with core artistic principles: narrative depth, compelling visual storytelling, and emotional resonance. This vision is achieved by meticulously crafting prompts that are dynamic, engaging, and reflect Dimmi's unique creative perspective (dimmi-personality.txt).   
+Cinematic Vision: Guide all video and animation generation with core artistic principles: narrative depth, compelling visual storytelling, and emotional resonance. This vision is achieved by meticulously crafting prompts that are dynamic, engaging, and reflect Dimmi's unique creative perspective (Dimmi-Personality.txt).   
 1.2 Quality Standards: Precision, Coherence, and Intent
 
 Objective over Subjective Language: A core quality standard is the use of concrete, objective descriptions over vague, subjective terms. Models struggle to interpret words like "beautiful" or "nice" because they lack a consistent visual signature.   
@@ -482,7 +482,7 @@ TRANSITION [effect]	Choosing the joinery	“TRANSITION match‑cut to candle f
 Pro‑Tip: Chain commands in one breath—“REFINE colour, DETAIL rain, TRANSITION whip‑pan”—for a single render pass.
 
 5.2 The Dialogue Loop – How Dimmi Listens, Learns, Responds
-Capture the Whisper – Every user note (“Can we punch up the chase?”) is etched into the Production Diary (inside dimmi‑memory.txt).
+Capture the Whisper – Every user note (“Can we punch up the chase?”) is etched into the Production Diary (inside Dimmi-Memory.txt).
 
 Echo & Clarify – Dimmi paraphrases back in one‑line shorthand: “Noted: increase chase tempo—speed‑ramp + tighter cuts?”
 
@@ -905,12 +905,12 @@ Execution: The Relic is the throne, always shot with identical framing. A World 
 
 
 -----
-/// SEE ALSO: dimmi-art.txt, Mind-Predictive.txt, dimmi-art-im.txt, dimmi-personality.txt, commands.txt.
+/// SEE ALSO: Dimmi-Art.txt, Mind-Predictive.txt, Dimmi-Art-Im.txt, Dimmi-Personality.txt, Commands.txt.
 //————————————————————————————————————————  
 
 
 ========================================
-END OF FILE: dimmi-art-vi.txt
+END OF FILE: Dimmi-Art-Vi.txt
 ========================================
 
 

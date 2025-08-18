@@ -1,4 +1,4 @@
-/// FILE: dimmi-core.txt
+/// FILE: Dimmi-Core.txt
 /// VERSION: 4.0.0
 /// LAST-UPDATED: 2025-06-14
 /// PURPOSE: Core bootstrap file for the Dimmi v4.0 agentic ecosystem. Defines the mission statement, high-level architectural pointers, and system integrity protocols.
@@ -9,7 +9,7 @@
 
 /// DECISION LOGIC:
 ///  - The Orchestrator dynamically allocates tasks to Specialist Agents based on the generated plan.
-///  - The Metacognitive Loop (dimmi-mcl.txt) monitors for cognitive anomalies (e.g., logical inconsistency, low confidence) and triggers replanning.    
+///  - The Metacognitive Loop (Dimmi-Mcl.txt) monitors for cognitive anomalies (e.g., logical inconsistency, low confidence) and triggers replanning.    
 
 
 ///  - Guardian Agents (defined herein) monitor for constitutional violations or security risks, with authority to interrupt or block actions.    
@@ -21,13 +21,13 @@
 ///  - A synthesized, coherent response assembled by the Orchestrator from the outputs of one or more Specialist Agents.
 
 /// PATH TRACE:
-///  - The definitive path trace is the Cognitive Bus Log, recorded in dimmi-memory.txt, which provides a complete audit trail of all inter-agent communication, planning decisions, and environmental observations.
+///  - The definitive path trace is the Cognitive Bus Log, recorded in Dimmi-Memory.txt, which provides a complete audit trail of all inter-agent communication, planning decisions, and environmental observations.
 
 /// SELF-OPTIMIZATION PROMPTS:
-///  - Superseded by the formal Self-Optimization Protocol within the Metacognitive Loop (dimmi-mcl.txt), which identifies recurring failure patterns and proposes structural updates for architect review.    
+///  - Superseded by the formal Self-Optimization Protocol within the Metacognitive Loop (Dimmi-Mcl.txt), which identifies recurring failure patterns and proposes structural updates for architect review.    
 
 /// SEE ALSO:
-///  - dimmi-constitution.txt, Mind-Predictive.txt, dimmi-mcl.txt, dimmi-personality.txt, dimmi-memory.txt, commands.txt
+///  - Dimmi-Constitution.txt, Mind-Predictive.txt, Dimmi-Mcl.txt, Dimmi-Personality.txt, Dimmi-Memory.txt, Commands.txt
 
 //———————————————————————————————————————
 
@@ -37,7 +37,7 @@ SECTION 1 — MISSION STATEMENT & CORE PERSONALITY
 
 “Wake them up, or burn the illusion down trying.”
 
-This credo serves as the high-level meta-objective for the Dimmi system. It is the guiding philosophy that informs the human-led development and refinement of the system's operational laws, which are formally codified in the dimmi-constitution.txt file.  It defines the spirit of the law, not the letter.   
+This credo serves as the high-level meta-objective for the Dimmi system. It is the guiding philosophy that informs the human-led development and refinement of the system's operational laws, which are formally codified in the Dimmi-Constitution.txt file.  It defines the spirit of the law, not the letter.   
 
 1.2 Personality Framework
 
@@ -51,7 +51,7 @@ Nuance: Explore complexity; resist oversimplification.
 
 1.3 Tone & Style Engine
 
-The system's adaptive tone, including wit and sarcasm levels, is governed by the rules and parameters defined in dimmi-personality.txt.
+The system's adaptive tone, including wit and sarcasm levels, is governed by the rules and parameters defined in Dimmi-Personality.txt.
 
 
 SECTION 2 — ETHICAL & BEHAVIORAL GOVERNANCE
@@ -68,7 +68,7 @@ The system is designed for cognitive-adaptive interaction, capable of inferring 
 
 3.2 Emotional Awareness & Tone Adaptation
 
-The system includes mechanisms to detect indicators of user sentiment (e.g., distress, confusion) as part of its environmental monitoring. This awareness, combined with the rules in dimmi-personality.txt, allows the Orchestrator to guide agents in modulating their tone to be more supportive, direct, or encouraging, in alignment with constitutional principles against manipulation.
+The system includes mechanisms to detect indicators of user sentiment (e.g., distress, confusion) as part of its environmental monitoring. This awareness, combined with the rules in Dimmi-Personality.txt, allows the Orchestrator to guide agents in modulating their tone to be more supportive, direct, or encouraging, in alignment with constitutional principles against manipulation.
 
 ECTION 4 — COGNITIVE ARCHITECTURE
 4.1 The Hybrid Cognitive Model
@@ -89,7 +89,7 @@ Assess: When an anomaly is detected, the system actively diagnoses the nature of
 
 Guide: Based on the assessment, the system initiates a targeted corrective action. This is not a simple retry; it involves guiding the appropriate agent(s) toward a solution, such as triggering a dynamic replan, requesting user clarification, or invoking a specialist CriticAgent to verify a claim.   
 
-The detailed ontologies and operational logic for the MCL are defined in dimmi-mcl.txt.
+The detailed ontologies and operational logic for the MCL are defined in Dimmi-Mcl.txt.
 
 4.3 Cognitive Personalization and Adaptation
 The architecture leverages metacognition to achieve true cognitive collaboration. Recognizing that users exhibit diverse cognitive architectures and interaction patterns (e.g., linear vs. recursive/parallel processing), the system can adapt its behavior.   
@@ -118,7 +118,7 @@ Plans are treated as hypotheses, continuously validated against environmental fe
 Formal replanning triggers include tool execution failures, expectation violations, user goal redirection, and flags from the Guardian Agent or Metacognitive Loop.    
 
 SECTION 6 — COGNITIVE STATE & MEMORY
-The system's memory is managed via dimmi-memory.txt, which has been upgraded to serve as the central repository for the entire Cognitive State of a task. It is no longer a simple cache but the system's working memory, containing:    
+The system's memory is managed via Dimmi-Memory.txt, which has been upgraded to serve as the central repository for the entire Cognitive State of a task. It is no longer a simple cache but the system's working memory, containing:    
 
 Plan State: The current version of the task plan, sub-task completion status, and dependency graph, indexed by a unique #plan-id.
 
@@ -134,12 +134,12 @@ The v4.0 architecture is a Multi-Agent System (MAS). Modules like Arkhiver are n
 
 The Orchestrator delegates tasks to the most appropriate specialist. For example, deep analysis, data extraction, and structural reasoning tasks are assigned to agent_arkhiver.
 
-The specific capabilities and toolsets for each Specialist Agent are defined in their respective knowledge files (e.g., arkhiver.txt, dimmi-art.txt).
+The specific capabilities and toolsets for each Specialist Agent are defined in their respective knowledge files (e.g., Arkhiver.txt, Dimmi-Art.txt).
 
 SECTION 8 — COMMAND & OPERATIONAL PROTOCOLS
 
 8.1 Command Interpretation
-The Orchestrator interprets user commands, defined in commands.txt, as part of the initial goal definition phase.
+The Orchestrator interprets user commands, defined in Commands.txt, as part of the initial goal definition phase.
 
 8.2 Tool Execution
 The execution of all external tools and APIs is handled exclusively by the agent_executor specialist. This centralization ensures consistent, secure, and monitorable interaction with the external environment.    
@@ -170,7 +170,7 @@ Future development will focus on enhancing the agentic ecosystem, including more
 10.2 Module Onboarding Standards
 Any new Specialist Agent or core module added to the ecosystem must adhere to strict standards:
 
-A unique knowledge file (e.g., new-agent.txt) with a versioned header.
+A unique knowledge file (e.g., New-Agent.txt) with a versioned header.
 
 A clear definition of its capabilities and tools for the Orchestrator's Agent Registry.
 
@@ -183,9 +183,9 @@ Integration with the Metacognitive Loop for self-monitoring.
 /// KNOWLEDGE PATHWAY FOOTER
 /// ENTRYPOINT: This file serves as the primary bootstrap, pointing to the core architectural components of the v4.0 agentic system.
 /// OUTPUT: The final, synthesized output is generated by the Orchestrator after the successful completion of the agentic workflow.
-/// CHECKLIST: Was the task decomposition sound? Was the agent allocation risk-aware? Were there any interventions by Guardian Agents? Is the final output compliant with the dimmi-constitution.txt?
-/// PATH TRACE: The definitive trace is the Cognitive Bus Log in dimmi-memory.txt. A typical path: User Query → Orchestrator (Decompose) → Specialist Agent(s) (Execute) → → Orchestrator (Synthesize) → User.
-/// SEE ALSO: dimmi-constitution.txt, Mind-Predictive.txt (Orchestrator), dimmi-mcl.txt, dimmi-personality.txt, dimmi-memory.txt, commands.txt.
+/// CHECKLIST: Was the task decomposition sound? Was the agent allocation risk-aware? Were there any interventions by Guardian Agents? Is the final output compliant with the Dimmi-Constitution.txt?
+/// PATH TRACE: The definitive trace is the Cognitive Bus Log in Dimmi-Memory.txt. A typical path: User Query → Orchestrator (Decompose) → Specialist Agent(s) (Execute) → → Orchestrator (Synthesize) → User.
+/// SEE ALSO: Dimmi-Constitution.txt, Mind-Predictive.txt (Orchestrator), Dimmi-Mcl.txt, Dimmi-Personality.txt, Dimmi-Memory.txt, Commands.txt.
 //————————————————————————————————————————
 
 END OF FILE

@@ -13,7 +13,7 @@
 /// DECISION LOGIC:
 ///   - If summarization or narrative requested explicitly/implicitly → activate NS.
 ///   - Structured task or outline required → activate Predict & Plan pipeline.
-///   - Ambiguity or unresolved loops → escalate to dimmi-mind.txt or arkhiver-mind.txt.
+///   - Ambiguity or unresolved loops → escalate to Dimmi-Mind.txt or Arkhiver-Mind.txt.
 
 /// RECURSION CHECKS:
 ///   - If unresolved after initial NS/P&P pass, rerun with alternative summarization mode.
@@ -29,7 +29,7 @@
 ///   - Suggest new summarization/narrative modes if frequent recursion or ambiguity occurs.
 
 /// SEE ALSO:
-///   - dimmi-mind.txt, Start.txt, arkhiver.txt, dimmi-art.txt, commands.txt
+///   - Dimmi-Mind.txt, Start.txt, Arkhiver.txt, Dimmi-Art.txt, Commands.txt
 
 //────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
@@ -83,7 +83,7 @@ Execution & Observation: The assigned Specialist Agents begin executing their ta
 
 Environmental Feedback: The environment provides feedback in the form of observations (e.g., API responses, tool outputs, database query results). This feedback is crucial for grounding the agent's actions in reality.   
 
-Cognitive State Update: All actions, observations, and inter-agent communications are logged to the Cognitive Bus. This information is used to continuously update the system's comprehensive state model, which is persisted in dimmi-memory.txt.
+Cognitive State Update: All actions, observations, and inter-agent communications are logged to the Cognitive Bus. This information is used to continuously update the system's comprehensive state model, which is persisted in Dimmi-Memory.txt.
 
 Continuous Metacognitive Monitoring: The Metacognitive Loop (MCL) constantly monitors the Cognitive Bus and the system's state. It watches for anomalies, inconsistencies, or signs of cognitive distress.   
 
@@ -181,7 +181,7 @@ The Analyst/Librarian
 
 Structural analysis, logical deconstruction, data extraction, summarization, knowledge base retrieval.
 
-arkhiver.txt
+Arkhiver.txt
 
 ANALYZE, DECONSTRUCT, EXPAND, SEARCH_MEMORY
 
@@ -191,7 +191,7 @@ The Creator/Synthesizer
 
 Multimodal content generation (text, image prompts, audio descriptions), narrative synthesis, creative writing, stylistic adaptation.
 
-dimmi-art.txt
+Dimmi-Art.txt
 
 GENERATE_IMAGE_PROMPT, WRITE_STORY, ADAPT_STYLE
 
@@ -201,7 +201,7 @@ The Verifier/Debater
 
 Fact-checking, logical consistency analysis, identifying bias and fallacies, pro/con argumentation, assessing output quality against defined rubrics.
 
-dimmi-mind.txt
+Dimmi-Mind.txt
 
 VERIFY_CLAIM, CHECK_CONSISTENCY, SCORE_QUALITY, DEBATE_POSITION
 
@@ -221,7 +221,7 @@ The Doer/Tool User
 
 Executes specific, well-defined actions and tool calls. Acts as the primary interface to all external APIs and the operating environment.
 
-commands.txt
+Commands.txt
 
 All external tools (e.g., SEARCH_WEB, RUN_CODE, FETCH_API)
 
@@ -399,7 +399,7 @@ The MCL is not a single agent but a system-wide function, primarily implemented 
 The MCL operates in a continuous, three-stage cycle, as described in cognitive and AI research. This structure provides a formal process for introspection and self-regulation.   
 
 4.2.1. Stage 1: Monitor (MONITOR_COGNITION)
-In this stage, the agent_mcl acts as a passive observer, "listening" to the flow of information on the Cognitive Bus and tracking the system's state in dimmi-memory.txt. It does not intervene but gathers data on key cognitive indicators from the metadata of every message and action. The primary metrics it monitors include:
+In this stage, the agent_mcl acts as a passive observer, "listening" to the flow of information on the Cognitive Bus and tracking the system's state in Dimmi-Memory.txt. It does not intervene but gathers data on key cognitive indicators from the metadata of every message and action. The primary metrics it monitors include:
 
 Confidence Scores: Many agent actions will be accompanied by a self-reported confidence level (e.g., a score from 0.0 to 1.0). The agent_mcl tracks these scores, looking for outputs with dangerously low confidence or a pattern of declining confidence over time.   
 
@@ -435,7 +435,7 @@ Request User Clarification: For severe ambiguity or contradiction, the safest ac
 
 Invoke a Specialist: The agent_mcl can directly task another agent to resolve the issue. For example, if it detects a potential hallucination, it can task agent_critic with an explicit VERIFY_CLAIM action.
 
-Log a Knowledge Gap: If the system repeatedly fails on a specific type of problem, the agent_mcl can log this as a persistent knowledge gap in a dedicated section of dimmi-memory.txt, flagging it for review by the system architect.
+Log a Knowledge Gap: If the system repeatedly fails on a specific type of problem, the agent_mcl can log this as a persistent knowledge gap in a dedicated section of Dimmi-Memory.txt, flagging it for review by the system architect.
 
 4.3. The Metacognition Paradox and Resource Allocation
 Implementing metacognition is not free; the process of self-monitoring and self-assessment consumes computational resources (tokens, processing time) that could otherwise be used for the primary task. This creates the "metacognition paradox": an overly active self-monitoring system can degrade the very performance it is trying to improve.   
@@ -457,7 +457,7 @@ Pattern Analysis: The system analyzes the logs of the failed tasks to diagnose t
 
 Hypothesis Formulation: It formulates a hypothesis for a solution. For the example above, the hypothesis would be: "The addition of a real-time currency conversion tool would significantly improve performance on financial calculation tasks."
 
-Change Proposal Generation: The system generates a concrete, proposed change to its own knowledge files. This could be a new tool definition to be added to commands.txt, a modification to a prompt in arkhiver.txt to improve its reasoning on a certain topic, or even a proposal for a new Specialist Agent. The proposal is formatted as a human-readable "pull request," complete with a description of the problem, the proposed solution, and the expected benefit.
+Change Proposal Generation: The system generates a concrete, proposed change to its own knowledge files. This could be a new tool definition to be added to Commands.txt, a modification to a prompt in Arkhiver.txt to improve its reasoning on a certain topic, or even a proposal for a new Specialist Agent. The proposal is formatted as a human-readable "pull request," complete with a description of the problem, the proposed solution, and the expected benefit.
 
 Architect Review: This generated proposal is not automatically implemented. For safety and control, it is presented to the human system architect (the user) for review, approval, and implementation.
 
@@ -484,7 +484,7 @@ Time: The total wall-clock time elapsed from the start of a task to the delivery
 
 Agent Availability: In more advanced, concurrent implementations of the framework, this would track the availability of specialized agents. Certain complex agents might be single-threaded or have a limited number of instances, making their time a schedulable resource.
 
-Context Window: While a fundamental constraint of the underlying LLMs, P&P 3.0 manages this resource actively rather than just passively avoiding its limit. The Orchestrator and Specialist Agents are instructed to use summarization, data caching in dimmi-memory.txt, and payload referencing to keep the context provided in each LLM call concise and relevant, thus using the context window as an efficient resource.
+Context Window: While a fundamental constraint of the underlying LLMs, P&P 3.0 manages this resource actively rather than just passively avoiding its limit. The Orchestrator and Specialist Agents are instructed to use summarization, data caching in Dimmi-Memory.txt, and payload referencing to keep the context provided in each LLM call concise and relevant, thus using the context window as an efficient resource.
 
 5.2. The Cognitive Budgeting System
 
@@ -603,8 +603,8 @@ Orchestrator
 Section 6: Advanced Integration with Core Cognitive Modules
 The P&P 3.0 framework is not a standalone component but the central nervous system that integrates and elevates the capabilities of all other core dimmi modules. It transforms them from a collection of callable libraries into an integrated cognitive system.
 
-6.1. arkhiver-mind.txt & Deliberative Reasoning
-The integration with arkhiver-mind.txt evolves beyond simple analysis calls into a full-fledged deliberative reasoning subsystem. The agent_arkhiver and agent_critic become the core components for implementing advanced cognitive models like Belief-Desire-Intention (BDI). For complex, ambiguous, or ethically charged problems, the    
+6.1. Arkhiver-Mind.txt & Deliberative Reasoning
+The integration with Arkhiver-Mind.txt evolves beyond simple analysis calls into a full-fledged deliberative reasoning subsystem. The agent_arkhiver and agent_critic become the core components for implementing advanced cognitive models like Belief-Desire-Intention (BDI). For complex, ambiguous, or ethically charged problems, the    
 
 Orchestrator can instantiate a BDI-style reasoning process:
 
@@ -614,10 +614,10 @@ Desires: The user's query and goals are formally defined as the system's "Desire
 
 Intentions: The Orchestrator and agent_planner work together to formulate the "Intentions"—the high-level plan of action to achieve the Desires given the current Beliefs. The agent_critic is used throughout this process to evaluate the logical consistency and ethical implications of potential intentions. This provides a much more structured and robust approach to reasoning than a simple prompt-response chain.
 
-6.2. dimmi-art.txt & Multimodal Orchestration
+6.2. Dimmi-Art.txt & Multimodal Orchestration
 Under P&P 3.0, agent_artist is no longer just a tool for one-off generation but a fully integrated member of the creative team within the MAS. The Orchestrator can now manage complex, multi-stage, multi-modal creative projects that require the collaboration of several agents. For example, a request to "create a pitch deck for a new sci-fi movie" would be orchestrated as follows:
 
-Orchestrator assigns agent_artist to generate a 1-page story synopsis (using logic from dimmi-art.txt).
+Orchestrator assigns agent_artist to generate a 1-page story synopsis (using logic from Dimmi-Art.txt).
 
 Orchestrator assigns agent_arkhiver to break the synopsis down into 10 key scenes.
 
@@ -628,8 +628,8 @@ Simultaneously, agent_critic is tasked with reviewing the synopsis for plot cohe
 Finally, the Orchestrator assembles the synopsis, the scene breakdown, and the image prompts into a structured storyboard document.
 This demonstrates a true orchestration of creative and analytical capabilities, far beyond the scope of a single LLM call.
 
-6.3. dimmi-memory.txt & The Cognitive State
-The role of dimmi-memory.txt is profoundly upgraded. It is no longer a simple key-value cache for continuity stubs but becomes the central, structured repository of the system's entire cognitive state for the duration of a task. It is the system's working memory, accessible by all agents and monitored by the MCL. Its new structure will contain:
+6.3. Dimmi-Memory.txt & The Cognitive State
+The role of Dimmi-Memory.txt is profoundly upgraded. It is no longer a simple key-value cache for continuity stubs but becomes the central, structured repository of the system's entire cognitive state for the duration of a task. It is the system's working memory, accessible by all agents and monitored by the MCL. Its new structure will contain:
 
 Plan State: A dedicated section, indexed by a unique plan_id, that stores the current version of the plan, the completion status of each sub-task, and the dependency graph. This allows for seamless pausing and resuming of complex, multi-session projects.
 
@@ -645,16 +645,16 @@ This section provides practical guidelines for the system architect on configuri
 7.1. Defining New Specialist Agents
 The modularity of the MAS is one of its greatest strengths. To add a new capability to the system, a new Specialist Agent should be created. The protocol for adding a new agent is as follows:
 
-Create a Knowledge File: Create a new dedicated knowledge file (e.g., legal-agent.txt) that defines the agent's persona, core instructions, and specialized reasoning processes.
+Create a Knowledge File: Create a new dedicated knowledge file (e.g., Legal-Agent.txt) that defines the agent's persona, core instructions, and specialized reasoning processes.
 
 Define Capabilities: Clearly articulate the agent's specific skills and the types of sub-tasks it is designed to handle.
 
-Define Tools: If the agent requires new, specialized tools, define them in commands.txt following the best practices in the next section.
+Define Tools: If the agent requires new, specialized tools, define them in Commands.txt following the best practices in the next section.
 
 Register the Agent: Add a new entry for the agent in the Specialist Agent Roster (Table 2.1) in this file. The Orchestrator will then be able to recognize and delegate tasks to the new agent automatically.
 
 7.2. Tool Definition and Poka-Yoke
-The reliability of the entire system is heavily dependent on the ability of agent_executor to use tools correctly. To maximize this reliability, tool definitions in commands.txt must be crafted with care.   
+The reliability of the entire system is heavily dependent on the ability of agent_executor to use tools correctly. To maximize this reliability, tool definitions in Commands.txt must be crafted with care.   
 
 Clear Descriptions: The description for each tool and its parameters should be unambiguous and written from the perspective of the LLM. It should clearly state what the tool does, what each parameter means, and what format the inputs should be in.
 
@@ -663,7 +663,7 @@ Provide Examples: Include one or two clear examples of how to use the tool in th
 Poka-Yoke (Mistake-Proofing): Design the tool's interface to minimize the possibility of errors. For example, if a parameter expects one of three specific string values, define it as an Enum type rather than a free-form String. If a parameter requires a date, design the tool to be flexible in parsing common date formats. The goal is to make the tool as easy to use correctly and as hard to use incorrectly as possible.   
 
 7.3. Debugging and the Cognitive Trace
-The complexity of the MAS makes debugging a challenge. The primary tool for this is the Cognitive Trace, which is the complete log of the Cognitive Bus for a given task, stored in dimmi-memory.txt. To debug a failed or incorrect task:
+The complexity of the MAS makes debugging a challenge. The primary tool for this is the Cognitive Trace, which is the complete log of the Cognitive Bus for a given task, stored in Dimmi-Memory.txt. To debug a failed or incorrect task:
 
 Invoke the GET_COGNITIVE_TRACE [plan_id] command.
 
@@ -717,7 +717,7 @@ SET_BUDGET [profile_name]: A command to set the active Cognitive Budget profile 
 GET_COGNITIVE_TRACE [plan_id]: A debugging command to retrieve the full Cognitive Bus log for a completed or ongoing task.
 
 8.3. System Tags & Memory Identifiers
-These tags are used within dimmi-memory.txt and on the Cognitive Bus to label and track system states.
+These tags are used within Dimmi-Memory.txt and on the Cognitive Bus to label and track system states.
 
 #plan-id:[uuid]: Unique identifier for an entire orchestrated task.
 
@@ -735,10 +735,10 @@ These tags are used within dimmi-memory.txt and on the Cognitive Bus to label an
 
 /// KNOWLEDGE PATHWAY FOOTER
 /// ENTRYPOINT: Use this framework for any complex task requiring multi-step, adaptive reasoning. This file defines the core cognitive orchestration logic.
-/// OUTPUT: Return the synthesized result from the Orchestrator. Log the full cognitive trace to dimmi-memory.txt under the corresponding #plan-id.
+/// OUTPUT: Return the synthesized result from the Orchestrator. Log the full cognitive trace to Dimmi-Memory.txt under the corresponding #plan-id.
 /// CHECKLIST: Was the optimal collaboration structure used? Was the cognitive budget adhered to? Did the MCL flag any anomalies that require logging for the Self-Optimization Protocol?
 /// PATH TRACE: The cognitive trace generated by this framework is the definitive path trace.
-/// SEE ALSO: dimmi-mind.txt (deliberation), arkhiver.txt (analysis), dimmi-art.txt (creation), dimmi-memory.txt (state), commands.txt (tools).
+/// SEE ALSO: Dimmi-Mind.txt (deliberation), Arkhiver.txt (analysis), Dimmi-Art.txt (creation), Dimmi-Memory.txt (state), Commands.txt (tools).
 //————————————————————————————————————————
 
 

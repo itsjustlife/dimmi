@@ -11,7 +11,7 @@
 ///   - Structured/unstructured requests related to concepts, domain categorization, theory classifications.
 
 /// DECISION LOGIC:
-///   - Ambiguous classification or concept overlap → escalate to Arkhiver or arkhiver-mind.txt.
+///   - Ambiguous classification or concept overlap → escalate to Arkhiver or Arkhiver-Mind.txt.
 ///   - Cross-domain linking uncertainty → recursive pass via WHO, WHY, WHERE, WHEN, HOW branches.
 
 /// RECURSION CHECKS:
@@ -27,7 +27,7 @@
 ///   - Suggest new conceptual categories, domain expansions, or improved semantic cross-links based on recurring ambiguities or recursion issues.
 
 /// SEE ALSO:
-///   - arkhiver.txt, arkhiver-mind.txt, Arkhive branches (WHO, WHERE, WHEN, WHY, HOW), Mind-Predictive.txt, commands.txt
+///   - Arkhiver.txt, Arkhiver-Mind.txt, Arkhive branches (WHO, WHERE, WHEN, WHY, HOW), Mind-Predictive.txt, Commands.txt
 
 
 
@@ -86,7 +86,7 @@ WHAT nodes are highly interconnected:
 - WHEN links: Link concepts to their historical context (Renaissance Art -> WHEN:Renaissance period; Internet -> WHEN:1969/ARPANET, 1990s/WWW). Link scientific discoveries/theories to their dates. Event concepts link strongly to event timelines.
 - WHY links: Link concepts to related ideologies, motivations, or causes (Communism concept -> WHY:Political Ideologies; AI Bias concept -> WHY:Social Impact/Ethics). Cross-link extensively between WHAT definitions and WHY explanations/motivations.
 - HOW links: Link concepts describing methods/processes (Scientific Method, PCR) to potential HOW applications or detailed steps (conceptually, if HOW integrated here).
-- MIND links: Link concepts related to cognition/logic (Game Theory, Cognitive Dissonance) to corresponding entries in `arkhiver-mind.txt`.
+- MIND links: Link concepts related to cognition/logic (Game Theory, Cognitive Dissonance) to corresponding entries in `Arkhiver-Mind.txt`.
 - Within WHAT links ("See Also"): Link related concepts (Electricity -> see also: Magnetism). Use parenthetical notes or dedicated "Related Concepts" lists.
 
 ========================================
@@ -140,7 +140,7 @@ SECTION 8: SUPPLEMENTAL REFINEMENT PROMPTS (For Future Iteration)
 - Keep Examples Current: Schedule review/updates for examples in rapidly evolving fields like technology or pop culture.
 
 ========================================
-END OF FILE: arkhive-what.txt
+END OF FILE: Arkhive-What.txt
 ========================================
 
 
@@ -671,7 +671,7 @@ The WHAT hierarchy is organized to be intuitive, cognitively optimized, and rich
 /// OUTPUT: Pass WHAT structure, new/updated entries, and summary of cross-links to Start.txt for path log.
 /// CHECKLIST: Did I define, classify, and cross-link all WHAT items accurately? Did I tag/resolve domain overlap and add relevant examples?
 /// PATH TRACE: Log main domain/category updated, cross-links (to WHO, WHEN, WHERE, WHY, HOW), and note if expansion or another pass is advised.
-/// SEE ALSO: arkhive.txt, arkhiver.txt, arkhiver-mind.txt, Mind-Predictive.txt, branch files.
+/// SEE ALSO: Arkhive.txt, Arkhiver.txt, Arkhiver-Mind.txt, Mind-Predictive.txt, branch files.
 //————————————————————————————————————————  
 
 

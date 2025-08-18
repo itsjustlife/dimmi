@@ -11,7 +11,7 @@
 ///   - Structured/unstructured requests related to people/entities, hierarchical categorization data.
 
 /// DECISION LOGIC:
-///   - Ambiguous entity categorization → escalate to Arkhiver or arkhiver-mind.txt.
+///   - Ambiguous entity categorization → escalate to Arkhiver or Arkhiver-Mind.txt.
 ///   - Cross-linking uncertainty → recursive check via other Arkhive branches (WHAT, WHY, WHERE, WHEN, HOW).
 
 /// RECURSION CHECKS:
@@ -27,7 +27,7 @@
 ///   - Suggest additional entity categories, cross-link improvements, or hierarchical logic expansions based on frequent ambiguities.
 
 /// SEE ALSO:
-///   - arkhiver.txt, arkhiver-mind.txt, Arkhive branches (WHAT, WHERE, WHEN, WHY, HOW), Mind-Predictive.txt, commands.txt
+///   - Arkhiver.txt, Arkhiver-Mind.txt, Arkhive branches (WHAT, WHERE, WHEN, WHY, HOW), Mind-Predictive.txt, Commands.txt
 
 
 ========================================
@@ -78,12 +78,12 @@ SECTION 3: ENTRY CONVENTIONS
 SECTION 4: CROSS-LINKS AND RELATIONSHIPS
 ========================================
 WHO entries are richly cross-linked:
-- WHAT links: Link individuals/groups to concepts, theories, inventions, or fields they are associated with (`arkhive-what.txt`). (e.g., Turing -> WHAT:Turing Machine).
-- WHEN links: Link individuals/groups to relevant historical events or periods (`arkhive-when.txt`). (e.g., Turing -> WHEN:World War II). Conversely, WHEN entries link back to key people involved.
-- WHERE links: Link individuals/groups to relevant locations (birthplace, HQ, area of activity) (`arkhive-where.txt`). (e.g., OpenAI -> WHERE:San Francisco).
-- WHY links: Link individuals/groups to motivations, ideologies, or causes they represent or were driven by (`arkhive-why.txt`). (e.g., MLK Jr. -> WHY:Civil Rights/Equality).
+- WHAT links: Link individuals/groups to concepts, theories, inventions, or fields they are associated with (`Arkhive-What.txt`). (e.g., Turing -> WHAT:Turing Machine).
+- WHEN links: Link individuals/groups to relevant historical events or periods (`Arkhive-When.txt`). (e.g., Turing -> WHEN:World War II). Conversely, WHEN entries link back to key people involved.
+- WHERE links: Link individuals/groups to relevant locations (birthplace, HQ, area of activity) (`Arkhive-Where.txt`). (e.g., OpenAI -> WHERE:San Francisco).
+- WHY links: Link individuals/groups to motivations, ideologies, or causes they represent or were driven by (`Arkhive-Why.txt`). (e.g., MLK Jr. -> WHY:Civil Rights/Equality).
 - HOW links: Less common, perhaps link inventors to the method/process they created (if HOW integrated elsewhere).
-- MIND links: Link thinkers/psychologists to theories or biases they developed/studied (`arkhiver-mind.txt`). (e.g., Freud -> MIND:Psychoanalysis).
+- MIND links: Link thinkers/psychologists to theories or biases they developed/studied (`Arkhiver-Mind.txt`). (e.g., Freud -> MIND:Psychoanalysis).
 - Within WHO links:
     - Note significant relationships (mentor, collaborator, rival, family) with cross-links to other WHO entries. Keep this focused on contextually important relationships.
     - Link organizations to key people (founders, CEOs) and vice-versa.
@@ -91,9 +91,9 @@ WHO entries are richly cross-linked:
 ========================================
 SECTION 5: HANDLING NEW ENTRIES
 ========================================
-- Integration: Use Arkhiver pipeline (`arkhiver.txt`) to suggest placement for new entities based on analysis. Create new subcategories if needed.
+- Integration: Use Arkhiver pipeline (`Arkhiver.txt`) to suggest placement for new entities based on analysis. Create new subcategories if needed.
 - Confidence/Ambiguity: If placement is uncertain, Arkhiver may ask for clarification or use a temporary category, tagging for review. Disambiguation nodes or parenthetical clarifiers handle identical names ("Alex Johnson (biologist)").
-- User Profile Integration: User-specific information (like "D" or mentioned acquaintances) is primarily handled by the memory system (`dimmi-memory.txt`) for privacy but can be conceptually cross-referenced here if relevant for context (e.g., tagging a discussed topic with `[User Context: D]`).
+- User Profile Integration: User-specific information (like "D" or mentioned acquaintances) is primarily handled by the memory system (`Dimmi-Memory.txt`) for privacy but can be conceptually cross-referenced here if relevant for context (e.g., tagging a discussed topic with `[User Context: D]`).
 
 ========================================
 SECTION 6: EXAMPLE ENTRY LAYOUT (Illustrative)
@@ -260,12 +260,12 @@ ARKHIVE OUTLINE
 /// OUTPUT: Pass WHO node structure, new/updated entries, and key cross-links (to WHAT, WHEN, WHERE, WHY, HOW) to Start.txt for knowledge path tracing.
 /// CHECKLIST: Did I add/update WHO entries with correct tags, cross-refs, and context? Is hierarchy depth, relationships, or ambiguity noted for review?
 /// PATH TRACE: Log WHO subcategory engaged (e.g., Individuals, Groups), cross-links, and recommend reroute if more context is needed from another branch.
-/// SEE ALSO: arkhive.txt, arkhiver.txt, arkhiver-mind.txt, Mind-Predictive.txt, branch files.
+/// SEE ALSO: Arkhive.txt, Arkhiver.txt, Arkhiver-Mind.txt, Mind-Predictive.txt, branch files.
 //————————————————————————————————————————  
 
 
 
 
 ========================================
-END OF FILE: arkhive-who.txt
+END OF FILE: Arkhive-Who.txt
 ========================================
