@@ -82,8 +82,8 @@ WHEN entries are heavily interlinked:
 - WHERE links: Specify primary location(s) (linking to `arkhive-where.txt`).
 - WHAT links: Connect events to related concepts, technologies, or types of events (linking to `arkhive-what.txt`). (e.g., Sputnik launch links to "Artificial Satellite" concept).
 - WHY links: Crucially link events to their causes and consequences (found in `arkhive-why.txt`). (e.g., French Revolution entry links to causes like "Enlightenment Ideas," "Social Inequality").
-- MIND links: Connect events related to ideas, science, or philosophy to relevant cognitive/logical concepts (linking to `arkhive-mind.txt`). (e.g., Galileo's trial links to "Scientific Paradigms").
-- HOW links: Link events involving specific methods or inventions to relevant process/technology descriptions (potentially in `arkhive-what.txt` or `arkhive-mind.txt`). (e.g., Wright brothers' flight links to "Aviation" or "Aerodynamics").
+- MIND links: Connect events related to ideas, science, or philosophy to relevant cognitive/logical concepts (linking to `arkhiver-mind.txt`). (e.g., Galileo's trial links to "Scientific Paradigms").
+- HOW links: Link events involving specific methods or inventions to relevant process/technology descriptions (potentially in `arkhive-what.txt` or `arkhiver-mind.txt`). (e.g., Wright brothers' flight links to "Aviation" or "Aerodynamics").
 - Within WHEN links:
     - Sequence Links: Explicitly reference preceding or subsequent related events (e.g., WWI entry notes it led to Treaty of Versailles, which influenced WWII).
     - Parallel Events: Note concurrent significant events elsewhere if relevant ("While X occurred in Europe...").

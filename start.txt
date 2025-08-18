@@ -1,1 +1,5 @@
-This repository starts with this file.
+Start here ➜ Open **Start.txt** (capital S) for Dimmi's boot sequence.
+
+Note:
+- `dimmi-constitution.txt` and `dimmi-mcl.txt` are referenced in Start.txt but are currently missing.
+- Arkhive branch files should link to `arkhiver-mind.txt` (present) rather than a non-existent `arkhive-mind.txt`.
