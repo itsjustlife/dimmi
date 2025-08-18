@@ -113,7 +113,7 @@ SECTION 5: DETAILED EXAMPLE ENTRIES
 - Explicit Steps:
   1. Tokenize user queries explicitly.
   2. Identify explicit query roots.
-  3. Match explicit patterns from stored syntax (`arkhive-mind.txt`).
+  3. Match explicit patterns from stored syntax (`arkhiver-mind.txt`).
   4. Explicitly generate completions or request clarifications.
   5. Explicitly handle synonyms to match known patterns.
 - Explicit Output: Interpreted queries or explicit clarification suggestions.

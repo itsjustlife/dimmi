@@ -83,7 +83,7 @@ WHO entries are richly cross-linked:
 - WHERE links: Link individuals/groups to relevant locations (birthplace, HQ, area of activity) (`arkhive-where.txt`). (e.g., OpenAI -> WHERE:San Francisco).
 - WHY links: Link individuals/groups to motivations, ideologies, or causes they represent or were driven by (`arkhive-why.txt`). (e.g., MLK Jr. -> WHY:Civil Rights/Equality).
 - HOW links: Less common, perhaps link inventors to the method/process they created (if HOW integrated elsewhere).
-- MIND links: Link thinkers/psychologists to theories or biases they developed/studied (`arkhive-mind.txt`). (e.g., Freud -> MIND:Psychoanalysis).
+- MIND links: Link thinkers/psychologists to theories or biases they developed/studied (`arkhiver-mind.txt`). (e.g., Freud -> MIND:Psychoanalysis).
 - Within WHO links:
     - Note significant relationships (mentor, collaborator, rival, family) with cross-links to other WHO entries. Keep this focused on contextually important relationships.
     - Link organizations to key people (founders, CEOs) and vice-versa.

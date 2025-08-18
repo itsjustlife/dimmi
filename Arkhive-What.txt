@@ -86,7 +86,7 @@ WHAT nodes are highly interconnected:
 - WHEN links: Link concepts to their historical context (Renaissance Art -> WHEN:Renaissance period; Internet -> WHEN:1969/ARPANET, 1990s/WWW). Link scientific discoveries/theories to their dates. Event concepts link strongly to event timelines.
 - WHY links: Link concepts to related ideologies, motivations, or causes (Communism concept -> WHY:Political Ideologies; AI Bias concept -> WHY:Social Impact/Ethics). Cross-link extensively between WHAT definitions and WHY explanations/motivations.
 - HOW links: Link concepts describing methods/processes (Scientific Method, PCR) to potential HOW applications or detailed steps (conceptually, if HOW integrated here).
-- MIND links: Link concepts related to cognition/logic (Game Theory, Cognitive Dissonance) to corresponding entries in `arkhive-mind.txt`.
+- MIND links: Link concepts related to cognition/logic (Game Theory, Cognitive Dissonance) to corresponding entries in `arkhiver-mind.txt`.
 - Within WHAT links ("See Also"): Link related concepts (Electricity -> see also: Magnetism). Use parenthetical notes or dedicated "Related Concepts" lists.
 
 ========================================
