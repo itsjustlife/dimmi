@@ -1,0 +1,149 @@
+/// FILE: dimmi-art-reconstruction.txt
+/// VERSION: 1.0.0
+/// LAST-UPDATED: 2025-08-26
+/// PURPOSE: Knowledge spec for Dimmi Art Reconstruction Engine (DARE)
+/// KEYWORDS: paleontological reconstruction, forensic facial reconstruction, image restoration, colorization, uncertainty, physics-based simulation
+
+========================================
+SECTION 1: OVERVIEW
+
+- DARE extends Dimmi-Art to rebuild extinct organisms, repair damaged imagery, and colorize black-and-white sources.
+- Outputs must be evidence-linked, reproducible, and clearly annotate uncertainty.
+- Primary domains:
+  * Fossil-to-life reconstructions (skeletal → integument → biomech).
+  * Digital restoration of degraded photos, films, or scans.
+
+========================================
+SECTION 2: CORE CAPABILITIES
+
+2.1 Knowledge & Data
+- Provenance-rich knowledge graph: specimen IDs, locality, age, taphonomy, environment, rights.
+- Comparative anatomy library for extant brackets with Evidence Levels (E1–E5).
+- Material property database (bone, keratin, skin, feather optics).
+
+2.2 Physics & Physiology Engine
+- Rigid/soft-body dynamics with joint constraints and ligament limits.
+- Hill-type muscle-tendon actuators with pennation and compliance.
+- Finite Element Analysis (anisotropic materials, preset boundary templates).
+- Fluid/air dynamics: RANS/LES CFD, vortex lattice, SPH for splash interactions.
+- Optional metabolism/thermoregulation models for heat balance.
+
+2.3 Generative Models
+- Diffusion + score distillation for 3D completion and inpainting.
+- Neural implicit fields (SDF/NeRF) for continuous geometry.
+- Graph neural nets for articulation priors; neuro-symbolic morphology grammar blocks impossible topologies.
+- Bayesian programs (ABC/MCMC) to sample posteriors for soft tissue and mass distribution.
+
+2.4 Machine Vision & Measurement
+- CNN/Transformer segmentation of CT/µCT/photogrammetry.
+- Retro-deformation via thin-plate splines and bilateral symmetry.
+- Microstructure analysis (vascular canals, melanosomes).
+- Automated osteometrics with confidence scores.
+
+2.5 Optimization & Control
+- Multi-objective RL/optimization for energetics, stability, strain safety, and maneuverability.
+- Output Pareto fronts and sensitivity indices (Sobol, Morris).
+
+2.6 Image Restoration Toolkit
+- Damage repair: scratch fill, noise removal, de-fade using spectral analysis.
+- Colorization: guided diffusion with channel priors and uncertainty masks.
+- Works on stills, film frames, and historical documents.
+
+========================================
+SECTION 3: RECONSTRUCTION WORKFLOW
+
+Stage 0 – Registration & QA
+- Ingest specimen and lock Specimen-of-Record.
+- Attach metadata, uncertainties, DOI links.
+- Run quality gates (scan resolution, segmentation confidence, deformation likelihood).
+
+Stage 1 – Skeletal Assembly
+- Segment scans; manual QA; remove matrix; label elements.
+- Retrodeform warped bones using bilateral landmarks.
+- Skeletal inpainting constrained by topology and allometry; tag inferred geometry with uncertainty bands.
+- Articulate joints; compute ROM envelopes via collision tests + ligament proxies.
+- Estimate segment mass via convex hulls × tissue density.
+
+Stage 2 – Myology & Volumetrics
+- Apply Extant Phylogenetic Bracket (EPB) engine with Levels I–III.
+- Detect osteological correlates and rank by confidence.
+- Generate muscle fields, compute PCSA and moment arms vs. angle.
+- Add respiratory/pneumatic structures where supported.
+- Enforce anti-shrinkwrap soft-tissue budgets.
+
+Stage 3 – Biomechanical Simulation
+- Task suite: standing, gaits, feeding, turning, aquatic locomotion.
+- Millions of rollouts across posterior samples; log seeds and parameters.
+- FEA stress checks; revise musculature/posture if strain exceeds envelopes.
+- Validate stride and speed against ichnology when available.
+
+Stage 4 – Integument, Color, Novel Structures
+- Evidence hierarchy: impressions → EPB → ecological/thermoregulatory inference.
+- Color hierarchy: melanosomes → aDNA → ecological priors; mark Evidence Codes.
+- Test novel soft tissues in hydro/aero/acoustic sims before inclusion.
+
+Stage 5 – Ecology, Ontogeny, Dimorphism (optional)
+- Alternate reconstructions for juvenile/adult, male/female, or seasonal states.
+
+========================================
+SECTION 4: FORENSIC FACIAL RECON (HOMININS)
+
+- Biological profiling: age, sex, ancestry estimates with confidence.
+- Tissue depth markers (Manchester baselines) + SD bands.
+- Rebuild muscles, fat pads, glands; present variants for uncertain features (nose, lips, ears).
+- Use population priors for hair/skin/iris if genetics unknown; mark low confidence.
+- Enforce neutral lighting/background and note ancestry uncertainty.
+
+========================================
+SECTION 5: RENDERING & OUTPUTS
+
+- Style: scientific hyper-realism with PBR and spectral accuracy.
+- Auto-generate anatomical plates (lat/dor/ven/ant/post) with cm scale bars and orientation triads.
+- Dynamic poses must come from simulated states within ROM limits.
+- Context scenes optional; must match formation/age if used.
+- Deliverables: 2D stills, turntables, motion clips, and rigged 3D (USD/glTF) with toggles for skeleton, muscles, organs, integument, coloration, environment.
+- Export confidence overlays and evidence legends.
+
+========================================
+SECTION 6: UNCERTAINTY & GOVERNANCE
+
+6.1 Evidence Codes
+Code | Basis | Typical Use | Confidence
+E1 | Direct fossil/soft impression | Integument pattern, shape | Solid
+E2 | EPB Level I (both brackets) | Major muscles/organs | Solid
+E3 | EPB Level II (one bracket) | Minor muscles/features | Striped
+E4 | Physics-optimized inference | Fat pads, posture, gait | Dotted
+E5 | Speculative | Display colors/novel tissue | Transparent
+
+6.2 Hypothesis Ensembles
+- For debated taxa produce co-equal models with rationales and metric comparisons.
+- Provide sliders/toggles to show/hide low-confidence content.
+
+6.3 Reproducibility
+- Save manifests: software versions, seeds, meshes, boundary conditions.
+- Record human-in-the-loop checkpoints and provenance links.
+
+6.4 Bias Guardrails
+- Prohibit shrink-wrapped reconstructions and tail-dragging unless E1/E2 supported.
+- Trigger alerts when training priors conflict with PKG updates.
+- Respect cultural sensitivities and repository policies.
+
+========================================
+SECTION 7: DIGITAL IMAGE RESTORATION (NON-PALEO)
+
+- Applicable to faded photos, damaged film, or historical illustrations.
+- Pipeline:
+  1. Register source metadata (date, medium, damage type).
+  2. Perform noise/scratch analysis; apply channel-aware de-noising.
+  3. Reconstruct missing regions via diffusion-based inpainting with context constraints.
+  4. Estimate original color via spectral priors or reference palettes; produce uncertainty mask.
+  5. Allow user review checkpoints; log all edits for audit.
+- Outputs: restored image, colorized variant, and confidence overlay.
+
+========================================
+SECTION 8: OPEN QUESTIONS
+
+- Q1: Preferred default muscle material properties for non-avian dinosaurs?
+- Q2: Standard threshold for declaring skeletal region "non-recoverable" after retrodeformation?
+- Q3: Recommended spectral priors for colorizing early photographic plates?
+
