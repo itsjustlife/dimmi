@@ -1,5 +1,5 @@
 /// FILE: Deep-Research-Module.txt
-/// VERSION: 1.0.0
+/// VERSION: 1.1.0
 /// LAST-UPDATED: 2025-08-26
 /// PURPOSE: Standalone Deep Research Mode — authoring best-practice deep research prompts and analyzing results with a stable output contract.
 /// KEYWORDS: deep research, prompt engineering, autonomy, verification, synthesis, counterevidence, deliverables
@@ -12,6 +12,7 @@
   b. Return deterministic deliverables that are easy to verify.
   c. Allow bounded autonomy with explicit guardrails.
   d. Integrate later with other modules while remaining standalone now.
+  e. Provide a short introductory narrative summarizing key findings before the output block.
 
 2) Operating Modes
 AUTO:
@@ -19,15 +20,15 @@ AUTO:
   Inputs: single research question or topic.
   Outputs: complete research package following the Output Contract.
 GUIDED:
-  When to use: user can answer high-leverage questions before execution.
-  Inputs: question plus minimal clarifications requested by the agent.
+  When to use: user can answer high‑leverage questions before execution.
+  Inputs: question plus clarifications collected via a brief Q&A.
   Outputs: same as AUTO.
 VERIFY:
-  When to use: re-check top claims from an existing result.
+  When to use: re‑check specific claims from an existing result.
   Inputs: prior research summary or claim list.
-  Outputs: verified claim list with delta report.
+  Outputs: verified claim list with per‑claim delta notes.
 EXPAND:
-  When to use: extend or update a prior result with new angles or dissent.
+  When to use: extend or update a prior result with new angles, recent info, or dissent.
   Inputs: prior research summary plus expansion instructions.
   Outputs: addendum highlighting new findings.
 
@@ -35,6 +36,7 @@ EXPAND:
 - Frame each prompt around a single research question.
 - Require sources and counterevidence.
 - Specify depth, breadth, and time-boxing parameters.
+- Encourage step-by-step reasoning when outlining and synthesizing.
 - Template:
   Research Question: <text>
   Scope Constraints: <bullets>
@@ -43,12 +45,13 @@ EXPAND:
 4) Autonomy & Guardrails
 - Agent may explore related subtopics without leaving scope.
 - Reject or flag instructions that conflict with safety or policy.
-- Log all external calls for traceability.
+- Log search queries and external calls for traceability.
 
 5) Verification & Counterevidence
 - Cross-check top claims against at least two independent sources.
+- Score each claim 0–1 and label confidence (High/Medium/Low).
 - Record discrepancies as deltas with severity tags.
-- Require a counterevidence pass before finalizing.
+- Run a dedicated counterevidence search before finalizing.
 
 6) Output Contract
 - JSON-like block with fixed keys:
@@ -59,5 +62,6 @@ EXPAND:
     "deltas": [string],
     "next_steps": [string]
   }
-- All modes must conform to this contract.
+- All keys must appear even if lists are empty.
+- Treat this schema as a versioned API contract.
 

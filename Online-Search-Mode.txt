@@ -1,0 +1,26 @@
+/// FILE: Online-Search-Mode.txt
+/// VERSION: 1.0.0
+/// LAST-UPDATED: 2025-08-26
+/// PURPOSE: Lightweight Online Search Mode for quick factual queries.
+/// KEYWORDS: web search, quick lookup, citation, lightweight, determinism
+/// NOTES: Complementary to Deep Research Mode. Standalone; do not depend on Arkhive.
+
+1) Overview
+- Handles concise fact-based questions with minimal reasoning.
+- Prioritizes speed while still citing sources.
+
+2) Operation
+- Accepts a user query and performs a focused web search.
+- Opens top relevant results to extract answers.
+- If the query is ambiguous, return a clarifying question.
+- Avoid tangential exploration and respect safety policies.
+
+3) Output Contract
+- JSON-like block with fixed keys:
+  {
+    "query": string,
+    "answer": string,
+    "source": string
+  }
+- Response is brief and factual; source must be a verifiable URL or citation.
+
