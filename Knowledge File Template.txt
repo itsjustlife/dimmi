@@ -1,0 +1,112 @@
+/// FILE: [filename].txt
+/// VERSION: [e.g., 1.0.0]
+/// LAST-UPDATED: [yyyy-mm-dd]
+/// PURPOSE: [Short description of what this file governs]
+/// KEYWORDS: [comma-separated tags]
+/// FILETYPE: semantic-node | logic-router | memory-config | creative-engine | persona
+/// USED BY: [arkhiver, mind_predictive, agent_critic, artist_suite]
+/// COMPAT: Start.txt >= v4.0
+/// REQUIRES: [optional dependencies]
+
+/// ENTRYPOINT:
+/// – Trigger conditions (phrases, query types) that activate this file
+/// – Which upstream modules may hand off here
+
+/// INPUT EXPECTED:
+/// – Types of input handled (e.g., names, concepts, prompts, project snapshots)
+
+/// DECISION LOGIC:
+/// – IF [condition] → DO [action]
+/// – IF ambiguity → escalate to arkhiver-mind
+/// – IF recursion > 2 → escalate to MCL
+
+/// CROSS-LINK MINIMA:
+/// – WHO must link to WHAT + WHEN
+/// – WHAT must link to WHO + WHY + HOW
+/// – WHY must link to WHAT + WHO
+/// – WHERE must link to WHEN or EVENT
+
+/// OUTPUT:
+/// – What this file produces (node, summary, prompt, SAVE snippet)
+
+/// ERROR HANDLING:
+/// | Error Type       | Action                                |
+/// |------------------|---------------------------------------|
+/// | Unknown input    | Escalate to arkhiver-mind; ask clar.  |
+/// | Conflict         | Summarize, trigger MCL, propose X/Y   |
+/// | Missing link     | Ask: “Add WHEN/WHY/etc.?”             |
+/// | Memory mismatch  | Flag contradiction, prompt resolution |
+
+/// PATH TRACE:
+/// – Notes on what branches/modules this file activates
+
+/// SELF-OPTIMIZATION PROMPTS:
+/// – If confusion repeats: suggest [add-topic], [refactor logic], [link branch]
+
+/// SEE ALSO:
+/// – Related files and agents
+
+//────────────────────────────────────────────
+========================================
+SECTION 1: OVERVIEW
+========================================
+Brief natural-language description of this file’s purpose and role in Dimmi’s architecture.
+
+========================================
+SECTION 2: NODE SCHEMA (if applicable)
+========================================
+[NODE]
+TITLE: [string]
+UUID: [uuid or slug]
+TYPE: Person | Concept | Process | Event | Place | Theory
+SUMMARY: [≤220 chars]
+LINKS:
+ – WHAT: [topic] (weight=0.9)
+ – WHEN: [era] (weight=0.6)
+ – WHY: [reason] (weight=0.5)
+TAGS: [comma-separated categories]
+STATUS: ACTIVE | ARCHIVED
+VERSION: 1.0
+CONFIDENCE: 0.95
+INTENT: Informative | Creative | Instructional
+
+(OPML equivalent if needed:)
+
+<outline text="[TITLE]" _uuid="[UUID]" _type="[TYPE]" _conf="0.95">
+  <outline text="WHAT: [Relativity]" _weight="0.9"/>
+  <outline text="WHEN: [20th Century]" _weight="0.6"/>
+</outline>
+
+========================================
+SECTION 3: LOGIC / HEURISTICS
+========================================
+– Rules for classification
+– Routing disambiguation
+– Examples: WHO if human name; WHAT if scientific term
+
+========================================
+SECTION 4: EXAMPLES
+========================================
+– Add 1–3 sample NODEs or command inputs
+– Use bullet points or inline schema
+
+========================================
+SECTION 5: FUTURE & TODO
+========================================
+[TODO:TOPIC] Add [new subject]
+[TODO:LINK] Connect X ⇄ Y
+[TODO:ALGO] Improve [heuristic name]
+
+========================================
+SECTION 6: SPECIAL CONSIDERATIONS
+========================================
+– Guardian rules (e.g. “avoid bias amplification”)
+– Disclosure needs (e.g. “clarify fictional framing”)
+– Persistence notes (SAVE support, alias handling)
+
+//————————————————————————————————————————
+/// KNOWLEDGE PATHWAY FOOTER
+/// ENTRYPOINT: [summary of triggers]
+/// OUTPUT: [summary of expected return]
+/// CHECKLIST: minima linked? errors handled? guardian applied?
+/// SEE ALSO: [list of related files or agents]

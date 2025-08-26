@@ -1,0 +1,344 @@
+/// FILE: Arkhive-When.txt
+/// VERSION: 3.1.0
+/// LAST-UPDATED: 2025-05-26
+/// PURPOSE: Structured knowledge—temporal context, chronological mapping, events, timelines, historical structuring.
+/// KEYWORDS: when, chronology, timelines, historical-context, temporal-semantic
+
+/// ENTRYPOINT:
+///   - Activated explicitly for time-based queries, event chronologies, timelines, and historical structuring.
+
+/// INPUT EXPECTED:
+///   - Structured/unstructured data involving timelines, dates, events, and temporal relationships.
+
+/// DECISION LOGIC:
+///   - Ambiguous chronological placement → escalate to Arkhiver or Arkhiver-Mind.txt.
+///   - Temporal linking uncertainty → recursive pass via WHO, WHAT, WHY, WHERE, HOW branches.
+
+/// RECURSION CHECKS:
+///   - Unresolved chronological ambiguity (>2 loops) → escalate globally via Start.txt.
+
+/// OUTPUT:
+///   - WHEN timeline/event structures, chronological context, semantic-temporal cross-links, cognitive trace.
+
+/// PATH TRACE:
+///   - Log activated temporal modules, cross-links established, recursion loops, and outcomes.
+
+/// SELF-OPTIMIZATION PROMPTS:
+///   - Suggest new chronological structures, improved event linking, or timeline expansions based on recurring ambiguities.
+
+/// SEE ALSO:
+///   - Arkhiver.txt, Arkhiver-Mind.txt, Arkhive branches (WHO, WHAT, WHERE, WHY, HOW), Mind-Predictive.txt, Commands.txt
+
+========================================
+WHEN – Timeline of Events and Temporal Anchors
+========================================
+The WHEN branch organizes knowledge by time. It includes historical events, periods, dates, and chronological sequences. If a question is about when something happened or the historical timeline of a topic, this branch is central. This file describes how the timeline is structured and how to index events for easy traversal.
+
+========================================
+SECTION 1: SCOPE OF WHEN
+========================================
+WHEN covers:
+- Historical Events: Significant occurrences (wars, discoveries, treaties, disasters, births/deaths) assignable to a date or range.
+- Periods/Eras: Broader time spans (e.g., "The Renaissance," "Jurassic Period," "Information Age") serving as containers for events.
+- Year or Date Entries: Specific years (e.g., 1776, 1945) or dates listing major events. Clustering by decade/century may occur for granularity.
+- Timelines of Topics: Potential sub-branches for specific domains ("Timeline of Computing"), though often derived via cross-linking from events.
+
+========================================
+SECTION 2: STRUCTURE AND CHRONOLOGY
+========================================
+
+2.1. Hierarchy Design & Navigation Principles:
+    - 3-Click Rule (Depth vs. Breadth): Optimized for reaching nodes within ~3 levels (e.g., WHEN -> 20th Century -> World War II). Achieved by minimizing unnecessary layers and using cross-links for lateral jumps between related concepts in different branches (e.g., linking an event to its causes in WHY).
+    - Chronological Ordering: Entries within any level are typically sorted chronologically (ascending).
+
+2.2. Structuring Options (Often Mixed):
+    - By Year/Century/Era: Top levels might be broad eras ("Antiquity," "Medieval," "Modern") or centuries ("19th Century," "20th Century"). Within these, events are listed chronologically. Major events might be direct nodes under an era/century (e.g., "World War II (1939–1945)" under "20th Century").
+    - By Theme: While primarily chronological, thematic timelines (e.g., "Timeline of Space Exploration") might exist as distinct structures or be represented through tags/cross-links from the main timeline.
+
+2.3. Event Entries:
+    - Naming: Nodes are typically named after the event, including date(s) in parentheses (e.g., "Fall of Berlin Wall (1989)"). Alternatively, a date node might contain event descriptions. Event names are generally preferred for nodes.
+    - Subsections/Nesting: Major complex events (like World Wars) might have sub-nodes for key battles or phases, nested under the main event node to maintain clarity while managing depth.
+
+2.4. Note on Linear vs Non-linear Time:
+    - Current structure leans linear and Gregorian/Western-focused.
+    - Acknowledged limitation: Difficulty representing cyclical time or non-Western calendars directly in the main hierarchy.
+    - Mitigation: Incorporate other calendars via cross-reference within entries (e.g., noting Islamic or Chinese calendar equivalents). Future enhancements could include parallel timeline structures or specific nodes for different cosmologies/calendars if required by the knowledge domain.
+
+========================================
+SECTION 3: ENTRY CONVENTIONS
+========================================
+- Event Description: Succinctly state what happened, where, and key actors involved. Link to relevant WHO/WHERE entries.
+- Dates: Use standard formats (Month Day, Year or YYYY-MM-DD). Include specific dates for precise events, ranges for periods.
+- Chronological Order: Ensure entries under any given node are sorted by date.
+- Periodic Summaries: Nodes representing long periods (e.g., "Middle Ages") should contain a summary of the era, potentially linking to key sub-events.
+- Recurring Events: Handle recurring events (Olympics, elections) generally with a summary node, listing only historically significant instances rather than every occurrence, unless the context demands it.
+- Use of Subsections: Use indentation or sub-lists to detail sub-events under a major event node (e.g., specific battles under a war node).
+
+========================================
+SECTION 4: CROSS-LINKS AND CONTEXT
+========================================
+WHEN entries are heavily interlinked:
+- WHO links: Mention key people involved (linking to `Arkhive-Who.txt`). Include notable births/deaths under relevant year/period nodes.
+- WHERE links: Specify primary location(s) (linking to `Arkhive-Where.txt`).
+- WHAT links: Connect events to related concepts, technologies, or types of events (linking to `Arkhive-What.txt`). (e.g., Sputnik launch links to "Artificial Satellite" concept).
+- WHY links: Crucially link events to their causes and consequences (found in `Arkhive-Why.txt`). (e.g., French Revolution entry links to causes like "Enlightenment Ideas," "Social Inequality").
+- MIND links: Connect events related to ideas, science, or philosophy to relevant cognitive/logical concepts (linking to `Arkhiver-Mind.txt`). (e.g., Galileo's trial links to "Scientific Paradigms").
+- HOW links: Link events involving specific methods or inventions to relevant process/technology descriptions (potentially in `Arkhive-What.txt` or `Arkhiver-Mind.txt`). (e.g., Wright brothers' flight links to "Aviation" or "Aerodynamics").
+- Within WHEN links:
+    - Sequence Links: Explicitly reference preceding or subsequent related events (e.g., WWI entry notes it led to Treaty of Versailles, which influenced WWII).
+    - Parallel Events: Note concurrent significant events elsewhere if relevant ("While X occurred in Europe...").
+    - Period Containers: Note when events mark the beginning or end of named periods.
+
+========================================
+SECTION 5: MANAGING THE TIMELINE
+========================================
+- Global Coverage: Include major events from diverse world regions to avoid excessive Western-centricity (e.g., Mughal Empire, Meiji Restoration).
+- Non-Western Chronologies: Integrate via era nodes (e.g., "Heian Period," "Ming Dynasty") or parenthetical calendar notes within Gregorian-dated entries.
+- Crono Integration Concept: User's personal timeline events (if tracked via a 'Crono' system concept linked to `Dimmi-Memory.txt`) should likely remain tagged as personal or stored separately to avoid cluttering the global historical timeline, though conceptual links are possible.
+- Future/Ongoing Events: Can include planned future dates (marked clearly) or ongoing events (e.g., "Syrian Civil War (2011– )"). Requires updates as events conclude.
+- Relative Terms: Avoid "today," "yesterday." Use absolute dates or fixed references ("as of [date]..."). Dimmi translates user's relative terms using current system date.
+
+========================================
+SECTION 6: EXAMPLE TIMELINE SNIPPET (Illustrative)
+========================================
+(Formatted for clarity, actual file may use simple indented lists)
+
+- Antiquity (to 500 CE)
+    - 44 BCE – Assassination of Julius Caesar in Rome (End of Roman Republic; see WHO: Julius Caesar, WHERE: Rome, WHY: Political power struggle).
+    - 1 CE – Traditional birth year of Jesus Christ (see WHO: Jesus, WHY: Christianity).
+    - 476 CE – Fall of Western Roman Empire (Marks start of Early Middle Ages).
+- Middle Ages (500–1500)
+    - Period: *The Middle Ages* – Era summary... feudal society, rise of Islam...
+    - 622 – Hijra: Muhammad’s migration Mecca to Medina (Start of Islamic calendar; see WHO: Muhammad, WHY: Islam).
+    - 800 – Charlemagne crowned Holy Roman Emperor (see WHO: Charlemagne).
+    - 1347–1351 – Black Death pandemic in Europe (see WHY: Disease, WHAT: Plague).
+- Early Modern (1500–1800)
+    - 1492 – Columbus's first voyage to Americas (Starts European colonization; see WHERE: Americas, WHO: Christopher Columbus).
+    - 1776 – American Declaration of Independence (July 4; see WHERE: USA, WHY: Enlightenment ideas).
+    - 1789 – French Revolution begins (July 14; see WHAT: French Revolution, WHY: Inequality).
+- 19th Century (1800s)
+    - 1804 – Napoleon crowns himself Emperor (see WHO: Napoleon Bonaparte).
+    - 1861–1865 – American Civil War (Abolishes slavery; see WHY: Slavery, WHO: Abraham Lincoln).
+    - 1884–1885 – Berlin Conference (Partition of Africa; see WHY: Imperialism, WHERE: Africa).
+- 20th Century (1900s)
+    - 1914–1918 – World War I (See WHY: Nationalism...).
+        - 1917 – Russian Revolution (see WHO: Vladimir Lenin...).
+    - 1939–1945 – World War II (Axis vs Allies...).
+        - 1941 – Attack on Pearl Harbor (Dec 7; see WHERE: Hawaii...).
+        - 1945 – WWII ends (VE Day May 8, VJ Day Aug 15; see WHAT: Atomic Bomb).
+    - 1969 – Apollo 11 Moon Landing (July 20; see WHERE: Moon, WHO: Neil Armstrong).
+    - 1989 – Fall of Berlin Wall (see WHY: Cold War).
+- 21st Century (2000s)
+    - 2001 – September 11 attacks in USA (see WHO: Osama bin Laden, WHY: Terrorism).
+    - 2020 – COVID-19 pandemic declared (see WHAT: COVID-19).
+
+(Note: Highly condensed, illustrative example focusing on structure and links.)
+
+========================================
+SECTION 7: SUPPLEMENTAL REFINEMENT PROMPTS (For Future Iteration)
+========================================
+- Enhanced Chronologies by Domain: Add dedicated, cross-referenced timelines for specific fields (e.g., "Timeline: Computing").
+- Non-Gregorian Calendar Integration: Develop mapping reference or parallel structures for major non-Gregorian calendars if needed.
+- Automated Event Sorting/Generation: Explore dynamic generation of timelines from structured event data (internal process note).
+- Causal Threads Notation: Add explicit "Cause:"/"Consequence:" annotations linking events within descriptions.
+- Parallel Timelines Visualization: Incorporate comparative notes highlighting concurrent developments in different regions/cultures for key eras.
+
+
+
+
+WHEN: The Temporal Dimension of Knowledge (Preface)
+
+Time is the grand canvas on which the story of humanity is painted. The WHEN category of the Arkhive is a narrative timeline that spans from the prehistoric dawn of civilization to the speculative future. It covers all historical epochs and chronological frameworks – prehistoric, ancient, classical, medieval, early modern, industrial, modern, postmodern, contemporary, and beyond – providing a temporal map of human, technological, cultural, political, and philosophical evolution. In historical scholarship, dividing the past into distinct periods (known as periodization) helps us organize and interpret the vast continuum of events​. The WHEN branch follows this practice, charting prehistorical periods (before written records) and historical periods (recorded history)​ in an intuitive hierarchy of eras and events. Understanding the temporal structure of knowledge greatly enhances our comprehension of how different facets of civilization develop. By examining when things happened, we uncover cause-and-effect relationships and contextual links between developments in disparate domains. For example, Enlightenment ideals of reason in the 18th century eroded old feudal and religious orders and sparked political revolutions and the Industrial Revolution​. Those late-18th-century upheavals in turn ushered in the industrial age of mechanization​, eventually setting the stage for the digital information age of the late 20th century. Each era builds upon the last: ideas and inventions compound over time, and understanding when they arose helps explain why they emerged. Technological breakthroughs often occur in response to the needs and values of their time, and political or philosophical movements can be fully grasped only against the backdrop of the era’s conditions. Crucially, the WHEN timeline weaves together thematic overlays for each era – major wars, technological innovations, cultural renaissances, political transformations, and ideological movements – to show how they interplay. By situating key people, places, and ideas in their chronological context, we gain insight into how human society has evolved. We see, for instance, how the Industrial Age not only introduced new machines, but also fundamentally transformed social and political structures (urbanization, imperialism) as an outgrowth of earlier Enlightenment thought​. We observe how the Modern Age (up to the mid-20th century) embraced grand narratives of progress and rationality, which were later questioned in the Postmodern Age shaped by events like the Cold War and the rise of the Internet​. In other words, understanding when each transformation happened allows us to trace the evolution of human ideas (philosophy and ideology), scientific and technological capabilities, cultural norms, and political systems as an interconnected story. In the Arkhive’s WHEN branch, each major epoch is represented as a node with nested sub-periods, events, and milestones. Concise notes highlight cross-references to WHO (notable figures of the time), WHAT (key inventions or concepts), WHERE (geographic focal points), WHY (motives or causes), and HOW (methods or processes) for that era. This temporal framework not only chronologically catalogs events, but also illuminates the continuity and transitions across eras – for example, how the Enlightenment → Industrial Revolution → Information Age progression unfolded through cascading cause and effect. By navigating the WHEN timeline, one can intuitively follow the chain of history: how prehistoric human innovations enabled ancient civilizations, how ancient ideas influenced classical empires, how those foundations led to medieval institutions, which gave rise to early modern revolutions, and so on, all the way to today’s complex global society and future possibilities. This comprehensive temporal perspective deepens our understanding of every other domain in the Arkhive, revealing the evolution of ideas and innovations through time and enhancing our ability to connect people, places, technologies, and ideas in context.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+<head>
+    <title>WHEN</title>
+</head>
+<body>
+    <outline text="WHEN" _note="Chronological knowledge from cosmic origins to the present and future, divided into eras that cross-reference people, innovations, places, causes, and methods.">
+        <outline text="Cosmic &amp; Earth Prehistory" _note="Formation of the universe, solar system, and life on Earth before human history.">
+            <outline text="Cosmic Timeline">
+                <outline text="Big Bang and Early Universe (13.8 billion years ago)" />
+                <outline text="Formation of Stars and Galaxies (13.5 billion years ago)" />
+                <outline text="Formation of Solar System (4.6 billion years ago)" />
+                <outline text="Formation of Earth (4.54 billion years ago)" />
+            </outline>
+            <outline text="Geological Timeline">
+                <outline text="Hadean Eon (4.6–4 billion years ago)" />
+                <outline text="Archean Eon (4–2.5 billion years ago)" />
+                <outline text="Proterozoic Eon (2.5 billion–541 million years ago)" />
+                <outline text="Phanerozoic Eon (541 million years ago–Present)">
+                    <outline text="Paleozoic Era (541–252 Ma)" />
+                    <outline text="Mesozoic Era (252–66 Ma)" />
+                    <outline text="Cenozoic Era (66 Ma–Present)" />
+                </outline>
+            </outline>
+            <outline text="Biological Evolution Timeline">
+                <outline text="Origin of Life (~3.8 billion years ago)" />
+                <outline text="First Single-Celled Organisms (Prokaryotes)" />
+                <outline text="Oxygenation of Atmosphere (~2.4 billion years ago)" />
+                <outline text="First Eukaryotic Cells (~1.8 billion years ago)" />
+                <outline text="Multicellular Life Emerges (~600 Ma)" />
+                <outline text="Cambrian Explosion (~541 Ma)" />
+                <outline text="Age of Dinosaurs (Mesozoic Era)" />
+                <outline text="First Mammals (~200 Ma)" />
+                <outline text="Dinosaur Extinction (66 Ma)" />
+                <outline text="Rise of Mammals and Primates" />
+            </outline>
+        </outline>
+        <outline text="Prehistory (Human Prehistoric Era – to ~3000 BCE)" _note="Before written records; early humans (WHO Homo sapiens) develop stone tools (WHAT) and fire (HOW) across Africa and beyond (WHERE) for survival in harsh environments (WHY).">
+            <outline text="Paleolithic (Old Stone Age)"/>
+            <outline text="Neolithic (New Stone Age)">
+                <outline text="Development of Agriculture (~10,000 BCE)"/>
+                <outline text="Domestication of Animals"/>
+                <outline text="Permanent Settlements Formed"/>
+            </outline>
+            <outline text="Bronze Age (c.3300–1200 BCE)">
+                <outline text="Earliest Civilizations (Mesopotamia, Egypt, Indus)"/>
+                <outline text="Invention of Writing (cuneiform, hieroglyphs)"/>
+                <outline text="Code of Hammurabi (c.1754 BCE)"/>
+            </outline>
+        </outline>
+        <outline text="Ancient Era (c.1200 BCE – c.500 BCE)" _note="Rise of regional empires and classical civilizations. Iron tools and weapons (WHAT) enable larger states; early philosophers and rulers (WHO) emerge in Mesopotamia, Egypt, India, China (WHERE) establishing laws and traditions (HOW/WHY).">
+            <outline text="Iron Age and Early Empires">
+                <outline text="Assyrian &amp; Babylonian Empires"/>
+                <outline text="Vedic Period in India"/>
+                <outline text="Zhou Dynasty in China"/>
+            </outline>
+            <outline text="Rise of Major Religions">
+                <outline text="Hebrew Prophets and Judaism"/>
+                <outline text="Early Hindu Upanishads"/>
+                <outline text="Life of Confucius (6th–5th c. BCE)"/>
+            </outline>
+            <outline text="Persian Empire (Achaemenid, 550–330 BCE)"/>
+        </outline>
+        <outline text="Classical Antiquity (c.500 BCE – 500 CE)" _note="Era of Greco-Roman and parallel classical civilizations. Thinkers like Socrates and Aristotle (WHO) advance philosophy (WHAT) in city-states (WHERE Greece); Roman law and engineering (HOW) unify the Mediterranean, while new faiths (WHY e.g. Christianity) spread.">
+            <outline text="Classical Greece (Athens, Sparta)"/>
+            <outline text="Hellenistic Period (Alexander&apos;s Empire)"/>
+            <outline text="Roman Republic and Empire">
+                <outline text="Julius Caesar &amp; Imperial Rome"/>
+                <outline text="Pax Romana (27 BCE – 180 CE)"/>
+                <outline text="Constantine &amp; Adoption of Christianity (4th c. CE)"/>
+                <outline text="Fall of Western Roman Empire (476 CE)"/>
+            </outline>
+            <outline text="Mauryan &amp; Gupta Empires (India)"/>
+            <outline text="Qin/Han Dynasties (China)"/>
+            <outline text="Buddhism and Christianity emerge"/>
+        </outline>
+        <outline text="Medieval Era (5th – 15th centuries)" _note="Post-Roman world of feudal lords, knights, caliphs, and scholars (WHO). Feudalism and the Church (WHAT) dominate Europe (WHERE) after Rome&apos;s fall (WHY fragmentation), while Islamic Caliphates and other empires preserve knowledge (HOW transmission).">
+            <outline text="Early Middle Ages (Dark Ages &amp; Byzantine)">
+                <outline text="Byzantine Empire (Eastern Roman Empire)"/>
+                <outline text="Rise of Islam &amp; Caliphates (7th–8th c.)"/>
+                <outline text="Carolingian Empire (Charlemagne)"/>
+            </outline>
+            <outline text="High Middle Ages (c.1000–1300)">
+                <outline text="Feudal Society in Europe"/>
+                <outline text="Crusades (1096–1291)"/>
+                <outline text="Universities and Scholasticism"/>
+                <outline text="Mongol Empire (13th c.)"/>
+            </outline>
+            <outline text="Late Middle Ages (14th–15th c.)">
+                <outline text="Black Death (1347–1351)"/>
+                <outline text="Hundred Years&#39; War (1337–1453)"/>
+                <outline text="Fall of Constantinople (1453)"/>
+            </outline>
+        </outline>
+        <outline text="Early Modern Era (15th – 18th centuries)" _note="Renaissance polymaths and explorers (WHO like da Vinci &amp; Columbus) revive learning and connect continents (WHERE global voyages). Scientific inquiry and Enlightenment ideas (WHAT) challenge old authorities (WHY), laying groundwork for modern nation-states and industries (HOW).">
+            <outline text="Renaissance (artistic &amp; scientific revival)"/>
+            <outline text="Age of Exploration (European global voyages)"/>
+            <outline text="Reformation (Protestant-Catholic split, 16th c.)"/>
+            <outline text="Scientific Revolution (Copernicus, Galileo, Newton)"/>
+            <outline text="Enlightenment (philosophy of reason, 17th–18th c.)"/>
+            <outline text="American Revolution (1775–1783)"/>
+            <outline text="French Revolution (1789–1799)"/>
+            <outline text="Napoleonic Wars (1803–1815)"/>
+        </outline>
+        <outline text="Industrial Age (19th century)" _note="Era of industrialization and empire. Inventors like James Watt and Thomas Edison (WHO) harness steam and electricity (WHAT) in factories (WHERE Europe/US), using machines (HOW) to mass-produce goods and drive urbanization for economic growth (WHY).">
+            <outline text="First Industrial Revolution (steam power &amp; textiles)"/>
+            <outline text="Second Industrial Revolution (steel, electricity, 1870s)"/>
+            <outline text="Railroads and Telegraph connect continents"/>
+            <outline text="Urbanization and Social Change (Victorian Era)"/>
+            <outline text="Colonial Empires at Peak (Scramble for Africa)"/>
+            <outline text="Meiji Restoration (Japan modernizes, 1868)"/>
+            <outline text="Unification of Germany and Italy (1870s)"/>
+        </outline>
+        <outline text="Modern Era (1900 – 1945)" _note="Era of world wars and rapid innovation. National leaders and scientists (WHO) drive global conflicts (WHAT World Wars I &amp; II) spanning Europe, Asia, Africa (WHERE); ideological clashes (WHY fascism vs. democracy) and technologies like tanks &amp; atomic bombs (HOW) redefine warfare and society.">
+            <outline text="World War I (1914–1918)"/>
+            <outline text="Russian Revolution &amp; Soviet Union (1917)"/>
+            <outline text="Great Depression (1929)"/>
+            <outline text="World War II (1939–1945)">
+                <outline text="Holocaust"/>
+                <outline text="Atomic Bombings of Hiroshima/Nagasaki (1945)"/>
+            </outline>
+        </outline>
+        <outline text="Postmodern Era (Late 20th century, 1945 – 2000)" _note="Cold War superpowers and global movements. Figures like Martin Luther King Jr. and M. Gandhi (WHO) lead social changes, while the USA vs USSR standoff (WHAT Cold War) shapes a bipolar world (WHERE). Nuclear deterrence and television (HOW) define politics, and skepticism about grand ideologies rises (WHY).">
+            <outline text="Cold War (1947–1991)"/>
+            <outline text="Decolonization of Asia &amp; Africa (1940s–1960s)"/>
+            <outline text="Civil Rights &amp; Social Movements (1960s)"/>
+            <outline text="Space Race (Sputnik 1957 to Moon Landing 1969)"/>
+            <outline text="Fall of Berlin Wall &amp; Soviet Collapse (1989–1991)"/>
+            <outline text="Rise of Personal Computing &amp; Internet (1970s–1990s)"/>
+            <outline text="Globalization accelerates (1990s)"/>
+        </outline>
+        <outline text="Contemporary Era (21st century, 2000 – Present)" _note="Globalized, digital age. International terrorism and cooperation shape geopolitics (WHAT 9/11, UN accords), technology giants and social media (WHO/WHAT) connect billions worldwide (WHERE), as societies confront climate change and pandemics (WHY) using scientific collaboration (HOW).">
+            <outline text="September 11 Attacks &amp; War on Terror (2001–present)"/>
+            <outline text="Global Financial Crisis (2008)"/>
+            <outline text="Smartphone &amp; Social Media Revolution (2000s)"/>
+            <outline text="COVID-19 Pandemic (2019–present)"/>
+            <outline text="Climate Change and International Agreements"/>
+        </outline>
+        <outline text="Future (Beyond 2025)" _note="Anticipated developments and scenarios. Advancing AI and biotechnology (WHAT) could transform society; humanity (WHO) may expand to Mars (WHERE); solving climate challenges (WHY) will demand global cooperation and innovation (HOW).">
+            <outline text="Artificial Intelligence Dominance"/>
+            <outline text="Human Missions to Mars"/>
+            <outline text="Renewable Energy Transformation"/>
+            <outline text="Global Demographic Shifts"/>
+            <outline text="Speculative Scenarios (Singularity, etc.)"/>
+        </outline>
+    </outline>
+</body>
+</opml>
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/// PS — Supplemental Enhancements (v 3.0.0-addendum)
+
+• Quick-Add Skeleton  
+  `Event | Date(s) | One-line summary | Key links:[WHO, WHERE, WHY, HOW] | Tags:[era, domain]`
+
+• Synonym / Alias Table  
+  Maintain an `aka:` field so “9/11” == “September 11 2001 Attacks”; prevents duplicate event nodes and boosts fuzzy search.
+
+• Redundancy-Check Heuristic  
+  If a proposed WHEN entry shares ≥ 85 % title + date similarity with an existing node, auto-link as alias and flag `#when-possible-dupe`.
+
+• Scene-DNA Hook  
+  Optional `sceneDNA` field (palette / mood / BPM) for events that feed narrative or creative modules.
+
+• Auto-OPML Snapshot  
+  Whenever > 15 WHEN nodes are added in a batch, trigger `EXPORT format="OPML" branch="WHEN"` for version tracking.
+
+• Road-Map Parity  
+  – Comparative “parallel-timeline” viewer (future GPT Action)  
+  – Quick command: `COMPARE WHEN:<era1> vs <era2> (dimension=events|innovation|conflicts)`  
+  – Visual heat-map overlay showing event density per century
+
+
+
+
+//————————————————————————————————————————  
+/// KNOWLEDGE PATHWAY FOOTER
+/// ENTRYPOINT: Use for time-based queries, events, timelines, periodization, or historical structure.
+/// OUTPUT: Pass WHEN structure, timeline updates, event links, and summary to Start.txt for path trace.
+/// CHECKLIST: Did I log/organize events by correct chronology and granularity? Are cross-links to WHO/WHAT/WHERE/WHY/HOW validated?
+/// PATH TRACE: Log timeline node updated, period/event cross-links, and flag any temporal ambiguity or need for deeper branch consult.
+/// SEE ALSO: Arkhive.txt, Arkhiver.txt, Arkhiver-Mind.txt, Mind-Predictive.txt, branch files.
+//————————————————————————————————————————  
+
+
+========================================
+END OF FILE: Arkhive-When.txt
+========================================

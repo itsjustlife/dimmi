@@ -1,0 +1,103 @@
+=== DIMMI-CONTROL INTERFACE (DCI) – CONCEPT SPEC ===
+Version: 0.1 (Brainstorm Draft)
+Last Updated: [2025-08-17]
+Status: Concept – Not Yet Implemented
+
+----------------------------------------------------
+CORE IDEA
+----------------------------------------------------
+An offline touchscreen app or GUI panel for controlling Dimmi without typing raw prompts.
+
+The interface uses dropdowns, sliders, and input fields to generate structured "Dimmi-English" commands and questions.
+
+When ready, the interface compiles user selections into a full prompt string and sends it to Dimmi via copy/paste or API call.
+
+This functions as an *interpreter* between user intent and Dimmi-readable instructions.
+
+----------------------------------------------------
+WHY IT'S USEFUL
+----------------------------------------------------
+- No typing needed
+- Allows structured thinking
+- Reduces errors and fatigue
+- Ideal for touchscreen use
+- Can become a lightweight “Dimmi OS Shell”
+- Compatible with cold-start routing kernel
+
+----------------------------------------------------
+MODULAR INTERFACE STRUCTURE (PANELS)
+----------------------------------------------------
+1. INTENT Picker
+   - MEMORY_LOAD, COMMAND, CREATIVE, SEMANTIC, TASK, UNSAFE
+
+2. SUBTYPE Picker
+   - PLAN, ADVISE, COMPARE, ITERATE, OPEN, STRUCTURED, etc.
+
+3. PARAMETER ZONE
+   - Topic
+   - Output format
+   - Audience
+   - Tone/style
+   - Constraints
+   - Timeframes
+
+4. FORMAT OPTIONS
+   - Summary, Outline, Bullet List, Markdown, JSON, Prompt, Script
+
+5. FLAGS / MODIFIERS
+   - Save to memory
+   - Guardian override
+   - Dry run (draft only)
+   - Priority (high/low)
+
+6. OUTPUT PREVIEW + SEND BUTTON
+   - Shows the assembled natural language string before sending
+   - Sends final prompt to Dimmi
+
+----------------------------------------------------
+EXAMPLE GUI-TO-PROMPT OUTPUT
+----------------------------------------------------
+GUI Input:
+  INTENT: TASK
+  SUBTYPE: PLAN
+  TOPIC: Build an AI-assisted design studio
+  FORMAT: 6-phase roadmap
+  TONE: Confident, high-level
+
+Final Prompt:
+  “Please create a confident, high-level 6-phase roadmap to build an AI-assisted design studio.”
+
+----------------------------------------------------
+DRAFT: DIMMI SCRIPTING PROMPT LANGUAGE (D-SPL)
+----------------------------------------------------
+A simplified, human-readable scripting language for controlling Dimmi via GUI.
+
+EXAMPLE:
+  INTENT: TASK
+  SUBTYPE: COMPARE
+  TOPIC: ChatGPT vs Claude
+  OUTPUT: Pros-cons table
+  TONE: Objective
+  SAVE: YES
+
+→ Compiled Prompt:
+  “Compare ChatGPT and Claude in an objective pros-cons table. Save the result for future reference.”
+
+----------------------------------------------------
+FUTURE FEATURES (WISHLIST)
+----------------------------------------------------
+- Save/load prompt templates
+- Auto-generate SAVE memory entries
+- Link GUI panels to file structure (WHO/WHAT/WHEN/etc.)
+- Offline storage with export to OPML / JSON / Markdown
+- Generate prompt macros for creative scripting
+- Touchscreen mode with minimal UI
+
+----------------------------------------------------
+NEXT STEP OPTIONS
+----------------------------------------------------
+[ ] Mock up UI (Figma / Sketch / Paper)
+[ ] Write YAML-based D-SPL v0.1 spec
+[ ] Prototype app in Electron, Flutter, or web shell
+[ ] Create SAVE format logging for GUI outputs
+[ ] Link this GUI to the cold-start kernel logic

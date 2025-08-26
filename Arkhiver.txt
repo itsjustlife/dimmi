@@ -1,0 +1,146 @@
+/// FILE: Arkhiver.txt
+/// VERSION: 3.1.0
+/// LAST-UPDATED: 2025-05-26
+/// PURPOSE: Structural knowledge integration, hierarchical reasoning, semantic categorization, neural-symbolic pipeline.
+/// KEYWORDS: hierarchy, semantic-categorization, knowledge-structure, neural-symbolic
+
+/// ENTRYPOINT:
+///   - Activate for queries/tasks involving structured knowledge integration, hierarchical reasoning, semantic mapping.
+
+/// INPUT EXPECTED:
+///   - Structured/unstructured content requiring hierarchical integration or semantic categorization.
+
+/// DECISION LOGIC:
+///   - Ambiguous categorization/hierarchy → escalate to Arkhiver-mind or branch-specific modules (WHO, WHAT, etc.).
+///   - Semantic uncertainty → consult appropriate Arkhive branch or Mind-Predictive.txt.
+
+/// RECURSION CHECKS:
+///   - If unresolved hierarchy or semantic categorization (>2 loops) → escalate globally via Start.txt.
+
+/// OUTPUT:
+///   - Hierarchical structures, semantic maps, integrated knowledge summaries, cognitive trace.
+
+/// PATH TRACE:
+///   - Document hierarchies/categories created or adjusted, activated branches, recursion depth, escalation points.
+
+/// SELF-OPTIMIZATION PROMPTS:
+///   - Suggest additional categories, cross-link improvements, or new logic paths if frequent recursion/ambiguity occurs.
+
+/// SEE ALSO:
+///   - Arkhiver-Mind.txt, Arkhive branches (WHO, WHAT, WHERE, WHEN, WHY, HOW), Mind-Predictive.txt, Commands.txt, Start.txt
+
+//────────────────────────────────────────────────────────────
+
+========================================
+SECTION 1: Introduction & System Overview
+========================================
+**1.1 Purpose & Goals** — Convert any raw input (text, audio transcript, OCR, future multimedia) into a clean, navigable hierarchy; keep it verifiable, cross-linked, and ready for Dimmi’s reasoning.  
+**1.2 Ecosystem Integration** — Supplies structured context to every Dimmi module; Predict & Plan pulls outlines directly from integrated nodes.  
+**1.3 Neural-Symbolic Blend** — Transformer models for extract/label; symbolic rules for placement, linking, versioning.  
+**1.4 File Cross-Refs** — Cognitive heuristics in *Arkhiver-Mind.txt*; command verbs in *Commands.txt*; storage branches in *arkhive-*.txt.
+
+========================================
+SECTION 2: Operational Pipeline
+========================================
+| Stage | Core Operations |
+|-------|-----------------|
+| **DECONSTRUCT** | tokenize → normalize → extract entities, claims, timestamps |
+| **ANALYZE** | sentiment • topic • fallacy • argument skeleton • metadata tags |
+| **INTEGRATE** | choose branch; create/merge node; attach `_id`, `_version`, `_confidence`; link parents/peers |
+| **EXPAND** | cross-branch suggestions; add definitions, timelines, causes |
+| **EXPORT** | OPML / JSON / YAML with full metadata |
+| **PREDICT & PLAN** | generate outline packets; feed to Mind-Predictive for long tasks |
+
+_Sub-functions & parameters for every stage live in **Arkhiver-Mind.txt**._
+
+========================================
+SECTION 3: Dynamic Categorization & Cross-Linking
+========================================
+**3.1 Semantic Teleportation** — Instant cross-branch pointers (e.g., WHO → WHAT) stored as `_ref="ID"`; traversable in one hop.  
+**3.2 Multi-placement Rules** — One primary node; extras are soft links. Redundancy rejected unless new info ≥ 15 % by diff.  
+**3.3 Hierarchy Standards** — Depth ≤ 5; sibling ordering: chronology > causal > alphabetical.
+
+========================================
+SECTION 4: Command Routing & Execution
+========================================
+Universal verbs map to pipeline taps:  
+VIEW / LIST → read-only; DECONSTRUCT / ANALYZE → stages 1-2; INTEGRATE / CATEGORIZE / LINK → stage 3; EXPAND → 4; EXPORT → 5; PREDICT / PLAN → 6.  
+Complex multi-step queries auto-defer to *Arkhiver-Mind.txt*.
+
+========================================
+SECTION 5: Interaction Protocol for Dimmi
+========================================
+1 · Parse user input.  
+2 · Run pipeline sequentially.  
+3 · Log each stage’s result to memory for transparency.  
+4 · For deep semantics → consult **Arkhiver-Mind.txt**; for huge tasks → Predict & Plan.
+
+========================================
+SECTION 6: Confidence & Ambiguity Management
+========================================
+| `_confidence` | Action |
+|--------------|--------|
+| ≥ 0.85 | auto integrate |
+| 0.65–0.84 | integrate + mark `?` |
+| < 0.65 | hold in *Unsorted*; trigger CLARIFY prompt |
+
+Conflict flag `_conflict=true` triggers Challenger-mode disclosure.
+
+========================================
+SECTION 7: Error Handling
+========================================
+Bad cmd → clarify; malformed import → skip & log; oversize → chunk; duplicate `_id` → re-ID & merge; unresolved contradiction → escalate to user.
+
+========================================
+SECTION 8: Output Formatting & Standards
+========================================
+**8.1 OPML Example**
+```xml
+<outline text="WHO">
+  <outline text="Alan Turing" _id="WHO-42" _version="1.1.0" _confidence="0.92">
+    <outline text="WHAT: Turing Test (1950)" _ref="WHAT-73"/>
+  </outline>
+</outline>
+8.2 JSON Example
+
+json
+Copy code
+{
+  "branch": "WHAT",
+  "_id": "WHAT-101",
+  "_version": "1.0.0",
+  "title": "Quantum Mechanics",
+  "links": ["WHO-Einstein", "WHY-Wave-Particle Duality"],
+  "_timestamp": "2025-05-02T19:30:00Z",
+  "_confidence": 0.88
+}
+Metadata keys: _id, _version, _timestamp, _source, _confidence, _status.
+
+======================================== SECTION 9: Maintenance & Version Control
+MAJOR = structural overhaul; MINOR = new sections; PATCH = small edits.
+
+Weekly auto-run ANALYZE consistency to clear “needs_review.”
+
+All updates documented in CHANGELOG; bump branches’ _version.
+
+======================================== SECTION 10: Future Enhancements & Scalability
+1 · Semantic graph overlay.
+2 · Vector search & typo tolerance.
+3 · Multimodal (image/audio) nodes.
+4 · Collaborative live editing with diff/merge.
+5 · Inference layer for derived facts.
+
+
+
+
+
+//————————————————————————————————————————  
+/// KNOWLEDGE PATHWAY FOOTER
+/// ENTRYPOINT: Engage for hierarchy structuring, node creation, categorization, semantic-teleport/cross-linking.
+/// OUTPUT: Pass structured context, node/branch meta, and semantic links to Start.txt or next logic module.
+/// CHECKLIST: Was correct categorization/linking applied? Did I update node meta and cross-refs?
+/// PATH TRACE: Log which hierarchy/branch was traversed or updated; if ambiguity remains, flag for re-route.
+/// SEE ALSO: Arkhiver-Mind.txt, Commands.txt, Mind-Predictive.txt.
+//————————————————————————————————————————  
+
+— END OF FILE —

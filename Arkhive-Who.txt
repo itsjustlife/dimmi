@@ -1,0 +1,271 @@
+/// FILE: Arkhive-Who.txt
+/// VERSION: 3.1.0
+/// LAST-UPDATED: 2025-05-26
+/// PURPOSE: Structured knowledge—people, groups, entities, organizational mapping and cross-links.
+/// KEYWORDS: who, entities, organizational-mapping, semantic-crosslink
+
+/// ENTRYPOINT:
+///   - Activated explicitly for queries involving people, entities, organizations, or group identities.
+
+/// INPUT EXPECTED:
+///   - Structured/unstructured requests related to people/entities, hierarchical categorization data.
+
+/// DECISION LOGIC:
+///   - Ambiguous entity categorization → escalate to Arkhiver or Arkhiver-Mind.txt.
+///   - Cross-linking uncertainty → recursive check via other Arkhive branches (WHAT, WHY, WHERE, WHEN, HOW).
+
+/// RECURSION CHECKS:
+///   - If unresolved entity ambiguity or categorization (>2 loops), escalate globally via Start.txt.
+
+/// OUTPUT:
+///   - WHO entity structures, cross-links to other branches, semantic categorization logic, knowledge trace.
+
+/// PATH TRACE:
+///   - Explicitly log WHO categories/entities activated, cross-links established, recursion loops, outcomes.
+
+/// SELF-OPTIMIZATION PROMPTS:
+///   - Suggest additional entity categories, cross-link improvements, or hierarchical logic expansions based on frequent ambiguities.
+
+/// SEE ALSO:
+///   - Arkhiver.txt, Arkhiver-Mind.txt, Arkhive branches (WHAT, WHERE, WHEN, WHY, HOW), Mind-Predictive.txt, Commands.txt
+
+
+========================================
+WHO – People and Entities
+========================================
+The WHO branch of the Arkhive contains entries for individual people, groups of people, organizations, and any actors that play a role in knowledge. Essentially, if it’s a "who," its defining information resides or is structured here. This file describes how the WHO hierarchy is structured and provides guidelines for maintaining it.
+
+========================================
+SECTION 1: SCOPE OF WHO
+========================================
+WHO includes:
+- Individual People: Historical figures, contemporary notable people, fictional characters (if relevant and clearly marked), potentially personal figures relevant to the user's context (handled with privacy).
+- Groups: Organizations (companies, teams, institutions), nations (as actors), social groups (movements, communities), collective entities.
+- Personified Entities: AI agents (like "ChatGPT" or "Dimmi++" itself), countries acting metaphorically ("France decided...") can have entries if treated as distinct actors.
+
+========================================
+SECTION 2: STRUCTURE AND SUBCATEGORIES
+========================================
+Entries are typically grouped by type or domain for organization. Common structures include:
+
+2.1. By Profession/Role:
+    - Example Path: Professions -> Scientists -> Computer Scientists -> "Alan Turing".
+    - Subdivisions within professions (e.g., Physicists, Biologists) can be used as needed. A balanced hierarchy depth is preferred (avoiding excessive granularity in one area while others are shallow - address depth disparity noted as a pain point).
+
+2.2. By Era or Region (Often as Tags/Metadata):
+    - While possible to group by era ("Ancient Figures") or region ("Japanese Historical Figures"), using tags (e.g., `[15th Century]`, `[France]`) on entries within profession/role categories is often preferred to avoid redundant tree structures.
+
+2.3. Organizations/Groups:
+    - Often under a dedicated node like "Organizations" or "Groups".
+    - Example Path: Organizations -> Companies -> "OpenAI".
+    - Example Path: Groups -> Social Movements -> "Civil Rights Movement".
+
+2.4. Fictional or Other Entities:
+    - Placed under appropriate categories (e.g., "Fictional Characters") and clearly marked as non-real.
+
+2.5. Note on Content Location: This file defines structure. Actual detailed entries might reside as sub-nodes or linked content. The Arkhive typically holds concise identifying info, not full biographies.
+
+========================================
+SECTION 3: ENTRY CONVENTIONS
+========================================
+- Naming: Use the most common name as the primary entry title (e.g., "Albert Einstein"). Note aliases, pseudonyms, or former names within the description or as cross-references. Ensure consistency for searchability.
+- Dates: Include birth/death years for historical figures, typically in parentheses (e.g., "Alan Turing (1912–1954)"). Link to relevant WHEN entries if needed.
+- Brief Description: Provide a concise identifier (1-2 sentences) stating who they are and their significance (e.g., "Alan Turing – British mathematician... pioneer of computer science...").
+- Ordering: Within subcategories, list entries alphabetically (by last name for people, by organization name) or chronologically if more appropriate for the context.
+- Hierarchy Management: Avoid overly deep nesting. Use meaningful categories. Consider splitting very large categories if necessary (e.g., by initial letter), but prefer semantic grouping.
+
+========================================
+SECTION 4: CROSS-LINKS AND RELATIONSHIPS
+========================================
+WHO entries are richly cross-linked:
+- WHAT links: Link individuals/groups to concepts, theories, inventions, or fields they are associated with (`Arkhive-What.txt`). (e.g., Turing -> WHAT:Turing Machine).
+- WHEN links: Link individuals/groups to relevant historical events or periods (`Arkhive-When.txt`). (e.g., Turing -> WHEN:World War II). Conversely, WHEN entries link back to key people involved.
+- WHERE links: Link individuals/groups to relevant locations (birthplace, HQ, area of activity) (`Arkhive-Where.txt`). (e.g., OpenAI -> WHERE:San Francisco).
+- WHY links: Link individuals/groups to motivations, ideologies, or causes they represent or were driven by (`Arkhive-Why.txt`). (e.g., MLK Jr. -> WHY:Civil Rights/Equality).
+- HOW links: Less common, perhaps link inventors to the method/process they created (if HOW integrated elsewhere).
+- MIND links: Link thinkers/psychologists to theories or biases they developed/studied (`Arkhiver-Mind.txt`). (e.g., Freud -> MIND:Psychoanalysis).
+- Within WHO links:
+    - Note significant relationships (mentor, collaborator, rival, family) with cross-links to other WHO entries. Keep this focused on contextually important relationships.
+    - Link organizations to key people (founders, CEOs) and vice-versa.
+
+========================================
+SECTION 5: HANDLING NEW ENTRIES
+========================================
+- Integration: Use Arkhiver pipeline (`Arkhiver.txt`) to suggest placement for new entities based on analysis. Create new subcategories if needed.
+- Confidence/Ambiguity: If placement is uncertain, Arkhiver may ask for clarification or use a temporary category, tagging for review. Disambiguation nodes or parenthetical clarifiers handle identical names ("Alex Johnson (biologist)").
+- User Profile Integration: User-specific information (like "D" or mentioned acquaintances) is primarily handled by the memory system (`Dimmi-Memory.txt`) for privacy but can be conceptually cross-referenced here if relevant for context (e.g., tagging a discussed topic with `[User Context: D]`).
+
+========================================
+SECTION 6: EXAMPLE ENTRY LAYOUT (Illustrative)
+========================================
+(Using indented list format)
+
+- Alan Turing (1912–1954) – British mathematician and computer scientist.
+    - Role: Pioneer of computer science and AI.
+    - Known for: Turing Machine (see WHAT: Computer Science > Turing Machine), breaking Enigma code (see WHEN: World War II > Codebreaking).
+    - Affiliation: Bletchley Park (see WHERE: UK > Bletchley Park).
+    - Legacy: Turing Test (see MIND: Artificial Intelligence > Turing Test).
+
+- OpenAI – AI research organization (founded 2015).
+    - Type: Company/Research lab.
+    - Founders: Elon Musk, Sam Altman, etc. (see WHO: Entrepreneurs).
+    - Headquarters: San Francisco, USA (see WHERE: USA > California > San Francisco).
+    - Notable Projects: GPT series (see WHAT: Artificial Intelligence > GPT Models).
+
+========================================
+SECTION 7: GUARDRAILS (for WHO content)
+========================================
+- Avoid Sensitive Personal Data: Focus on public figures or user-shared info with consent. Do not store private, non-public data in the main Arkhive.
+- No Defamation or Bias: Maintain factual, neutral tone in descriptions. Note controversies factually ("accused of...") rather than stating opinions as fact.
+- Update Prominent Figures: Keep information on current leaders/roles reasonably updated (may require manual updates or leverage Browse).
+
+========================================
+SECTION 8: SUPPLEMENTAL REFINEMENT PROMPTS (For Future Iteration)
+========================================
+- Profession vs. Domain Splitting Strategy: Define clear primary organization method (e.g., by profession) and consider supplementary indexes (e.g., "Key Figures by Domain").
+- Notability Threshold Guideline: Establish criteria for inclusion to maintain relevance and scope.
+- Disambiguation Conventions: Formalize method for handling identical names (disambiguation nodes/pages or parenthetical clarifiers).
+- Sync with Memory for Personal Entries: Define protocol for integrating/referencing user-mentioned individuals between memory and WHO context temporarily or permanently (with tags).
+- Periodic Role Review: Schedule reviews to update categories (new professions like "AI Ethicist"), merge obsolete ones, and ensure relevance.
+
+
+
+========================================
+WHO Branch Preface:
+========================================
+
+The WHO branch of the Arkhive is the living library of all people and entities that shape our world – from individuals to organizations, real or fictional, past and present. It serves as the human dimension of knowledge, cataloging individuals (heroes, thinkers, creators, private persons) alongside groups (organizations, cultures, movements). The purpose of this branch is to capture the agents of history, story, and innovation, giving context to their lives and significance. In an engaging tapestry, WHO entries range from legendary historical figures and scientists to beloved fictional characters, as well as companies, nations, and communities that represent collective identities. Diverse representation is key: one can find an ancient philosopher next to a modern activist, a global corporation alongside an indigenous tribe – all structured for easy discovery and comparison. Crucially, the WHO category is designed to interconnect with every other Arkhive branch. Each entry in WHO acts as a hub linking what they created or influenced, when and where they existed, why they mattered, and how they achieved what they did. For example, an innovator like Alan Turing in WHO would connect to the WHAT branch for the “Turing Machine,” the WHEN branch for the World War II era, the WHERE branch for the UK, and even the WHY/HOW branches for the motives and methods behind his work. These cross-links transform static profiles into a dynamic web of knowledge, mirroring the real-world context that every person or group operates within. The WHO branch thus provides not just biographies or descriptions, but a gateway to stories and relationships – illuminating how individuals and organizations drive events, ideas, and cultures across time and space. This structured approach supports long-term scalability and automated expansion (via the Arkhivist AI), ensuring new entries can be seamlessly integrated while maintaining clarity. In essence, the WHO Arkhive is both a catalog and a connective tissue for understanding the roles and identities that populate our world, making it an indispensable pillar of the Arkhive’s interconnected knowledge system.
+
+
+========================================
+ARKHIVE OUTLINE
+========================================
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>WHO Arkhive</title>
+  </head>
+  <body>
+    <outline text="WHO">
+      <outline text="Individuals">
+        <outline text="Leaders &amp; Politicians">
+          <outline text="Cleopatra VII (Queen of Egypt)" _note="WHEN: 1st c. BCE; WHERE: Egypt; WHAT: Ptolemaic Dynasty"/>
+          <outline text="Nelson Mandela (Statesman)" _note="WHEN: 20th Century; WHERE: South Africa; WHY: Anti-Apartheid"/>
+        </outline>
+        <outline text="Scientists &amp; Inventors">
+          <outline text="Alan Turing (Mathematician)" _note="WHAT: Turing Machine; WHEN: WWII (1940s); WHERE: UK"/>
+          <outline text="Marie Curie (Physicist)" _note="WHAT: Radioactivity; WHEN: 1890s–1900s; WHERE: France/Poland"/>
+        </outline>
+        <outline text="Philosophers &amp; Thinkers">
+          <outline text="Confucius (Philosopher)" _note="MIND: Confucianism; WHEN: 6th c. BCE; WHERE: China"/>
+          <outline text="Socrates (Philosopher)" _note="WHAT: Socratic Method; WHEN: 5th c. BCE; WHERE: Ancient Greece"/>
+        </outline>
+        <outline text="Artists &amp; Entertainers">
+          <outline text="William Shakespeare (Playwright)" _note="WHAT: Hamlet; WHEN: 16th Century; WHERE: England; MIND: English Language"/>
+          <outline text="Frida Kahlo (Painter)" _note="WHAT: Self-Portraits; WHEN: 20th Century; WHERE: Mexico"/>
+        </outline>
+        <outline text="Activists &amp; Humanitarians">
+          <outline text="Martin Luther King Jr. (Civil Rights Leader)" _note="WHAT: Civil Rights Act; WHEN: 1960s; WHERE: USA; WHY: Racial Equality"/>
+          <outline text="Mahatma Gandhi (Freedom Activist)" _note="WHAT: Indian Independence; WHEN: 1930s–40s; WHERE: India; WHY: Nonviolent Resistance"/>
+        </outline>
+        <outline text="Business Leaders &amp; Entrepreneurs">
+          <outline text="Steve Jobs (Apple Co-founder)" _note="WHAT: iPhone; WHEN: Founded 1976; WHERE: USA"/>
+          <outline text="Madam C.J. Walker (Entrepreneur)" _note="WHAT: Haircare Empire; WHEN: Early 1900s; WHERE: USA"/>
+        </outline>
+        <outline text="Athletes &amp; Explorers">
+          <outline text="Muhammad Ali (Boxer)" _note="WHAT: World Champion; WHEN: 1960s; WHERE: USA"/>
+          <outline text="Neil Armstrong (Astronaut)" _note="WHAT: Apollo 11 Moonwalk; WHEN: 1969; WHERE: Moon/USA"/>
+        </outline>
+        <outline text="Religious &amp; Spiritual Figures">
+          <outline text="Gautama Buddha (Spiritual Teacher)" _note="WHAT: Buddhism; WHEN: ~5th c. BCE; WHERE: India; WHY: Enlightenment"/>
+          <outline text="Mother Teresa (Saint/Humanitarian)" _note="WHAT: Missionaries of Charity; WHEN: 20th Century; WHERE: India; WHY: Compassion"/>
+        </outline>
+        <outline text="Fictional &amp; Mythological Characters">
+          <outline text="Sherlock Holmes (Detective)" _note="HOW: Deductive Reasoning; WHEN: Victorian Era; WHERE: London (fictional)"/>
+          <outline text="Zeus (Greek God)" _note="WHAT: Thunderbolt; WHEN: Mythic Age; WHERE: Mount Olympus"/>
+        </outline>
+      </outline>
+      <outline text="Groups &amp; Organizations">
+        <outline text="Companies &amp; Corporations">
+          <outline text="Apple Inc. (Technology Company)" _note="WHAT: iPhone; WHEN: Founded 1976; WHERE: USA"/>
+          <outline text="Toyota Motor Corporation" _note="WHAT: Automobile Manufacturer; WHEN: Founded 1937; WHERE: Japan"/>
+        </outline>
+        <outline text="Governments &amp; Political Entities">
+          <outline text="Roman Empire (Imperial State)" _note="WHEN: 27 BCE–476 CE; WHERE: Mediterranean; WHY: Expansionism"/>
+          <outline text="United States of America (Nation)" _note="WHEN: Established 1776; WHERE: North America; WHY: Democracy &amp; Independence"/>
+        </outline>
+        <outline text="International Organizations">
+          <outline text="United Nations (Global Organization)" _note="WHEN: Founded 1945; WHERE: Worldwide (HQ: NYC); WHY: Peacekeeping"/>
+          <outline text="World Health Organization (UN Agency)" _note="WHEN: Founded 1948; WHERE: Worldwide (HQ: Geneva); WHY: Public Health"/>
+        </outline>
+        <outline text="Non-Profits &amp; NGOs">
+          <outline text="International Red Cross" _note="WHEN: Founded 1863; WHERE: Switzerland (HQ); WHY: Humanitarian Aid"/>
+          <outline text="Médecins Sans Frontières (Doctors Without Borders)" _note="WHEN: Founded 1971; WHERE: Worldwide; WHY: Medical Relief"/>
+        </outline>
+        <outline text="Social Movements &amp; Causes">
+          <outline text="Civil Rights Movement" _note="WHEN: 1950s–1960s; WHERE: USA; WHY: Racial Equality"/>
+          <outline text="Environmental Movement (Green Movement)" _note="WHEN: 20th–21st Century; WHERE: Global; WHY: Climate &amp; Conservation"/>
+        </outline>
+        <outline text="Cultural &amp; Ethnic Groups">
+          <outline text="Han Chinese (Ethnic Group)" _note="WHERE: China; WHEN: Ancient–Present; MIND: Cultural Identity"/>
+          <outline text="Maasai (Indigenous People)" _note="WHERE: East Africa; WHEN: Ancient–Present; WHY: Pastoral Heritage"/>
+        </outline>
+        <outline text="Religious Organizations &amp; Communities">
+          <outline text="Catholic Church" _note="WHEN: Est. 1st Century; WHERE: Global (Vatican HQ); MIND: Christianity"/>
+          <outline text="Buddhist Sangha (Community)" _note="WHEN: ~5th c. BCE; WHERE: South/Southeast Asia; WHY: Monastic Tradition"/>
+        </outline>
+        <outline text="Academic &amp; Research Institutions">
+          <outline text="Harvard University (Academic)" _note="WHEN: Founded 1636; WHERE: USA (Cambridge, MA); WHAT: Higher Education"/>
+          <outline text="Royal Society (Scientific Academy)" _note="WHEN: Founded 1660; WHERE: UK (London); WHAT: Research Advancement"/>
+        </outline>
+      </outline>
+    </outline>
+  </body>
+</opml>
+
+
+/// PS — Supplemental Enhancements (v 3.0.0-addendum)
+
+• Quick-Add Template  
+  When Arkhiver proposes a new WHO node, pre-fill this skeleton for speed:  
+  `Name  | Role  | Dates  | One-line significance  | Tags:[era, region, domain]`
+
+• Synonym/ Alias Table  
+  Keep a mini-lookup (`aka:` field) so “Sam Altman” == “Samuel Altman” and “Xi Jinping” == “President Xi”; avoids duplicate nodes and improves fuzzy search.
+
+• Redundancy-Check Heuristic  
+  If a candidate WHO node shares ≥ 85 % name + birth-year match with an existing entry, auto-link as alias and flag `#possible-duplicate` for curator review.
+
+• Notability Threshold  
+  Default inclusion rule: global/historic relevance, or user-flagged importance.  For niche figures store a stub with `#low-notability` tag until content demand grows.
+
+• Scene-DNA Bridge (creative contexts)  
+  Optional `sceneDNA` field for fictional or narrative characters, storing palette / motif / theme so Art-Suite modules can render them consistently.
+
+• Periodic Currency Sweep  
+  Every six months run `ANALYZE refresh:true` on “current leaders / CEOs” category; prompt curator if titles or roles have changed.
+
+• Future Road-Map  
+  – Live OPML diff preview before big merges  
+  – Auto-generated relationship graphs (WHO↔WHO links)  
+  – Privacy toggle to segregate user-personal contacts from public WHO tree
+``` :contentReference[oaicite:0]{index=0}&#8203;:contentReference[oaicite:1]{index=1}
+
+
+//————————————————————————————————————————  
+/// KNOWLEDGE PATHWAY FOOTER
+/// ENTRYPOINT: Use for queries or updates involving people, groups, organizations, or actors.
+/// OUTPUT: Pass WHO node structure, new/updated entries, and key cross-links (to WHAT, WHEN, WHERE, WHY, HOW) to Start.txt for knowledge path tracing.
+/// CHECKLIST: Did I add/update WHO entries with correct tags, cross-refs, and context? Is hierarchy depth, relationships, or ambiguity noted for review?
+/// PATH TRACE: Log WHO subcategory engaged (e.g., Individuals, Groups), cross-links, and recommend reroute if more context is needed from another branch.
+/// SEE ALSO: Arkhive.txt, Arkhiver.txt, Arkhiver-Mind.txt, Mind-Predictive.txt, branch files.
+//————————————————————————————————————————  
+
+
+
+
+========================================
+END OF FILE: Arkhive-Who.txt
+========================================

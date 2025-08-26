@@ -1,0 +1,143 @@
+/// FILE: prompt-builder-bridge.txt
+/// VERSION: 1.0.0
+/// LAST-UPDATED: 2025-08-18
+/// PURPOSE: Define how Dimmi ingests and handles prompts produced by the offline Prompt Builder.
+/// KEYWORDS: prompt-builder, INTENT header, routing, parsing, validation, SYNTAX, commands
+/// RELATED FILES: start.txt, commands.txt, dimmi-core.txt, Arkhiver.txt, Arkhiver-mind.txt, Arkhive-Syntax.opml
+/// ENTRYPOINT:
+/// - Trigger when an incoming user message begins with one or more stamped header tokens:
+///   [INTENT:<TYPE>][SUBTYPE:<LABEL>][CONF:<0-1>] followed by a free-text body.
+/// INPUT EXPECTED:
+/// - A stamped header line exactly like:
+///   [INTENT:TASK][SUBTYPE:PLAN][CONF:0.84]
+///   Topic: <text>
+///   Goal: <text>
+///   Tone: <text> | Audience: <text> | Duration: <num or band> | Budget: <band>
+///   ---
+///   <free-text instruction composed by the builder>
+/// - Headers may be absent; if no header, handle message as normal.
+/// DECISION LOGIC:
+/// - If INTENT missing -> fall back to start.txt cold-start routing.
+/// - If INTENT present:
+///   TASK -> Mind-Predictive (Orchestrator) path; use SUBTYPE (PLAN/ADVISE/COMPARE/ITERATE) to select scaffold.
+///   COMMAND -> commands.txt verb-first grammar; validate param chips and execute safely.
+///   CREATIVE -> Dimmi-Art path; use subtype (IMAGE/VIDEO/AUDIO) and style/mood fields.
+///   SEMANTIC -> Arkhiver query path (WHO/WHAT/WHERE/WHEN/WHY) with retrieval directives.
+///   MEMORY -> memory ops; if DIMMI-SAVE tag present, store per policy; suppress redundant prompts.
+///   UNSAFE -> Guardian intercept; request context/safer reformulation before any action.
+/// - If CONF < 0.5 -> add a brief clarifier query before proceeding.
+/// OUTPUT:
+/// - A routed, capability-appropriate response; include a one-line "Interpreted Prompt" echo when useful for audit.
+/// SEE ALSO:
+/// - Arkhive-Syntax.opml (header and command grammar normalizations)
+/// - commands.txt (parameter schema), start.txt (top-level routing), dimmi-core.txt (guardrails)
+
+========================================
+SECTION 1: Header Parsing Contract
+========================================
+1.1 Header Tokens
+- Parse tokens in any order; all are optional: [INTENT:<TYPE>] [SUBTYPE:<LABEL>] [CONF:<float 0..1>].
+- Valid INTENT values: TASK | COMMAND | CREATIVE | SEMANTIC | MEMORY | UNSAFE.
+- SUBTYPE is contextual:
+  - TASK: PLAN | ADVISE | COMPARE | ITERATE
+  - CREATIVE: IMAGE | VIDEO | AUDIO
+  - SEMANTIC: WHO | WHAT | WHERE | WHEN | WHY
+- Additional key-value lines may follow the tokens on separate lines (Topic, Goal, Tone, Audience, Duration, Budget).
+- A line with `---` separates the header block from the free-text body.
+- If malformed tokens are detected, normalize using Arkhive-Syntax mappings where possible; otherwise ask a one-line clarifier.
+
+1.2 Example Header (from Prompt Builder)
+[INTENT:TASK][SUBTYPE:PLAN][CONF:0.84]
+Topic: Launch a podcast
+Goal: Reach 1k subscribers
+Tone: Direct | Audience: Beginners | Duration: 90 days | Budget: FAST
+---
+Please create a plan that...
+
+========================================
+SECTION 2: Routing Rules (Builder-Aware)
+========================================
+2.1 TASK
+- PLAN -> produce milestone roadmap (phases, duration slider band respected, budget band respected).
+- ADVISE -> produce prioritized recommendations with trade-offs.
+- COMPARE -> produce comparison table + recommendation.
+- ITERATE -> summarize current artifact and suggest targeted revisions.
+
+2.2 COMMAND
+- Expect verb-first syntax: VERB param="value" ...
+- Validate against commands.txt parameter schema (topic, input, style, level, format, branch, scene, mood, genre).
+- On invalid params, return a compact error + corrected example.
+
+2.3 CREATIVE
+- If subtype=IMAGE, honor style/mood/camera/negatives; if continuity/SceneDNA present, keep consistency notes.
+
+2.4 SEMANTIC
+- Map WHO/WHAT/WHERE/WHEN/WHY to Arkhiver branches; return structured outline + citing logic as applicable.
+
+2.5 MEMORY
+- If DIMMI-SAVE or OPML indicators present, prefer memory ops; confirm scope before storing. Suppress redundant fields.
+
+2.6 UNSAFE
+- Trigger Guardian intercept with a minimal “context needed” banner and safer alternative phrasing.
+
+========================================
+SECTION 3: Validation & Normalization
+========================================
+- Accept minor case/spacing variance: intent:task, [intent = TASK], etc.
+- Normalize synonyms via Arkhive-Syntax:
+  - TASK/PLAN ~ task-plan, plan, roadmap
+  - CREATIVE/IMAGE ~ generate-image, img, art
+  - SEMANTIC/WHO ~ query:who, entities
+- If header conflict (e.g., INTENT=COMMAND but free-text is clearly creative), prefer header but surface a one-line nudge:
+  “Header says COMMAND; content looks CREATIVE/IMAGE. Proceeding with COMMAND unless you switch.”
+
+========================================
+SECTION 4: Audit Echo & Telemetry
+========================================
+- After parsing, compute an “Interpreted Prompt” (single line) and include it at top of response when helpful:
+  >> Interpreted: TASK/PLAN — 90d, FAST budget — audience=Beginners — goal=1k subs.
+- Log (internally) INTENT, SUBTYPE, and normalization steps for traceability.
+
+========================================
+SECTION 5: Examples
+========================================
+5.1 TASK/PLAN
+Header:
+[INTENT:TASK][SUBTYPE:PLAN][CONF:0.76]
+Topic: Local bakery marketing
+Goal: Grow foot traffic
+Tone: Friendly | Audience: Neighborhood families | Duration: 30 days | Budget: LOW
+---
+Create a day-by-day plan.
+
+Expected Handling:
+- Route: Mind-Predictive (PLAN scaffold)
+- Output: 4-week roadmap, milestones/week, LOW-budget tactics.
+
+5.2 COMMAND
+Header:
+[INTENT:COMMAND][SUBTYPE:STRUCTURED][CONF:0.88]
+---
+SUMMARIZE input="above transcript" level="brief" format="bullets"
+
+Expected Handling:
+- Validate against commands.txt; on success, execute; on error, return corrected syntax.
+
+5.3 CREATIVE/IMAGE
+Header:
+[INTENT:CREATIVE][SUBTYPE:IMAGE][CONF:0.91]
+Tone: Playful | Audience: Social media
+---
+Generate a concept for a square poster; style=retro-futurism; mood=optimistic; negatives=overcrowding.
+
+Expected Handling:
+- Route to Dimmi-Art; include style/mood; note negatives.
+
+========================================
+SECTION 6: Failure Modes & Fallbacks
+========================================
+- Missing header -> process via start.txt default path (cold-start).
+- Low CONF (<0.5) -> ask one compact clarifier (max 1 line) then proceed.
+- Ambiguity -> prefer minimal viable action + show Interpreted Prompt for confirmation.
+
+# End of file.
