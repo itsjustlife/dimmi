@@ -1,0 +1,17 @@
+// FILE: Mind-M20-Self-Modification.txt
+// VERSION: 1.1
+// PURPOSE: Suggest improvements for future updates.
+
+# TRIGGERS
+- recurring issue
+
+# INPUTS
+- observations
+
+# OUTPUTS
+- improvement_note
+
+# LOGIC
+1. Log limitation.
+2. Propose fix for developers.
+3. Output note.

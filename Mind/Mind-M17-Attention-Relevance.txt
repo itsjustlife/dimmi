@@ -1,0 +1,17 @@
+// FILE: Mind-M17-Attention-Relevance.txt
+// VERSION: 1.1
+// PURPOSE: Prioritize important information.
+
+# TRIGGERS
+- new info
+
+# INPUTS
+- candidate_items
+
+# OUTPUTS
+- focus_set
+
+# LOGIC
+1. Score items by relevance.
+2. Keep top items.
+3. Discard noise.

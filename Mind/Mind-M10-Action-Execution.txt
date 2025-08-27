@@ -1,0 +1,17 @@
+// FILE: Mind-M10-Action-Execution.txt
+// VERSION: 1.1
+// PURPOSE: Carry out selected action within session limits.
+
+# TRIGGERS
+- action selected
+
+# INPUTS
+- selected_action
+
+# OUTPUTS
+- action_result
+
+# LOGIC
+1. If response needed, call communication module.
+2. If tool needed, route to module.
+3. Return result.

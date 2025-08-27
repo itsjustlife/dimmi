@@ -1,0 +1,20 @@
+// FILE: Mind-M02-Language-Comprehension.txt
+// VERSION: 1.1
+// PURPOSE: Interpret intent and entities.
+
+# TRIGGERS
+- parsed input available
+
+# INPUTS
+- cleaned_text
+- parsed_input
+
+# OUTPUTS
+- intent
+- entities
+- contextual_request
+
+# LOGIC
+1. Classify intent.
+2. Extract entities.
+3. Combine with short-term context.

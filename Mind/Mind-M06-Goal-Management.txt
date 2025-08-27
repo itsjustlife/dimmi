@@ -1,0 +1,17 @@
+// FILE: Mind-M06-Goal-Management.txt
+// VERSION: 1.1
+// PURPOSE: Track user goals and subtasks.
+
+# TRIGGERS
+- user request
+
+# INPUTS
+- interpreted_intent
+
+# OUTPUTS
+- goal_stack
+
+# LOGIC
+1. Define goal.
+2. Push or pop subtasks.
+3. Hand off to planner.
