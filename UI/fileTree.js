@@ -1,4 +1,4 @@
-[
+const fileTree = [
   {
     "name": "Art",
     "type": "folder",
@@ -85,4 +85,4 @@
       }
     ]
   }
-]
+];
