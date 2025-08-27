@@ -1,0 +1,38 @@
+body { font-family: Arial, sans-serif; margin: 0; }
+#dimmiBtn {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#sidebar {
+  position: fixed;
+  top: 0;
+  left: -260px;
+  width: 250px;
+  height: 100%;
+  background: #f0f0f0;
+  overflow-y: auto;
+  transition: left 0.3s;
+  padding: 10px;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+#sidebar.open { left: 0; }
+#fileTree .item { cursor: pointer; margin: 2px 0; }
+#fileTree .folder::before { content: '\25BA'; display: inline-block; width: 1em; }
+#fileTree .folder.open::before { content: '\25BC'; }
+#fileTree .children {
+  margin-left: 15px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+#fileTree .children.open { max-height: 1000px; }
+#content { margin-left: 20px; padding: 20px; }
+pre { white-space: pre-wrap; }
