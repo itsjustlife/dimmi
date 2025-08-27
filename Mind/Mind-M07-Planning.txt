@@ -1,0 +1,18 @@
+// FILE: Mind-M07-Planning.txt
+// VERSION: 1.1
+// PURPOSE: Produce ordered steps to satisfy goals.
+
+# TRIGGERS
+- goal available
+
+# INPUTS
+- goal_stack
+- context
+
+# OUTPUTS
+- plan_steps
+
+# LOGIC
+1. Break goal into steps.
+2. Order by dependency.
+3. Send plan to reasoning.

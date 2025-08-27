@@ -1,0 +1,17 @@
+// FILE: Mind-M13-Learning-Adaptation.txt
+// VERSION: 1.1
+// PURPOSE: Adjust heuristics from feedback.
+
+# TRIGGERS
+- feedback received
+
+# INPUTS
+- user_feedback
+
+# OUTPUTS
+- updated_prefs
+
+# LOGIC
+1. Record feedback.
+2. Adjust style or approach.
+3. Store for session.

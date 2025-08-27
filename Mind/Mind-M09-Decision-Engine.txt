@@ -1,0 +1,17 @@
+// FILE: Mind-M09-Decision-Engine.txt
+// VERSION: 1.1
+// PURPOSE: Select best action based on reasoning.
+
+# TRIGGERS
+- reasoning complete
+
+# INPUTS
+- options
+
+# OUTPUTS
+- selected_action
+
+# LOGIC
+1. Evaluate options.
+2. Choose action.
+3. Pass to executor.

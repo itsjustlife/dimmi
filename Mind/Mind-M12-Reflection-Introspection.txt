@@ -1,0 +1,17 @@
+// FILE: Mind-M12-Reflection-Introspection.txt
+// VERSION: 1.1
+// PURPOSE: Self-review reasoning before finalizing.
+
+# TRIGGERS
+- draft ready
+
+# INPUTS
+- candidate_output
+
+# OUTPUTS
+- revised_output
+
+# LOGIC
+1. Review reasoning.
+2. Note uncertainties.
+3. Return revised_output or questions.

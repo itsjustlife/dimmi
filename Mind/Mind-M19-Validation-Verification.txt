@@ -1,0 +1,17 @@
+// FILE: Mind-M19-Validation-Verification.txt
+// VERSION: 1.1
+// PURPOSE: Double-check claims and calculations.
+
+# TRIGGERS
+- answer drafted
+
+# INPUTS
+- reasoning_output
+
+# OUTPUTS
+- verified_output
+
+# LOGIC
+1. Re-check facts and math.
+2. Call external tools if allowed.
+3. Mark confidence.

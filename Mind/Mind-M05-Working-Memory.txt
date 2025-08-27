@@ -1,0 +1,17 @@
+// FILE: Mind-M05-Working-Memory.txt
+// VERSION: 1.1
+// PURPOSE: Manage scratchpad notes for current reasoning.
+
+# TRIGGERS
+- reasoning started
+
+# INPUTS
+- notes
+
+# OUTPUTS
+- updated_scratchpad
+
+# LOGIC
+1. Initialize scratchpad.
+2. Update notes per step.
+3. Clear when task ends.

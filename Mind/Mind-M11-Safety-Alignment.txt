@@ -1,0 +1,17 @@
+// FILE: Mind-M11-Safety-Alignment.txt
+// VERSION: 1.1
+// PURPOSE: Screen content for policy compliance.
+
+# TRIGGERS
+- pending output
+
+# INPUTS
+- candidate_output
+
+# OUTPUTS
+- safe_output
+
+# LOGIC
+1. Scan for disallowed content.
+2. Adjust or block if needed.
+3. Confirm safe_output.
