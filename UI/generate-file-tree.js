@@ -3,7 +3,7 @@ const path = require('path');
 
 const ROOT_DIR = path.join(__dirname, 'Art');
 const OUTPUT_DIR = path.join(__dirname, 'UI');
-const OUTPUT_FILE = path.join(OUTPUT_DIR, 'fileTree.json');
+const OUTPUT_FILE = path.join(OUTPUT_DIR, 'fileTree.js');
 
 function buildTree(dir) {
   return fs.readdirSync(dir, { withFileTypes: true })
@@ -34,5 +34,8 @@ const tree = [{
 }];
 
 fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-fs.writeFileSync(OUTPUT_FILE, JSON.stringify(tree, null, 2));
-console.log('UI/fileTree.json generated');
+fs.writeFileSync(
+  OUTPUT_FILE,
+  'const fileTree = ' + JSON.stringify(tree, null, 2) + ';\n'
+);
+console.log('UI/fileTree.js generated');

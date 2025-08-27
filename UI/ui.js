@@ -3,12 +3,11 @@ document.getElementById('dimmiBtn').addEventListener('click', () => {
   sidebar.classList.toggle('open');
 });
 
-fetch('fileTree.json')
-  .then(r => r.json())
-  .then(data => buildTree(data, document.getElementById('fileTree')))
-  .catch(() => {
-    document.getElementById('content').innerHTML = '<p>Unable to load file tree.</p>';
-  });
+if (typeof fileTree !== 'undefined') {
+  buildTree(fileTree, document.getElementById('fileTree'));
+} else {
+  document.getElementById('content').innerHTML = '<p>Unable to load file tree.</p>';
+}
 
 function buildTree(nodes, container) {
   nodes.forEach(node => {
