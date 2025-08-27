@@ -36,17 +36,3 @@ function buildTree(nodes, container, currentPath = '') {
     }
   });
 }
-
-function showSummary(path) {
-  const summary = (typeof summaries !== 'undefined' && summaries[path]) || 'No summary available.';
-  const safeSummary = summary.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-  let link = '';
-  if (path && !path.endsWith('/')) {
-    const fullPath = '../' + path;
-    link = '<p><a href="' + fullPath + '" target="_blank">Open file</a></p>';
-  }
-  document.getElementById('content').innerHTML =
-    '<h2>' + path + '</h2>' +
-    '<p class="summary">' + safeSummary + '</p>' +
-    link;
-}
