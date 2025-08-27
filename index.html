@@ -5,8 +5,30 @@
   <title>Dimmi Project Explorer</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 0; }
-    #toggle { position: fixed; top: 10px; left: 10px; z-index: 1000; }
-    #sidebar { position: fixed; top: 0; left: -260px; width: 250px; height: 100%; background: #f0f0f0; overflow-y: auto; transition: left 0.3s; padding: 10px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+    #dimmiBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: #333;
+      color: #fff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: -260px;
+      width: 250px;
+      height: 100%;
+      background: #f0f0f0;
+      overflow-y: auto;
+      transition: left 0.3s;
+      padding: 10px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
     #sidebar.open { left: 0; }
     #fileTree .item { cursor: pointer; margin: 2px 0; }
     #fileTree .folder::before { content: '\25BA'; display: inline-block; width: 1em; }
@@ -17,9 +39,8 @@
   </style>
 </head>
 <body>
-  <button id="toggle">☰ Menu</button>
+  <button id="dimmiBtn">DIMMI</button>
   <div id="sidebar">
-    <h2>Dimmi Files</h2>
     <div id="fileTree"></div>
   </div>
   <div id="content">
@@ -28,14 +49,14 @@
   </div>
   <script>
     const sidebar = document.getElementById('sidebar');
-    document.getElementById('toggle').addEventListener('click', () => {
+    document.getElementById('dimmiBtn').addEventListener('click', () => {
       sidebar.classList.toggle('open');
     });
 
     fetch('fileTree.json')
       .then(r => r.json())
       .then(data => buildTree(data, document.getElementById('fileTree')))
-      .catch(err => {
+      .catch(() => {
         document.getElementById('content').innerHTML = '<p>Unable to load file tree.</p>';
       });
 
