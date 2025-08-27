@@ -92,7 +92,11 @@
       fetch(path)
         .then(res => res.text())
         .then(text => {
-          document.getElementById('content').innerHTML = '<h2>' + path + '</h2><pre>' + text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])) + '</pre>';
+          const safe = text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+          document.getElementById('content').innerHTML =
+            '<h2>' + path + '</h2>' +
+            '<p><a href="' + path + '" target="_blank">Open raw file</a></p>' +
+            '<pre>' + safe + '</pre>';
         })
         .catch(() => {
           document.getElementById('content').innerHTML = '<h2>' + path + '</h2><p>Simulated feature: unable to load file.</p>';
