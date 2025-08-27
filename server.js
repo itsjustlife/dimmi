@@ -26,8 +26,9 @@ function serveFile(filePath, res) {
 
 const server = http.createServer((req, res) => {
   const parsed = url.parse(req.url, true);
+  let pathname = decodeURIComponent(parsed.pathname);
 
-  if (req.method === 'POST' && parsed.pathname === '/save') {
+  if (req.method === 'POST' && pathname === '/save') {
     let body = '';
     req.on('data', chunk => (body += chunk));
     req.on('end', () => {
@@ -56,10 +57,16 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  let filePath = path.join(ROOT_DIR, parsed.pathname);
-  if (parsed.pathname === '/') {
-    filePath = path.join(ROOT_DIR, 'UI/index.html');
+  if (pathname === '/') {
+    pathname = '/UI/index.html';
   }
+  const safePath = path
+    .normalize(pathname)
+    .replace(/^\u0000+/, '')
+    .replace(/^((\.\.\/)+)/, '')
+    .replace(/^\/+/, '');
+  let filePath = path.join(ROOT_DIR, safePath);
+
   fs.stat(filePath, (err, stats) => {
     if (err) {
       res.writeHead(404);
