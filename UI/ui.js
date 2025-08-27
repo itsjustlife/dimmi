@@ -41,8 +41,11 @@ function loadFile(path) {
     .then(res => res.text())
     .then(text => {
       const safe = text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+      const summary = text.split(/\n+/).slice(0,3).join(' ').slice(0,200);
+      const safeSummary = summary.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
       document.getElementById('content').innerHTML =
         '<h2>' + path + '</h2>' +
+        '<p class="summary">' + safeSummary + '</p>' +
         '<p><a href="' + fullPath + '" target="_blank">Open raw file</a></p>' +
         '<pre>' + safe + '</pre>';
     })
