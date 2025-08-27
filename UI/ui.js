@@ -31,8 +31,19 @@ function buildTree(nodes, container, currentPath = '') {
     } else {
       item.addEventListener('click', e => {
         e.stopPropagation();
-        showSummary(node.path);
+        showSummary(node.path, true);
       });
     }
   });
+}
+
+function showSummary(path, isFile = false) {
+  const safe = (str) =>
+    str.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const summary = summaries && summaries[path] ? summaries[path] : 'No summary available.';
+  let html = `<h2>${safe(path)}</h2><p class="summary">${safe(summary)}</p>`;
+  if (isFile) {
+    html += `<p><a href="../${path}" target="_blank">Open raw file</a></p>`;
+  }
+  document.getElementById('content').innerHTML = html;
 }
