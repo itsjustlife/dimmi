@@ -1,0 +1,69 @@
+Module M03: Short-Term Memory Module
+
+---
+Module: M03_Short_Term_Memory
+Version: 1.0
+Purpose: Store and provide recent context (conversation history or recent facts) for quick access
+Triggers: [ "Conversation_Turn_Ended", "Memory_Query_Request" ]
+Inputs: [ "New_Context_Item", "Memory_Query" ]
+Outputs: [ "Recent_Context_Snippet", "Retrieved_Items" ]
+Dependencies: [ "M04_Long_Term_Memory" ]
+Safety_Level: Low
+Checksum: 2b6939ae42fd07fe48fbb735ead4bbab
+---
+
+PURPOSE:
+ The Short-Term Memory module holds the recent information the AI needs to keep in mind during the conversation or task. This includes the last few user queries and the AI’s responses (to maintain dialogue continuity), as well as any intermediate facts or decisions that were made and might be referenced shortly after. It functions like a human’s short-term memory or “working memory” in a cognitive sense – volatile, limited in size, but immediately accessible. By storing recent context here, the AI can answer follow-up questions and avoid repeating itself. This module also interfaces with long-term memory: when short-term memory fills up or when something is worth retaining, it can hand off data to M04 (Long-Term Memory) for archival.
+
+INPUTS:
+ - **New_Context_Item:** After each conversation turn or significant event, this module receives items to remember. For example, the content of the user’s last question and the AI’s last answer, or a key result from a calculation that might be reused soon. These items are typically timestamped or sequenced.
+ - **Memory_Query:** Other modules can query short-term memory for specific recent info. For instance, M02 might query “what was the last topic mentioned?” or M08 might ask “did the user provide a preference earlier in this conversation?” The query might be a keyword or a structured request like `{ type: 'find', content: 'user_name' }`.
+
+OUTPUTS:
+ - **Recent_Context_Snippet:** When another module (like the Language Comprehension or Communication module) needs immediate context (e.g., the last user message), this module provides a snippet or summary of recent interactions. This might be the last N messages or a condensed version of them.
+ - **Retrieved_Items:** Results of a memory query. For example, if asked “what was the user’s last command?”, it might return something like `{ found: true, item: "Turn off the lights" }` from a few turns ago. If nothing is found, it returns an empty result or a not-found indicator.
+ - Note: Outputs might be delivered either proactively (after storing new context, it could push a summary to someone) or reactively (responding to queries). The triggers reflect both update and query scenarios.
+
+DETAILED_DECISION_LOGIC:
+ 1. **Store New Item** (on receiving New_Context_Item trigger):
+    - Take the new context data (could be a text of the conversation turn, or a fact the AI wants to remember short-term).
+    - Assign it a timestamp or turn index. For example, maintain an internal list `recent_memory` and append the new item at the end.
+    - Enforce capacity: if `recent_memory` now exceeds a certain length (say the last 5-10 items or a certain character limit), remove the oldest items from this short-term store. Typically, this module might keep, for example, the last 5 user-AI exchanges or last X minutes of interaction.
+    - Optionally, before purging an item, hand it off to M04 (Long-Term Memory) if it seems potentially useful later (this could be done by sending that item to M04’s input, like an archive request).
+    - This storing operation likely triggers after each turn (Conversation_Turn_Ended).
+ 2. **Handle Memory Query** (on Memory_Query trigger):
+    - Examine the query details. It could be a simple keyword search or a structured query like “get last user message” or “find mention of X in recent memory”.
+    - If it’s a simple request for the last N interactions, retrieve that many items from `recent_memory` (from the end going backwards) and output them (possibly concatenated or as a list).
+    - If it’s a search for a keyword or topic: iterate over `recent_memory` (most recent first) looking for a match. For text, this could be substring or semantic search if we have embeddings (though likely overkill for just a few items). Find the first (most recent) item that matches criteria.
+    - If found, output `Retrieved_Items` with that item (and maybe some metadata like which turn it was from).
+    - If not found, consider whether to defer to Long-Term Memory: For example, if the user asked something like “Remember when I mentioned Alice earlier?” and it’s not in the last few interactions, it might have been longer ago. The module can then forward this query to M04 (since dependency includes M04) or respond indicating not found in short-term.
+    - If forwarding to M04: translate the query appropriately (M04 likely handles broader/older search).
+ 3. **Maintain Dialogue Summary** (optional ongoing task):
+    - This module might also maintain a rolling summary of the conversation so far, updating it as new items come in. The summary can be stored as a special item in `recent_memory`.
+    - For example, after each turn, update `conversation_summary` (truncate or refresh as needed) which condenses the last several exchanges. This can be useful for quick context retrieval by M02 or M14 if the entire detail is not needed.
+    - If this is implemented, ensure it’s updated and kept at a manageable length.
+ 4. **Purge Policy**:
+    - Define what type of items do not need to remain in short-term memory. For instance, if the conversation is multi-turn, the module might drop system or confirmation messages first, keeping user queries longer.
+    - Ensure sensitive info (if any) is not kept longer than needed. (Though short-term is short by definition, this is more of a note that if some data is highly sensitive, maybe it’s not even stored here, or is immediately transferred to long-term with proper safeguards.)
+ 5. **Output Provision**:
+    - When a query is answered, format the `Retrieved_Items` in a way the requester expects. Possibly the same structure as the query or a simple text snippet.
+    - When proactively providing context (like at the start of a new cycle, sending the last user message to M02), output a `Recent_Context_Snippet`: e.g., the last user message or last full Q&A pair. This could be triggered by M02’s request or orchestrator logic that always fetches recent context for M02 at turn start.
+
+RECURSION_CHECKS:
+ - M03 doesn’t call itself, and generally it doesn’t call other modules except optionally M04 for archiving or extended search. There is a potential loop if M04, on its side, might call back to M03, but that should not happen (long-term memory should not push into short-term except via new inputs).
+ - To prevent any ping-pong, ensure that if M03 forwards a query to M04, M04 knows not to forward the same query back. (M04’s logic should be such that it only handles queries if not found in short-term, etc.)
+ - Rate limit memory queries if some module went rogue querying memory repeatedly in a short time (to avoid performance issues). This can be as simple as “if more than X queries per second, return a throttling warning” (though in practice, queries are infrequent).
+
+CHANGE_INSTRUCTIONS:
+ - **Adjust memory length**: To change how many items are kept in short-term memory, modify the capacity enforcement in step 1. For example, change the number from 5 to a different count, or implement a time-based limit instead (like last 10 minutes). If you increase it significantly, be mindful of performance (though a dozen text entries is fine, hundreds might slow things down or crowd context windows if the AI uses them directly).
+ - **Archival conditions**: To be more selective about what goes to long-term memory, update the logic in step 1 where items are handed to M04. You might decide only user inputs (not AI outputs) get stored long-term, or only facts (not chit-chat). Implement that check accordingly (e.g., if item contains certain keywords or is marked important).
+ - **Query handling**: If queries become more complex (for example, a regex search or semantic similarity using embeddings), incorporate the necessary logic or calls. For regex, you could integrate Python-style patterns if supported. For semantic search, you might store vector embeddings of each item (which is more advanced; would add dependency on an embedding model or library).
+ - **Summary maintenance**: If you want the module to maintain a running summary (as mentioned in step 3), you may implement or refine it. For instance, whenever a new item is added, you could update a `conversation_summary` string by summarizing `recent_memory`. Use a simple heuristic or even call a summarization function (LLM or algorithm) on the last X exchanges. This summary can itself be an output on queries like “summary” or proactively given to modules that ask for context. Document any such feature in Outputs.
+ - **Flushing memory**: In cases like a conversation reset or session end, you might want to flush short-term memory entirely. You can implement a trigger or a special input (e.g., New_Context_Item with content “[RESET]”) that clears `recent_memory`. Document how to use that (perhaps orchestrator will use it on session start/end).
+ - After changes, bump the **Version** number and recalc the **Checksum**. If you changed outputs or how queries respond, also ensure any module that queries M03 (like M02, M08, M14) can handle the new format or has its expectations updated.
+
+---
+Next_Suggest: M02_Language_Comprehension
+Alternate_Next: M08_Reasoning (if direct memory recall for reasoning needed)
+Resource_Usage: Low (stores small recent data in memory; periodic minor operations)
+---

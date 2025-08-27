@@ -1,0 +1,75 @@
+Module M05: Working Memory Manager
+
+---
+Module: M05_Working_Memory_Manager
+Version: 1.0
+Purpose: Hold and manage information relevant to the current task/problem (scratchpad memory)
+Triggers: [ "New_Task_Context", "Intermediate_Result_Update", "Working_Memory_Query" ]
+Inputs: [ "Task_Specific_Data", "Intermediate_Result", "WM_Query" ]
+Outputs: [ "Current_Task_Context", "Retrieved_Work_Data" ]
+Dependencies: [ "M06_Goal_Management", "M08_Reasoning" ]
+Safety_Level: Low
+Checksum: 3a51d8b1eed3b45f4fbf90ca0b785309
+---
+
+PURPOSE:
+ The Working Memory Manager is a specialized memory module that maintains information specifically relevant to the active task or chain of thought. Unlike Short-Term Memory (M03) which holds the recent interactions and general context, M05 is like a mental notebook or whiteboard used during reasoning. For example, if the AI is in the middle of a multi-step calculation or plan, M05 stores the intermediate values, assumptions, or partial conclusions that are needed to complete the task. It ensures that these transient pieces of data don’t clutter the broader short-term memory or get forgotten mid-task. Once the task is done or context switches, the working memory can be cleared or repurposed. This module thereby facilitates complex reasoning by keeping the “scratchpad” data accessible.
+
+INPUTS:
+ - **Task_Specific_Data (New_Task_Context):** When a new complex task or goal begins (trigger often coming from Goal Management M06 or Planner M07), this input carries initial task context. For example, if the user’s goal is to solve a math problem or perform an analysis, the initial parameters or relevant info is loaded into working memory.
+ - **Intermediate_Result_Update:** As reasoning (M08) or planning (M07) progresses, they may produce intermediate outputs (like partial calculations, or a draft answer). Those can be sent here to store. For instance, after step 1 of a plan, the result of that step is kept in working memory to use in step 2.
+ - **WM_Query:** Queries from other modules to retrieve something from working memory. E.g., the reasoning module might query “what was the value of variable X computed earlier?” or the Communication module might ask “what’s the final answer we decided on (stored) before formatting it?”
+
+OUTPUTS:
+ - **Current_Task_Context:** When needed (for example, when the reasoning module starts processing a step), this module can output a packaged context of the current task: e.g., all relevant data and results so far. It’s like giving an updated state of the scratchpad.
+ - **Retrieved_Work_Data:** The answer to a specific working memory query. For example, returning the value of an intermediate variable or a specific note that was stored during the process.
+ - In summary, outputs either supply the whole working memory state for a task or specific pieces of it as requested.
+
+DETAILED_DECISION_LOGIC:
+ 1. **Initialize Task Working Memory** (on New_Task_Context trigger):
+    - When a new task or goal is initiated, create a fresh working memory space (if we assume only one task at a time, you can reuse one structure; if multiple tasks might interleave, you could namespace them by task ID).
+    - Store any initial data: For example, if the task is “translate document”, initial data might be the text to translate. If the task is a multi-step plan, initial might be the plan steps or the goal.
+    - Possibly clear out old working memory if the previous task is concluded (to avoid mixing data). This could depend on a signal from M06 that the prior goal is complete.
+    - Output `Current_Task_Context` confirming initialization (if another module needs to be informed). Often not needed explicitly, but if Planner or Reasoning waits for a ready signal, this could be it.
+ 2. **Update Intermediate Result** (on Intermediate_Result_Update trigger):
+    - Receive `Intermediate_Result` which could come with a label or key (e.g., “step2_result = 42” or “draft_intro_text = ...”).
+    - Store this in an internal structure, e.g., a dictionary or list for current task. If a label is provided, use it as key; if not, you might index it as step number or just append to a list of results.
+    - Overwrite existing entries if the label/key already exists (meaning something was recalculated or refined).
+    - This way, at any point, the working memory holds all the partial results computed so far.
+    - Optionally, keep a log of these updates if needed for trace, but primarily, latest value per key is important.
+ 3. **Handle Working Memory Query** (on WM_Query trigger):
+    - Parse the query to understand what data is needed. It might be specific (like “get X”) or a general request (“give all current data”).
+    - If specific:
+      - Look up the corresponding entry in the working memory store. If found, output it as `Retrieved_Work_Data` (with the same key for clarity, e.g., `{ X: value }`).
+      - If not found, output a not-found or blank result.
+    - If general (like no specific key given, or query says “all”):
+      - Package the entire working memory state as `Current_Task_Context` output or similar. This could be a summary or the raw data structure. For readability, possibly summarize if it’s large.
+    - It’s possible the reasoning module requests something that hasn’t been computed yet (in which case not found). The design of the planner/reasoner should ideally avoid that, but it’s not harmful to return null.
+ 4. **Context Provision to Reasoning**:
+    - At the start of a reasoning step, instead of explicit query, the orchestrator might just feed M08 with relevant working memory. This could be done by proactively outputting `Current_Task_Context` whenever updated, which M08 could listen for. Alternatively, M08 might always do a WM_Query at the start of its operation. Either approach ensures M08 knows the current state of the scratchpad.
+    - Example: If the AI is solving a math problem, after each sub-calculation, it stores the result. Before doing the next calculation, it queries what's already known. This prevents re-calculating or allows using previous results.
+ 5. **Task Completion**:
+    - When M06 signals the goal/task is completed (this might not be a direct trigger, but can be inferred when a final result is output to the user), you can clear or archive the working memory.
+    - Possibly, send some of it to long-term memory if it's worth keeping (though often intermediate steps are not necessary long-term).
+    - Freeing it helps not to mix with the next task.
+    - If tasks can overlap, maybe maintain a stack of working memories. In a simple single-task sequential scenario, clearing is fine.
+
+RECURSION_CHECKS:
+ - M05 doesn’t call other modules; it’s a passive holder. It waits for triggers from others or queries.
+ - It should avoid self-triggering. For instance, storing a result shouldn’t inadvertently cause another store in a loop. We ensure triggers are external.
+ - If multiple queries come rapidly, it just handles them one by one without altering state in between (reads don't modify anything).
+ - There’s no direct risk of infinite recursion here as it’s mostly storage, unless another module misuses it (like asking working memory for something that causes that module to produce a result that is stored and triggers another query—such scenarios are complex and unlikely with proper design).
+
+CHANGE_INSTRUCTIONS:
+ - **Concurrent tasks handling**: If you plan to have multiple tasks active (like multi-threading), you might need to modify this module to handle multiple working memory contexts simultaneously. This could be done by indexing stored data by a Task or Goal ID. Changes: include the Task ID in inputs (e.g., New_Task_Context comes with an ID), maintain a dict of working_memory_per_task, and have queries specify which context. This is a significant change and should be coordinated with Goal Management (M06) and Planner (M07) so that they supply IDs.
+ - **Memory size or persistence**: If working memory should survive longer (for example, carrying over some info to the next related task), you might adjust when it gets cleared. Possibly, you might keep certain variables around if the next task is related. This is tricky to automate; likely better to explicitly archive anything important to long-term before clearance. Document if you decide not to fully clear between tasks.
+ - **Logging changes**: For debugging, you might want this module to output a log or confirmation each time something is stored or updated. You can add an output or at least a console log (if applicable) in step 2 and 3 for easier tracing. In a production scenario, such logging might be turned off for performance, but while iterating on the agent’s logic it can be invaluable.
+ - **Integration with M06/M07**: Ensure that if you change how working memory is structured (like keys naming), those modules know how to reference it. For example, if you decide to store plan steps labeled as "step1", "step2", etc., ensure the planner uses the same convention when querying or updating. Keep consistency across modules by updating documentation in both places if needed.
+ - **Add domain-specific scratchpad features**: In some tasks, you might want specialized handling. E.g., if the task is coding, working memory might hold a list of functions or variables. If the task is research, working memory might hold an outline. You could incorporate minor specialized structures, but caution: that can complicate the module. A simpler approach is to keep it generic as a key-value store or list. Domain-specific logic is often better in the Reasoning or Planner module which knows about the domain, rather than the memory module itself.
+ - After adjustments, update the **Version** and **Checksum** in the header. If additional outputs or changes in data format occur, reflect those in the Outputs field and notify dependent modules (update their descriptions if necessary).
+
+---
+Next_Suggest: M08_Reasoning
+Alternate_Next: (None – typically M08 will use this as needed)
+Resource_Usage: Low (limited to current task data in memory; negligible overhead)
+---

@@ -1,0 +1,114 @@
+Module M17: Attention & Relevance Filter Module
+
+---
+Module: M17_Attention_Filter
+Version: 1.0
+Purpose: Focus the AI's processing on relevant information and filter out irrelevant or noisy data
+Triggers: [ "Filter_Memory_Request", "Filter_Knowledge_Request" ]
+Inputs: [ "Candidate_Info_List", "Current_Goal_or_Query" ]
+Outputs: [ "Relevant_Info_List", "Filtered_Out_Items" ]
+Dependencies: [ ]
+Safety_Level: Low
+Checksum: bc72e0b491782099e5042387e1a1a93a
+---
+
+PURPOSE:
+ The Attention & Relevance Filter Module helps the AI avoid information overload by selecting only the information that is pertinent to the task at hand. When the AI has a lot of data (from memory, knowledge base, or multiple inputs), M17 decides which pieces are most relevant to the current query or goal, and filters out the rest (or at least deprioritizes it). This is akin to human attention—focusing on what matters and ignoring distractions. By doing so, it makes the reasoning more efficient and reduces the chance of confusion or digression. For example, if the short-term memory has 10 recent messages but only 2 are about the topic of the question, M17 will highlight those 2 for reasoning. Or if knowledge retrieval returned many documents, M17 picks the most relevant snippets. Essentially, it improves signal-to-noise ratio in the information flow.
+
+INPUTS:
+ - **Candidate_Info_List:** A collection of information items that could be considered for use. These could be:
+   - A list of memory records (from M03 or M04) that might relate to the question.
+   - Search results or knowledge snippets fetched.
+   - A set of intermediate calculations or facts.
+   - Essentially any set of data where not all might be relevant.
+ - **Current_Goal_or_Query:** A description of what the AI is focusing on. E.g., the user’s current question, or the current subtask description, or the goal string from M06. This is used as the basis to judge relevance.
+   - It might be text like "Question: Explain the causes of WWI" or "Goal: find user’s requested file in memory".
+   - Could be structured or just natural language query.
+
+OUTPUTS:
+ - **Relevant_Info_List:** The subset (or re-ordered list) of input items deemed relevant. Possibly sorted by relevance or in original order minus removed items.
+   - Each item would be as is (maybe with a relevance score if needed by consumer, but likely not necessary).
+   - For example, out of 5 memory entries, output the 2 that contain keywords matching the query.
+   - Or out of search results, output those that have the query topic in them.
+ - **Filtered_Out_Items:** (Optional/for transparency) The items considered irrelevant or lower priority.
+   - The system might not always need this explicitly, but it can be logged or for reflection to see if filtering was correct.
+   - Possibly used if later reflection finds an answer was missing something, one can see if an item was filtered out incorrectly.
+   - Or if user specifically says "What about that other info?" the system might retrieve from filtered list if needed.
+   - So, including it could be useful for debug or audit.
+   - If not needed, could be blank or not used by consumers, but module can produce it for completeness.
+ - If no filter is needed (like if list is short or all items clearly relevant), the relevant list can just equal the input and filtered_out empty.
+
+DETAILED_DECISION_LOGIC:
+ 1. **Determine Filtering Criteria**:
+    - Based on Current_Goal_or_Query, figure out what keywords or concepts are central.
+    - E.g., if query is "WWI causes", keywords: "World War I, cause, trigger events, year 1914" etc.
+    - Possibly use simple approaches:
+      - Keyword matching: find overlap of words or synonyms between the query and each candidate.
+      - If available, use vector similarity or semantic similarity (embedding) to rank items (though implementing that in pseudocode, one might say "score items by semantic similarity to query").
+      - Importance of recency or context: if multiple user messages, maybe weigh more recent ones a bit higher because likely relevant, but content match still key.
+    - If knowledge items have meta data (like tags or summary), utilize that to judge relevance.
+    - Possibly have a threshold or number of items to keep (like "keep top 3 relevant items" if too many).
+ 2. **Evaluate Each Candidate**:
+    - For each item in Candidate_Info_List:
+      - Check if it contains the query terms or closely related terms.
+      - If numeric or factual query, see if item addresses that specific thing.
+      - If the goal is a follow-up question, items referencing last topic likely relevant.
+      - Mark a relevance score or a flag.
+    - This could be simple count of keyword overlap or existence of one key term might be enough.
+      - e.g., if query is about "quantum computing", any memory snippet mentioning "quantum" or "computing" likely relevant.
+      - If no direct word match, consider synonyms or context if possible (for pseudocode: maybe have a small dictionary or trivial semantic check).
+    - Also consider: if the list includes an item that is clearly off-topic (like user asked about WWI causes, but a memory item is about "today's date", that is irrelevant).
+      - Unless the query indirectly requires it (like if user asks "What day of week was Archduke Franz Ferdinand assassinated?" then date context might matter. But environment would handle date calculation rather than memory).
+    - Could also incorporate recency weighting in case of conversation: often last user message and AI response are most relevant for a follow-up question unless user references an earlier part explicitly.
+ 3. **Select Relevant Items**:
+    - From the evaluations, choose the items that meet or exceed some relevance criterion.
+      - If few items, maybe just drop those clearly irrelevant.
+      - If many, pick top N scoring or all above a threshold.
+    - If nothing seems relevant (score all zero or something):
+      - Possibly output none (or perhaps if memory was all irrelevant, better to output none so reasoning won't be led astray by wrong info).
+      - However, if it's short term memory and nothing matches, perhaps include the last one or two interactions just in case (because context might still matter for coherence even if not keyword match).
+      - But if knowledge retrieval returned nothing relevant, reasoning might just proceed with general knowledge or ask user for more info.
+    - Sort the relevant list if needed by likely importance:
+      - e.g., memory: chronological order might remain but most recent likely first if relevant.
+      - Knowledge docs: maybe by whichever had most overlap or best content.
+    - The filtering might not be perfect; it's heuristic. That's fine as long as obvious junk is removed.
+ 4. **Output Relevant and Filtered**:
+    - Package the relevant ones as **Relevant_Info_List**.
+    - The others as **Filtered_Out_Items** if needed.
+    - These outputs go typically to:
+      - M08 (Reasoning) which asked for filtering of knowledge bits to focus on.
+      - Or M03 might itself use M17 internally to prune memory responses (depending on design).
+      - Possibly M09 if it wants to trim context it's feeding into reasoning.
+    - The consumer then uses relevant info to proceed (like M08 will incorporate those memory bits into reasoning context).
+    - The filtered_out maybe simply logged or if M12 reflection checks why something was ignored.
+ 5. **Adjust on the Fly**:
+    - If a filter was too strict and reasoning later finds it needed something filtered out (e.g., the answer was incomplete), reflection or user follow-up might indicate that, then next iteration maybe M17 criteria could be adjusted (though that adaptation would be through learning suggestions: like "maybe widen filter next time if not sure").
+    - M17 itself is static logic, but learning module could propose changes (like "increase threshold for relevance or always include at least one memory item even if low match to avoid missing context").
+ 
+RECURSION_CHECKS:
+ - M17 should not get into loops. It's a one-pass filter, no need to call any other heavy module.
+ - It might be called multiple times per query (maybe for different sets: one for memory, one for knowledge results).
+ - Ensure it doesn't call itself or spawn new queries. It just processes given list.
+ - It's not part of main cognitive loop besides being a helper, so minimal risk of recursion.
+ 
+CHANGE_INSTRUCTIONS:
+ - **Improve relevance algorithm**: This could be upgraded with more advanced techniques:
+   - Using vector embeddings (which would require a model or library).
+   - Using part-of-speech or semantic role to pick context (like if question is about a person, filter memory entries that mention people).
+   - Weighting recency or user emphasis (maybe if user said "As I mentioned [some term]", then definitely include memory where that term appears).
+   - For now, if wanting more nuance, one might manually tune by adding synonyms dictionary or key phrases detection.
+ - **Parameter tuning**: if too much info is filtered out, reduce strictness (include a couple low-relevance items just in case).
+   - Or if too much irrelevant passes, increase threshold. Possibly track if reasoning had to ignore stuff or if irrelevant things slip into answers.
+   - That feedback can come from reflection analysis of errors.
+ - **Context merging**: If multiple items are similar, M17 could combine them or pick one to avoid redundancy.
+   - E.g., if memory has two entries basically repeating the same context in different words, maybe just keep one to not waste "attention".
+   - Not crucial unless memory context size is an issue.
+ - **Focus on user question terms**: If user specifically says "in the book 'X'", the filter might include memory about that book if present. Might refine logic to handle quoted phrases or proper nouns specifically.
+ - Always update **Version** and **Checksum** after changes.
+ - If integrating into a pipeline differently (like hooking into M03 directly), ensure triggers align. Right now triggers are from any module asking for filtering.
+
+---
+Next_Suggest: (None – internal utility)
+Alternate_Next: (None)
+Resource_Usage: Low (text matching operations, minor overhead)
+---

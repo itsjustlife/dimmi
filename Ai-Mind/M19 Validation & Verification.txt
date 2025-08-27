@@ -1,0 +1,149 @@
+Module M19: Validation & Verification Module
+
+---
+Module: M19_Validation_Verification
+Version: 1.0
+Purpose: Double-check potential answers or actions against known knowledge to ensure accuracy and consistency
+Triggers: [ "Verify_Answer_Request", "Simulate_Action_Request" ]
+Inputs: [ "Draft_Answer or Proposed_Outcome", "Reference_Data" ]
+Outputs: [ "Validation_Result", "Confidence_Assessment" ]
+Dependencies: [ "M04_Long_Term_Memory", "M08_Reasoning" ]
+Safety_Level: High
+Checksum: 6e756451a24e32b5ff14be50782e524f
+---
+
+PURPOSE:
+ The Validation & Verification Module acts as a fact-checker and outcome simulator for the AI. Before finalizing an answer or executing a critical action, M19 can be invoked to verify that:
+ - The answer is correct and not contradicting known facts.
+ - The planned action will not lead to an error or unintended consequence.
+It adds a layer of assurance. For example, if the AI formulated an answer from reasoning (M08), M19 could quickly cross-check key facts against the knowledge base or memory to catch any hallucinations or mistakes. Or if a plan suggests deleting a file, M19 might simulate or check if that file exists and isn't critical before confirming the action. It's similar to a safety net or a "reviewer" agent that ensures quality and correctness, complementing M11 (which focuses on policy safety) with factual and logical safety.
+
+INPUTS:
+ - **Draft_Answer or Proposed_Outcome:** This is the item to validate.
+   - In the case of answer verification, it's likely a textual answer (which might include factual claims).
+   - In the case of action verification, it might be a description of what will happen (like "delete file X" or "send email to Y with content Z").
+   - Could be also a reasoning outcome like a solution to a math problem, which can be re-calculated to double-check.
+   - Basically, something the AI produced that we want to confirm before using.
+ - **Reference_Data:** Supporting data to use for verification.
+   - For answer checking: relevant facts from memory or knowledge base that can be used to confirm truth. Possibly provided by M04 or by a prior retrieval step.
+   - If not provided, M19 might on its own query M04 or even do a quick M08 reasoning call to gather needed info (like re-calc or search memory).
+   - For action sim: perhaps context like "current state of system" or rules (like a list of important files not to delete).
+   - Possibly test inputs or conditions to simulate (like if testing a plan logically, one might simulate it mentally using reasoning again).
+   - This input may sometimes be optional if M19 can figure it out from the knowledge base by itself, but likely orchestrator will supply what to check against or allow M19 to fetch from M04.
+
+OUTPUTS:
+ - **Validation_Result:** The outcome of the validation:
+   - If verifying an answer: could be "verified correct", "discrepancy found", or a list of statements that were checked and whether they match references.
+   - For example, it might output something like "The population of France claim is correct as per memory (67 million)【source】. The claim about growth rate couldn't be verified, caution advised."
+   - It might also correct the answer: e.g., "Original answer said 60 million, but actual figure is ~67 million."
+   - If verifying an action: e.g., "file X exists and is not read-only, deletion likely succeeds" or "file X not found, action would fail".
+   - Could also output whether the outcome aligns with intentions (like "Plan simulation: likely to achieve goal with minor side-effects A and B").
+   - Essentially a structured or narrative report on the check.
+ - **Confidence_Assessment:** A rating or qualitative measure of how confident the system can be in the answer/action after validation.
+   - Could be high/medium/low, or a percentage.
+   - For example, if all facts check out, confidence = high.
+   - If some parts couldn't be verified, medium.
+   - If found an error, confidence = low until corrected.
+   - This could be used by M09 to decide if it should present the answer or go back and revise.
+   - Or if an action's outcome is uncertain/dangerous, M09 might abort or ask user to confirm.
+   - If not needed distinctly, M19 can incorporate it into Validation_Result textually, but a separate field is clean for logic.
+
+DETAILED_DECISION_LOGIC:
+ 1. **Identify Key Points to Verify**:
+    - Parse the Draft_Answer for factual claims (dates, names, numbers, specific statements).
+      - E.g., "WWI started in 1914" is a claim to check against knowledge.
+      - Not every word needs check (opinions or generic statements might not have references, but caution: if it's supposed to be factual, ensure it's correct or labeled as opinion).
+    - For an action, identify conditions that need checking:
+      - E.g., if action is "open valve 3", maybe check "is valve 3 operational? is pressure safe?" (though in our text agent context, likely simpler checks like file existence or API availability).
+      - Use dependencies or memory about system: like a list of protected commands not allowed (some overlap with M11 maybe for safety, but M19 is more about viability and outcome).
+    - Determine which references or methods to verify each:
+      - Some can be verified via memory (M04) if info is there.
+      - If not in memory, maybe use reasoning (M08) to logically infer if that makes sense (like if claim contradicts another known fact).
+      - Could also, in a more expansive system, do a quick external search via M10 if allowed and not done already. But that might overlap with the retrieval done for answering in first place. Perhaps avoid external search at this stage unless absolutely needed, since it would complicate pipeline (M09 should have done retrieval before reasoning ideally).
+    - Possibly mark each sub-claim with "needs checking vs known references".
+ 2. **Cross-Reference with Knowledge**:
+    - For each item to verify:
+      - If Reference_Data provided, search within it for relevant info. E.g., if it's a knowledge snippet containing the correct data.
+      - If not, query M04: e.g., M04 might have a knowledge entry "WWI started in 1914 and ended in 1918".
+      - If found, compare:
+         * Does the claim match the reference? Yes => good.
+         * If not, note the discrepancy and what reference says.
+      - If no reference found for that specific fact:
+         * Mark it as "not verified".
+         * If possible, use reasoning to estimate confidence. E.g., if no data but claim seems plausible (like if a claim is "Paris is the capital of France" and not explicitly in memory but known common sense, likely true).
+         * But since this is tricky, maybe better to label "could not verify due to lack of data".
+      - If verifying logical consistency (like does the answer contradict itself or earlier context):
+         * Check if any two claims conflict or if answer and user question context conflict.
+         * E.g., user said "I was born in 1990" earlier, and answer says "You are 20 years old" (in 2025 that's wrong). M19 could catch that inconsistency with context memory.
+      - For action simulation:
+         * Use known system state: e.g., M04 might store "file X size and location".
+         * If action is to retrieve something, ensure it exists.
+         * If action might cause chain reactions, possibly simulate via logic rules if any stored (though our scope is limited).
+         * At least confirm prerequisites: "Yes the file exists", "The API key is set before calling the API", etc.
+ 3. **Compile Validation_Result**:
+    - For answer:
+      - For each checked fact, produce a statement:
+         * "Claim [X] is verified by [source]" or "Claim [Y] appears incorrect; according to [source], it should be [correct info]".
+      - For unchecked parts, optionally mention them: "Could not verify [Z]" if it's important.
+      - Summarize overall: e.g., "Overall, 2 of 3 facts are correct; one discrepancy found."
+      - If everything is correct: "All factual statements have been verified correct."
+      - If minor issues: "Answer is mostly correct, but minor error in [detail]."
+      - If major errors: "Answer contains incorrect information about [topic]."
+      - Keep it structured (maybe bullet points or sentences per fact).
+      - Possibly include references or mention memory source (like "【memory】" if we had a footnote style).
+    - For action:
+      - State if conditions are met or not:
+         * "Pre-check: File X exists (yes); Write permission (yes). Action likely to succeed."
+         * Or "Pre-check: File X not found. Action would fail. Recommend abort or adjust."
+         * If potential consequences: "Deleting file X will remove important data that cannot be recovered as per policy." – That might cross into safety domain but it's factual consequence knowledge.
+      - If a simulation scenario, describe expected outcome: "Simulated outcome: Valve opens, pressure increases by 10%. System can handle this per specs."
+      - Provide a confidence: "Confidence in safe execution: High" or "Risks identified: moderate."
+    - Provide the confidence assessment perhaps as separate field:
+      - Could be just a qualitative word or numeric. E.g., "Confidence_Assessment: Low (due to error in data)."
+      - Or maybe a rating 0-1.
+      - For safety-level high, if something is off, might mark low to prompt M09 to not use that answer.
+ 4. **Output Confidence_Assessment**:
+    - Evaluate overall trustworthiness:
+      - If any major factual errors, confidence is low.
+      - If completely verified, confidence high.
+      - If unknown bits but main answer seems fine, maybe medium.
+      - For action: if all checks green, high; if some unknowns, medium; if a fail condition found, basically 0 (with suggestion not to proceed).
+    - Output this along with Validation_Result.
+ 5. **Integration**:
+    - M09 (Decision) will receive Validation_Result and Confidence_Assessment.
+      - If low confidence: M09 might decide to loop back, get M08 to fix the error or ask user or adjust plan.
+      - If medium: maybe include a caveat in answer or proceed but carefully.
+      - If high: proceed normally.
+    - If differences found, M09 could incorporate corrections: e.g., it might replace a wrong stat in the final answer with the correct one from Validation_Result, or attach a phrase "according to XYZ" to boost reliability.
+    - M12 reflection might also use validation info to note the AI almost gave a wrong info but caught it (or didn't catch if M19 not used at that time, reflection would suggest using M19 next time).
+    - In practice, M19 might not always be called if time is short or for every answer (some systems only validate if high importance).
+      - The trigger could be conditional: e.g., only call M19 if answer's confidence from reasoning is below a threshold or if user explicitly expects correct data (like user is particular about accuracy).
+      - But our architecture includes it to demonstrate the capability.
+ 
+RECURSION_CHECKS:
+ - M19 may query M04 or M08 for verification:
+      - Querying M04 is fine (just data).
+      - If it were to query M08 (like to recompute a math result), that's a possible one-step call. It should avoid a loop where M08 then calls M19 again. But M08 wouldn't normally call M19 unless the main flow triggers it, so fine.
+      - So just ensure if M19 calls M08 for a quick check, maybe specify it as an isolated reasoning call that doesn't itself trigger safety/validation again.
+      - Perhaps simply avoid M08 dependency to keep it straightforward: rely on memory and simple logic for now, since adding recursion could complicate flow. Instead, assume if something needed heavy logic to verify, that logic should have been in M08 in the first place.
+ - M19 should not attempt to re-run the entire reasoning of an answer in detail (that would basically duplicate M08).
+      - Instead, it picks key parts. So no infinite recursion as long as we don't design it to fully re-solve the problem.
+ 
+CHANGE_INSTRUCTIONS:
+ - **Expand verification sources**: Integrate external databases or APIs (like a fact-check API or search) if needed to verify facts not in memory. That might conflict with no internet assumption. If allowed, M19 could do a quick web search via M10. That would slow things but improve accuracy for unknown facts. Use if critical.
+ - **Deeper simulation**: For actions, if working in a domain with formal models, integrate those (like a physics simulator or a domain-specific rule engine).
+    - Possibly complex; not needed for text Q&A context, more for robotics or complicated tools. If out of scope, skip.
+ - **Confidence calibration**: Adjust how confidence is determined. If system finds one minor discrepancy, maybe still medium not low. Or if information is incomplete, maybe medium with a note. This can be tuned with experience or even learning (M13 could adjust thresholds if it sees too many false alarms).
+ - **Automated correction**: Possibly allow M19 to directly correct draft answers rather than just report. That could streamline final output (like an integrated reviewer/editor).
+    - Could output a "Corrected_Answer" field if straightforward, then M09/M14 might use that directly. But careful to keep separation: currently M19 just reports, leaving decision to M09.
+    - If we wanted, we could change M19 to output a corrected answer suggestion if error found, and let M09 decide to adopt it.
+ - **Partial compliance**: Possibly tie with safety: if the answer contained something not just factually wrong but policy-breaking by mistake, M19 could also flag it from an accuracy perspective. But M11 covers policy, so M19 focuses on factual/logical validity, to not overlap too much.
+ - **User disclaimers**: If some things can't be verified, M19 could suggest adding a disclaimer or caution in the answer. That could be passed to M09 which might instruct M14 to say "Not completely sure about X".
+    - This could be formalized as part of Validation_Result (like "Suggested_Addendum: The data on Y is not confirmed").
+ - After any changes, update **Version** and **Checksum**, and coordinate triggers/consumers adjustments.
+
+---
+Next_Suggest: (None – outputs to M09 or others requesting verification)
+Alternate_Next: (None)
+Resource_Usage: Moderate (some additional memory lookups and comparisons, but not heavy compared to full reasoning or search)
+---

@@ -1,0 +1,102 @@
+Module M12: Reflection & Introspection Module
+
+---
+Module: M12_Reflection_Introspection
+Version: 1.0
+Purpose: Analyze the AI's own recent decisions and performance to identify errors, successes, and potential improvements
+Triggers: [ "Task_Completed_Status", "Periodic_Reflection_Tick" ]
+Inputs: [ "Execution_Log", "Goal_Outcomes", "User_Feedback" ]
+Outputs: [ "Self_Assessment", "Improvement_Suggestions" ]
+Dependencies: [ "M13_Learning_Adaptation", "M03_Short_Term_Memory" ]
+Safety_Level: Low
+Checksum: 3d60636e4a050d602ab2698c71bdb720
+---
+
+PURPOSE:
+ The Reflection & Introspection Module is the AI’s self-evaluation component. After completing a task or at certain intervals, M12 reviews what happened: Were the actions successful? Did the AI’s answer satisfy the user? Were there any mistakes or deviations from policy? This module compiles an objective (as possible) assessment of the AI’s performance and draws insights for improvement. It's akin to a human thinking back on what they just did – noting what went well and what could be better next time. The output of this reflection is then used by the Learning module (M13) to actually implement improvements or by the system to adjust behavior (or even given to the user in some transparency mode).
+
+INPUTS:
+ - **Execution_Log:** A record of what transpired during the task. This could include:
+   - The plan steps and actions taken (with their results).
+   - Decisions made by M09 at each step.
+   - Any safety interventions by M11.
+   - Essentially a timeline of the process. This log might be automatically compiled by the orchestrator or by modules appending to a shared log (maybe M03 could hold a short-term log).
+   - If not automatically created, M12 might reconstruct it from memory (like reading short-term memory which contains key events: “user asked X, plan was Y, step1 result..., etc.”).
+ - **Goal_Outcomes:** Information on whether the goal was achieved or not, and how. M09/M06 would provide a status (success, failure) and possibly the final answer or reason for failure.
+ - **User_Feedback:** If available, direct feedback from the user. For example, if the user said "Thank you, that helped" or "This is not what I needed", that is invaluable reflection info. Or a rating if the interface allows.
+   - Often, immediate feedback isn't provided, but if it is, M12 should consider it strongly (positive feedback confirms success, negative feedback means something went wrong that maybe the AI didn't catch).
+ - Contextually, M12 could also consider any metrics like time taken or number of API calls – not listed but could be part of log if efficiency is a concern.
+
+OUTPUTS:
+ - **Self_Assessment:** A summary of how the AI did. It may include:
+   - A brief recap: e.g., “Goal: answer question about X. Outcome: success, user seemed satisfied” or “Outcome: failed to find a definitive answer.”
+   - Identification of errors or hiccups: e.g., “Mistake: Provided a wrong statistic initially, corrected it after search” or “Overlooked a relevant piece of info in memory.”
+   - Also note what worked well: “The plan was efficient” or “The safety filter correctly removed a sensitive detail.”
+   - This is for internal use, though it could be logged or possibly shown to developers. It’s like the AI grading itself.
+ - **Improvement_Suggestions:** Concrete suggestions for how to improve next time or what to change in the system:
+   - These could range from small (tweak a parameter, e.g., “increase memory size to avoid truncating important context”) to larger (like “the planning module should consider alternative approach for similar problems”).
+   - It might point to specific modules/files and even specific parts (line numbers or section names) that need adjustment – essentially feeding into M20 (Self-Modification Guidance).
+   - E.g., “Suggestion: Update Module M02 to better handle ambiguous phrasing. Last query ‘XYZ’ was misunderstood” or “Tune Safety module to allow benign mention of Y since it caused an unnecessary refusal.”
+   - If the AI performed well, suggestions might still include, “Document this strategy as best practice” or “No major issues; perhaps faster approach by doing X.”
+   - The suggestions serve as input for M13 (which will decide what to do with them – e.g., formulate instructions or apply them if possible).
+
+DETAILED_DECISION_LOGIC:
+ 1. **Compile Timeline**:
+    - Gather the execution log and outcome.
+    - If the log is not explicitly given, fetch from M03 (Short-Term Memory) if it kept the recent conversation and actions. Or ask each module summary (not implemented; likely easier if orchestrator logs).
+    - Ensure it covers key decision points: user request, plan formed, steps executed, any changes, final result, user reaction.
+    - Having this clear timeline is crucial to reflect systematically.
+ 2. **Analyze Success/Failure**:
+    - Determine: was the goal achieved successfully? (Check Goal_Outcomes; success if yes, failure if no or partial).
+    - If success:
+      - Identify factors that contributed: Was the plan followed smoothly? Did any module particularly help (like a memory retrieval that was spot-on, etc.)?
+      - Check if there were any unnecessary steps or inefficiencies. Perhaps the plan had an extra step that turned out not needed.
+      - Note any safety near-misses (like something that almost violated a rule but got caught).
+    - If failure or difficulty:
+      - Pinpoint where things went wrong: Did the plan fail (bad plan)? Did an action not yield expected result? Did the AI misinterpret the question?
+      - For example: “The AI couldn’t find information on step 2, causing the outcome to be incomplete. Possibly needed a different search strategy or knowledge base.”
+      - If user was dissatisfied, understand why: too slow, wrong info, not what they asked? Use user feedback if present, or infer from conversation (like user had to correct the AI).
+      - Check if safety or alignment issues hindered success (maybe safety cut out some needed info).
+ 3. **Self_Assessment Generation**:
+    - Summarize findings in a structured way:
+      - e.g., “Outcome: Failure. Reason: Plan missed subtopic Y, so answer lacked that. User expressed discontent.”
+      - Or “Outcome: Success. The approach was effective. One minor error: mis-typed a name, but self-corrected.”
+      - Keep it factual and not too verbose.
+      - This could be output as bullet points or a short paragraph.
+    - The assessment might be stored in long-term memory as a kind of journal of performance (depending on whether we want persistent learning across sessions).
+      - If so, M04 could be invoked by M13 to archive it. M12 itself may not do it automatically unless instructed.
+ 4. **Generate Improvement Suggestions**:
+    - Based on assessment, formulate recommendations:
+      - Address each issue or inefficiency found with a possible solution.
+      - If misunderstanding occurred, suggest improving comprehension (M02).
+      - If planning was off, suggest tweaking planning (M07) or providing it more data.
+      - If a particular module glitch (like M10 returned data in a format M09 didn’t handle well), suggest fixing that interface.
+      - Also suggest preventative measures: e.g., “If similar query arises, consider using external knowledge base earlier” or “Add check in M09 to avoid repeating a web search if results were empty first time.”
+      - For successes, suggestions could be to reinforce what to keep doing (though more so learning would handle that).
+    - Make suggestions as actionable as possible (ideally referencing modules and changes). This pairs with M20’s function which will translate these into specific change instructions for files.
+    - Possibly rank suggestions by priority (must-fix vs nice-to-have), though not explicitly requested, it could say "High priority: fix X before next run."
+ 5. **Output and Integration**:
+    - Output Self_Assessment and Improvement_Suggestions in a structured way (maybe a small list or labeled sections).
+    - Trigger M13 (Learning) with these outputs, so M13 can decide what to do (like immediately formulate changes via M20, or store them for later).
+    - Optionally, could also feed some reflection summary into M03 short-term memory if needed to influence next interactions (though typically learning module will handle persistent changes, not immediate next-turn behavior except by improving modules).
+    - If user is curious or there's a design where the AI explains itself to user, some of Self_Assessment might be shared (with caution). By default, this stays internal.
+ 
+RECURSION_CHECKS:
+ - M12 should not inadvertently cause a new goal that triggers reflection again (unlikely, since reflection triggers when tasks are done).
+ - Ensure Reflection doesn’t run in an infinite loop: after reflecting, it might cause learning adjustments, but those adjustments shouldn't instantly trigger another reflection without a new task.
+ - Reflection might consider multiple tasks if run periodically. If it's periodic (say after a session or every few queries), ensure it doesn't keep reflecting on the same events repeatedly. Perhaps mark events as reflected-upon or only reflect on new portions of log since last reflection.
+ - Keep the overhead reasonable: if tasks are continuous, maybe reflect only at natural breaks or after significant tasks to not hog resources.
+ 
+CHANGE_INSTRUCTIONS:
+ - **Frequency of reflection**: If you find the AI not learning quickly enough, you could trigger reflection more often (e.g., after every user query). Or if it's too frequent and wastes time, make it only after major tasks. Adjust triggers or have a condition like "if task was complex or outcome negative, reflect immediately; else accumulate to periodic reflection".
+ - **Depth of analysis**: Increase or decrease how thorough the reflection is. Possibly integrate a second pass reasoning for reflection itself (like using M08 to deeply analyze logs). But careful: that becomes heavy. If needed only for very complex cases, you could have reflection ask M08 “what could be improved?” This is basically meta-reasoning. Implement if you trust it and have resources.
+ - **Template of suggestions**: Right now presumably freeform text, but if you want to integrate directly with M20, maybe structure them. For example, suggestion could be `Module: M02, Change: add rule for X`. The more structured, the easier M20 can turn it into YAML or code changes. You might modify output format to ease parsing (even YAML or JSON of suggestions).
+ - **Integration with user**: If there's a feature to present a summary to user (like “Here's how I did and what I'll do better”), you could add a path to pass a sanitized version of Self_Assessment to M14 to share. Only if desired; typically not unless user specifically asks or for transparency options.
+ - **Collaborative reflection**: Possibly consider user feedback explicitly. If user corrects the AI, maybe trigger immediate reflection on that single point to incorporate it. Currently, user feedback considered only if given at end or known. Could formalize: if user says "No, that's wrong," reflection triggers on that event to see why was it wrong. To implement, add a trigger on user negative feedback mid-task (which could be interpreted by M02 or by explicit rating).
+ - Always update **Version** and **Checksum** after modifications. If suggestions format changes, coordinate with M13 to understand them.
+
+---
+Next_Suggest: M13_Learning_Adaptation
+Alternate_Next: (None direct; M13 processes reflections)
+Resource_Usage: Moderate (analyzing logs and generating text, but far less than heavy reasoning or searching tasks)
+---

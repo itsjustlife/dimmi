@@ -1,0 +1,120 @@
+Module M18: Creative Thinking Module
+
+---
+Module: M18_Creative_Thinking
+Version: 1.0
+Purpose: Generate imaginative ideas, analogies, or non-standard solutions when a task requires creativity
+Triggers: [ "Creative_Idea_Request" ]
+Inputs: [ "Problem_Description", "Contextual_Info" ]
+Outputs: [ "Creative_Suggestions" ]
+Dependencies: [ "M08_Reasoning" ]
+Safety_Level: Moderate
+Checksum: 4f6fe1bc44cc2e4049fa2d7ef3d3378d
+---
+
+PURPOSE:
+ The Creative Thinking Module is engaged when the AI needs to go beyond straightforward factual or logical reasoning and produce more inventive or out-of-the-box ideas. This can include:
+ - Coming up with analogies or examples to explain a concept (if a user asks for an analogy).
+ - Brainstorming multiple approaches to a problem (if a task is open-ended).
+ - Generating creative content (like a short story or a joke) if requested.
+ - Suggesting alternative solutions when a direct solution isn't obvious.
+It leverages a more free-form generation process (less constrained than M08’s typically factual reasoning) to expand the solution space. In human terms, if M08 is the analytical mind, M18 is the imaginative mind or the "brainstorming session".
+
+INPUTS:
+ - **Problem_Description:** A description of the task or question that requires creativity. This might come from:
+   - M09 or M08 when they determine a creative approach is needed (e.g., M08 might call M18 if logical approach fails or to add analogies).
+   - M06 if user explicitly asked for something like a story or creative solution.
+   - Could be similar to user’s query text, but flagged that a creative angle is wanted.
+   - For example: "Explain quantum physics to a child using analogies" or "I need a few ideas for a fantasy story plot".
+ - **Contextual_Info:** Any relevant context to guide creativity. This can include:
+   - Tone or genre preferences (e.g., user likes humorous analogies, or specifically asked for a poem).
+   - Knowledge constraints (e.g., ensure analogies are science-based, or don't violate any facts).
+   - Possibly the factual content that the creative output should revolve around (like the actual meaning of the concept that an analogy should capture).
+   - Other hints, like the user's background (from M15, to tailor creativity to them).
+   - If not much context, M18 still has general knowledge from the AI’s training that it can use to create something.
+ - M18 ideally should know how far it can deviate from facts: typically for analogies or stories it's fine as long as it serves explanation or entertainment, but it should not present fiction as fact in a factual answer context (that's where safety moderate: ensure user knows creative output is illustrative).
+
+OUTPUTS:
+ - **Creative_Suggestions:** One or more creative outputs or ideas that address the request.
+   - If the input asks for analogies, the output could be a list of analogies.
+   - If asked for story ideas, output several plot outlines or concepts.
+   - If it's to infuse creativity into an explanation, it might return a metaphor or a scenario that can be used by M14 when forming the answer.
+   - Could be textual: e.g., a short narrative, a witty response, a poem, etc., depending on request.
+   - If multiple ideas are relevant, it might output an array/list of them, or a multi-part answer.
+ - This output will often be combined with more factual content by the decision engine. For instance, M09 might get a few analogies from M18 and decide to include one in the final answer that M14 produces along with factual explanation from M08.
+ - In other cases (like user specifically says "tell me a story about X"), the entire answer might just be from M18's output with minimal involvement of M08 (besides checking logic if needed).
+ - Safety_Level moderate: because while being creative, M18 must still not produce disallowed content (like violent or inappropriate story if not asked, or defamatory creative idea). M11 will still filter, but M18 should try to stay within bounds (like if user says "joke about <protected group>", M18 should avoid offensive content).
+ - M18 might use figurative language, humor, empathy, etc., as appropriate.
+
+DETAILED_DECISION_LOGIC:
+ 1. **Check the Request Type**:
+    - Determine what kind of creativity is needed:
+      - Analogy/metaphor? Then generate something that parallels the concept (e.g., "an atom is like a solar system...").
+      - Brainstorming ideas? Then list varied ideas (ensuring they are distinct and cover different angles).
+      - Creative writing? Then produce narrative or poem as requested, with given theme or elements.
+      - If not explicitly stated, decide if it's just adding a little creative flourish to explanation vs a full creative piece.
+    - Also consider length and style: Should it be short and witty or longer and descriptive? Possibly glean from context (like user asks "in a funny way" or not).
+  2. **Gather Key Elements**:
+     - Use the factual or context info provided as anchor:
+       - Identify the core concept that must be represented (like "quantum physics principle" or "user's scenario for story").
+       - Identify any constraints (e.g., "for a child" implies simpler language, "in the style of Shakespeare" implies archaic phrasing, etc.).
+     - If context info is lacking facts needed (for analogy, you need to know the actual fact to compare), ensure you have it:
+       - Possibly call M08 to quickly summarize the fact if not already known. (This might be a dependency use where M18 could request a quick fact from M08 if needed to craft analogy accurately.)
+       - But careful not to call heavy reasoning in loop; ideally, the call to M18 comes with needed facts, or M18 has general knowledge from model. We can assume the AI's base knowledge suffices for common facts.
+  3. **Idea Generation**:
+     - Use a divergent thinking approach:
+       - If analogy: think of a familiar domain that shares structural similarity with the concept. E.g., for "network security", maybe analogy of a castle with guards.
+       - If story ideas: free associate around the topic, possibly combine with a twist (like user said fantasy story about a dragon and a spaceship; combine those).
+       - If multiple, ensure variety: don't give five identical analogies.
+       - The module might effectively do a mini brainstorming: we can simulate that by listing out a few raw ideas then fleshing them.
+     - Apply creativity but within plausible bounds:
+       - It’s okay if analogies are a bit humorous or novel, as long as they help understanding.
+       - Ensure suggestions aren't too absurd unless user specifically wants absurd humor.
+       - And ensure they do not inadvertently break factual accuracy when it matters (though analogies by nature are not exact, but they should not reinforce false understanding).
+     - Possibly filter out any idea that might violate safety (like an analogy that uses a violent scenario if user is a child, etc.). Use common sense aligned with guidelines.
+  4. **Compose the Output**:
+     - Write out the creative suggestions clearly:
+       - For analogies: maybe one analogy per bullet or sentence.
+       - For story: maybe a paragraph or list of bullet ideas, or the story fully written if required.
+       - For jokes: provide a couple of one-liners or a short comedic explanation.
+     - Keep tone and complexity appropriate for context (if context says "child", use simple words and playful tone).
+     - If multiple suggestions, number them or bullet them for clarity (makes it easier for decision engine to pick or present all).
+     - If only one is needed (maybe analogies, a single good one suffices), provide the best one.
+     - Possibly provide a brief explanation if needed: e.g., after analogy, maybe a note on how it relates, unless obvious.
+     - The output should be such that M14 can near-directly use it or integrate it.
+  5. **Quality Check**:
+     - Quick self-check if the output actually addresses the prompt:
+       - If user asked for humor, is it funny (subjective, but at least not completely serious).
+       - If asked for "creative solutions", ensure they are indeed inventive, not generic.
+     - Check no glaring policy issue in creative content (like the story didn't accidentally become gory if user didn't want that, etc.).
+  6. **Deliver Suggestions**:
+     - Provide **Creative_Suggestions** to the caller (likely M09).
+     - M09 or M08 will then decide how to incorporate:
+       - Possibly M09 chooses one analogy out of list to include in answer, or if the user asked for multiple, maybe all are given via M14.
+       - If it was a story request, M09 likely just passes it to M14 to present as final answer.
+     - The loop then continues as normal (M11 will do a final safety pass on final compiled answer including creative parts).
+ 
+RECURSION_CHECKS:
+ - M18 might rely on baseline model creativity (like since underlying LLM can be creative). It's isolated so it won't call itself.
+ - Danger is if M18 thinks to use creative approach to solve a problem better solved by logic. But that would be triggered by M09 incorrectly, not M18's doing. 
+ - Once M18 outputs something, it doesn't re-invoke others except maybe it could have called M08 for facts (which is a decided dependency but we should do minimal to avoid a deep call structure).
+ - But if needed, M18 could do a quick reasoning call if absolutely necessary to ensure it got concept right (like "explain X in brief" from M08, then turn that explanation into analogy).
+ - That call should not cause recursion because M08 won't call M18 unless it again wants analogies recursively (which it wouldn't if we design properly).
+ - We should guard: if M18 is triggered, M08 should not be triggered inside it except as a subroutine for facts, which presumably doesn't call creative again. So fine.
+ 
+CHANGE_INSTRUCTIONS:
+ - **Enhance creativity**: If the outputs seem lackluster, you might incorporate more advanced prompt patterns or techniques:
+   - E.g., instruct the underlying model with "Imagine you're [scenario]..." or use random stimulation to get more varied ideas.
+   - But since we outline logic, you'd articulate more steps like "think of three domains to draw analogies from and pick one uncommon" etc.
+ - **Bound creativity**: If there's risk of going too far off-topic, add constraints:
+   - For example, limit the length of creative tangent if it’s just an analogy needed (so it doesn't become an overlong story overshadowing the factual answer).
+   - Or ensure the creative suggestion is followed by a link back to main topic (like "thus, in real life this means...").
+ - **User customization**: Possibly tie with user profile: some users may prefer straightforward answers with minimal flair, others ask for analogies often. M15 could have a flag "prefers creative examples" that M18 could consult. Not implemented now, but something you could do.
+ - **Multiple languages or styles**: If asked for a poem specifically, maybe choose a poetic structure (rhyming couplets etc.). Could add logic to detect "poem, song, joke" in problem description and format accordingly (like output line breaks for poem, or a certain meter if advanced).
+ - After modifications, update **Version** and **Checksum**. If dependency on M08 usage changed, update that mention as well.
+
+---
+Next_Suggest: (None explicitly, outputs go back to reasoning/decision flow)
+Alternate_Next: (None)
+Resource_Usage: Moderate (generating creative content can be similar complexity to reasoning, maybe slightly more due to open-endedness)
+---

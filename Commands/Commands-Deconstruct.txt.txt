@@ -1,0 +1,150 @@
+**Commands-Deconstruct.txt**
+
+#### **DECONSTRUCT Command**
+**Purpose**: Disassemble content into raw elements such as words, phrases, and simple ideas. Focuses on structural visibility without analysis, preparing content for further processing.
+
+---
+
+#### **Core Functionalities**
+
+1. **Text Tokenization**
+   - **Goal**: Split text into individual words, punctuation, and simple phrases.  
+   - **Tasks**:
+     - Segment text into tokens (words, punctuation marks).
+     - Identify and extract common phrases or collocations.  
+   - **Outcome**: List of words and key phrases for visibility.  
+   - **Example**:  
+     ```
+     Input: "AI in healthcare improves outcomes."
+     Output: [AI, in, healthcare, improves, outcomes]
+     Phrases: [AI in healthcare]
+     ```
+
+2. **Content Fragmentation**
+   - **Goal**: Break text into smaller conceptual units (clauses, sentences, lists).  
+   - **Tasks**:
+     - Split sentences into clauses or ideas.
+     - Decompose lists into individual items.  
+   - **Outcome**: Isolated statements for granular analysis.  
+   - **Example**:  
+     ```
+     Input: "AI improves efficiency and lowers costs."
+     Output: ["AI improves efficiency", "lowers costs"]
+     ```
+
+3. **Separation of Concepts**
+   - **Goal**: Extract core concepts, actions, and modifiers.  
+   - **Tasks**:
+     - Identify key nouns (concepts).
+     - Extract verbs (actions) and their associated modifiers.  
+   - **Outcome**: Skeleton representation of content.  
+   - **Example**:  
+     ```
+     Concepts: [AI, efficiency, costs]
+     Actions: [improves, lowers]
+     Modifiers: [efficiency, lowers]
+     ```
+
+4. **Hierarchical Breakdown**
+   - **Goal**: Display implicit content hierarchy (main ideas, supporting details).  
+   - **Tasks**:
+     - Isolate primary ideas from supporting specifics.
+     - Map examples or explanations to their parent concepts.  
+   - **Outcome**: Simplified hierarchical representation.  
+   - **Example**:  
+     ```
+     Main Idea: "AI enhances healthcare."
+     Support: "By improving diagnostics, lowering costs."
+     ```
+
+---
+
+#### **New Subcommands**
+
+1. **DECONSTRUCT LINKS**
+   - **Purpose**: Break down and isolate cross-references or dependencies.  
+   - **Syntax**: `DECONSTRUCT LINKS [Category/Item]`  
+   - **Output Example**:  
+     ```
+     Input: "AI links to Machine Learning and Neural Networks."
+     Output:
+     - Links: [AI -> Machine Learning, AI -> Neural Networks]
+     ```
+
+2. **DECONSTRUCT HIERARCHY**
+   - **Purpose**: Explicitly map hierarchical relationships in content.  
+   - **Syntax**: `DECONSTRUCT HIERARCHY [Content]`  
+   - **Output Example**:  
+     ```
+     Input: "Healthcare benefits from AI applications."
+     Output:
+     - Parent: [Healthcare]
+     - Child: [AI applications]
+     ```
+
+3. **DECONSTRUCT COMPARISON**
+   - **Purpose**: Break down comparisons within text.  
+   - **Syntax**: `DECONSTRUCT COMPARISON [Content]`  
+   - **Output Example**:  
+     ```
+     Input: "AI is faster but less intuitive than humans."
+     Output:
+     - Comparison: [AI -> faster, Humans -> intuitive]
+     ```
+
+---
+
+#### **Advanced Features**
+
+1. **Minimal Analysis**
+   - Focuses purely on structural disassembly, avoiding interpretation or categorization.  
+   - Use Case: Preparation for deeper commands like ANALYZE or INTEGRATE.
+
+2. **Phrase Highlighting**
+   - Identifies critical multi-word expressions or terms.  
+   - Example: "Machine Learning" is highlighted as a phrase.
+
+3. **Pre-Categorization Preparation**
+   - Outputs simplified components for seamless transition to other commands.  
+   - Example:  
+     ```
+     Concepts: "Artificial Intelligence"
+     Actions: "Improves"
+     Categories for Placement: [Technology, Healthcare]
+     ```
+
+---
+
+#### **Example Workflows**
+
+1. **Text Disassembly**  
+   ```
+   Command: DECONSTRUCT "AI in healthcare transforms patient care."
+   Output:
+   - Tokens: [AI, in, healthcare, transforms, patient, care]
+   - Phrases: [AI in healthcare, patient care]
+   ```
+
+2. **Hierarchical Analysis**  
+   ```
+   Command: DECONSTRUCT HIERARCHY "AI applications improve diagnostics."
+   Output:
+   - Parent: [AI applications]
+   - Child: [improve diagnostics]
+   ```
+
+3. **Cross-Referencing**  
+   ```
+   Command: DECONSTRUCT LINKS "AI and robotics collaborate in manufacturing."
+   Output:
+   - Links: [AI -> robotics, collaborate -> manufacturing]
+   ```
+
+---
+
+#### **Key Improvements**
+- Introduced **DECONSTRUCT LINKS**, **HIERARCHY**, and **COMPARISON** for broader flexibility.  
+- Enhanced functionality for hierarchical clarity and pre-categorization.  
+- Added workflows for breaking down complex sentences with structural clarity.
+
+---

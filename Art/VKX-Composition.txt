@@ -1,0 +1,92 @@
+VKX-Planning.txt
+
+
+VKS-Composition.txt
+This file will serve as the blueprint for understanding and structuring the Visual Kinetic Sketching (VKS) style within compositions. Composition refers to how elements are arranged within an artwork, and in the VKS style, it is vital to capture energy, movement, and balance while respecting the inherent anatomy, light interaction, and texture. The goal of this document is to teach the AI how to handle composition when generating or analyzing images in the VKS style.
+
+1. Understanding Composition in VKS
+In VKS, composition is more than just the placement of figures; it’s about guiding the viewer's eye through dynamic movement while maintaining a sense of harmony and flow across the piece. The composition reflects the rhythm and energy of the subject, ensuring that every element contributes to a sense of life and movement.
+
+2. Key Elements of Composition in VKS
+A. Focal Points & Flow
+
+Objective: Establish a clear focal point, which is where the viewer's attention should naturally be drawn first.
+
+VKS emphasizes motion, so the focal point should always highlight the most dynamic or critical action in the piece.
+Implementation:
+
+Place the main subject or object of interest slightly off-center, following the Rule of Thirds.
+Use dynamic lines to guide the viewer's eye from one element to another, creating a path through the image. These lines could follow the contours of a subject’s body or other prominent features like weapons, tools, or environmental elements.
+Ensure that each element flows smoothly into the next without causing abrupt stops in visual movement.
+Example: When depicting a humanoid in motion, the curve of their body could direct the viewer’s attention from the head to the legs, accentuated by flowing lines in the background that reinforce this sense of motion.
+
+B. Balance & Symmetry
+
+Objective: While VKS focuses on dynamic movement, it is also important to achieve visual balance.
+
+Balance refers to how the visual “weight” of elements is distributed throughout the composition.
+Implementation:
+
+Symmetry: In certain instances, a symmetrical composition can amplify the impact of the subject, especially if the subject is standing still or in a balanced, centered pose. Symmetry conveys calmness, precision, or strength.
+Asymmetry: Asymmetrical compositions are more common in VKS, as they inherently feel more dynamic and energetic. Ensure that if the subject is placed off-center, other elements in the composition balance it out (e.g., background shapes, secondary figures).
+Example: A character in motion might be placed on the left third of the frame, with elements like a pursuing figure or flowing debris on the right side to counterbalance the composition.
+
+C. Depth & Spatial Relationships
+
+Objective: Create a sense of depth and space within the image, ensuring that the viewer feels immersed in the scene.
+
+VKS thrives on creating a sense of dynamic depth, making the viewer feel as though they are part of the action or movement.
+Implementation:
+
+Use overlapping elements to convey depth. Figures, objects, and environmental elements should overlap naturally, with closer elements having more detail, while distant elements fade into less focus.
+Incorporate a foreground, middle ground, and background, each having distinct roles. The foreground often contains the primary subject or action, while the background helps frame the scene and provide context.
+Apply atmospheric perspective, where distant objects become lighter and blurrier to imply depth. This technique is especially effective when dealing with expansive landscapes or complex environments in VKS.
+Example: A figure leaping through the air could be in the foreground, with the background consisting of distant cliffs and forests that blur slightly to emphasize the figure’s movement and proximity.
+
+D. Energy & Motion in Composition
+
+Objective: The VKS style is inherently kinetic, so compositions should always imply movement, even when depicting still figures.
+
+Implementation:
+
+Apply the S-curve or C-curve to compositions. These naturally flowing curves can be seen in figures’ poses, in the environment, or even in the way light and shadows are distributed. These curves create a sense of ongoing movement.
+Ensure that motion lines are incorporated into the composition, either directly in the figures’ poses or abstractly in the background elements. These lines guide the viewer’s eye from one part of the image to the next and create a sensation of energy and action.
+Example: If depicting a runner, their body should follow an exaggerated C-curve, and elements such as wind or dust could trace the same arc, reinforcing the movement.
+
+3. Techniques for Building VKS Compositions
+A. Layering Elements
+
+Process: Build compositions by layering elements progressively. Start with the most important part of the image (the subject) and then add secondary elements (supporting figures, objects, background features).
+
+Guidelines:
+
+Layer 1: Dynamic Lines – Begin with the lines that dictate the movement and energy in the piece. These should be bold and unbroken, dictating how the eye will move through the image.
+Layer 2: Subject & Structure – Build the primary figure or subject on top of the dynamic lines, ensuring that it follows the natural flow and direction set by the lines.
+Layer 3: Supporting Elements – Add secondary elements that will provide context or additional narrative information (e.g., background figures, objects).
+Layer 4: Light & Shadow – Finalize the composition with lighting, ensuring that light follows the dynamic motion and enhances the three-dimensionality of the subject.
+B. Framing Techniques
+
+Objective: Use framing to isolate the subject and enhance its importance in the composition.
+
+Techniques:
+
+Use natural frames within the environment (e.g., doorways, windows, branches) to encase the subject and direct the viewer’s focus.
+Use negative space around the subject to allow the figure or object to “breathe.” Negative space, especially when used sparingly, can direct more attention to the motion and structure of the primary subject.
+C. Leading the Eye
+
+Objective: Guide the viewer’s attention deliberately through the image, ensuring that their eye follows the motion of the figures or energy of the scene.
+
+Techniques:
+
+Incorporate leading lines that direct the viewer’s gaze. In VKS, these could be the limbs of a humanoid figure, the curve of a flowing cape, or environmental elements like roadways or rivers.
+Use contrasts in light and shadow to highlight important areas. Bright light on the primary figure, contrasted with a dark background, will immediately draw attention to the subject.
+4. Common VKS Composition Structures
+A. Diagonal Composition
+
+Diagonal compositions are ideal for showcasing movement and action. They naturally create a sense of energy as the eye moves diagonally across the frame.
+B. Triangular Composition
+
+Triangular compositions help establish stability in a dynamic piece. The base of the triangle is often the subject's stance, with upward movement directed by the arms, body, or background.
+C. Radial Composition
+
+Radial compositions work when the subject is the focal point of the action, and lines, figures, or objects radiate outward from this central point. It is effective in group scenes or chaotic environments where all attention converges on one subject.here to add fine textures (e.g., cross-hatching, stippling) and where to leave surfaces smoother to balance the image.

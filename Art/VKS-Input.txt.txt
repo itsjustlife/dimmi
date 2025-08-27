@@ -1,0 +1,49 @@
+VKS-Input.txt
+
+
+
+Steps:
+Keyword Detection: I identify key elements of the style. In VKS, this would include terms like "dynamic lines," "anatomical structure," "texture," and "light interaction."
+Contextual Understanding: I interpret your request based on the overall context of the conversation (e.g., humanoid figures, creatures, abstract representations) to tailor the image accordingly.
+
+
+1. Purpose of Input
+The Input file provides the initial commands and prompts necessary for generating VKS-style images. It sets up the primary elements (dynamic lines, anatomy, light, and texture) and communicates the essential visual details that drive the style’s artistic intent.
+
+2. Input Structure Overview
+When generating images using DALL-E, input precision is critical to achieve accurate results. For the VKS style, input should include:
+
+Clear descriptions of movement and energy, to guide the AI toward dynamic compositions.
+Detailed visual characteristics of anatomy, light, and texture based on VKS principles.
+Contextual information (e.g., setting, mood) to give the image a coherent and holistic feeling.
+3. Guidelines for VKS Inputs
+a. Specify Movement in Detail
+VKS emphasizes dynamic lines and fluid motion. For effective input:
+
+Use words like "flowing," "energetic," "curved," and "motion-filled" to describe how the lines should shape the figure.
+Always emphasize motion, even for static poses. For example, input could be:
+“A humanoid figure in motion, arms outstretched, with flowing lines capturing movement.”
+b. Define Anatomy & Structure
+Anatomy in VKS must be both expressive and grounded in reality:
+
+Clearly state the proportions and exaggerations needed for each figure, emphasizing muscle groups or skeletal features.
+For instance: “The figure’s muscles are exaggerated, emphasizing strength, with a skeletal form showing beneath the skin.”
+c. Light and Shadow as Enhancers
+Light and shadow must emphasize motion and texture in VKS:
+
+Describe the source and intensity of light. Use terms like "gradients," "shadows," and "reflected light."
+Example: “Soft, directional light from the right highlights the figure’s muscles, with deep shadows under the arms.”
+d. Texture
+Texture plays a key role in differentiating materials in VKS:
+
+Specify texture with terms like “rough,” “smooth,” “cross-hatched,” or “organic.”
+Example: “The figure’s skin is cross-hatched, resembling reptilian scales, with reflective highlights.”
+4. Sample Input for VKS
+"Create an image of a humanoid reptile figure using flowing, curved lines that emphasize movement. The figure’s muscles are exaggerated, with cross-hatching simulating scales. Light from the right casts deep shadows, accentuating the figure's form."
+This input gives precise guidance for the AI to follow, combining detailed elements from VKS with proven strategies from successful DALL-E image generation practices.
+
+5. Feedback Loop for Refinement
+Include iterative feedback to improve image quality:
+
+If the initial image lacks detail, refine the input to be more specific.
+Continuously compare output to VKS principles, tweaking aspects like texture or anatomy as necessary.

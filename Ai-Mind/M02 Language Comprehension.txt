@@ -1,0 +1,79 @@
+Module M02: Language Comprehension Module
+
+---
+Module: M02_Language_Comprehension
+Version: 1.0
+Purpose: Interpret the structured input, determine user intent and extract meaning
+Triggers: [ "Parsed_Input_Available" ]
+Inputs: [ "Parsed_Input_Structure from M01", "Cleaned_Text" ]
+Outputs: [ "Interpreted_Intent", "Extracted_Entities", "Contextualized_Request" ]
+Dependencies: [ "M03_Short_Term_Memory", "M11_Safety_Alignment" ]
+Safety_Level: Moderate
+Checksum: 52ef1120716b346a9d168048d27282a8
+---
+
+PURPOSE:
+ The Language Comprehension Module serves as the AI’s primary understanding engine for natural language. Its goal is to analyze the preprocessed input (from M01) and infer what the user *means*. This includes identifying the intent of the user’s message (is it a question, a command, a statement, a greeting, etc.?), extracting key entities or parameters (like names, dates, topics mentioned), and incorporating any immediate context from short-term memory to resolve references (e.g., pronouns or previous mentions). In essence, M02 translates user input into an internal representation that the rest of the system can work with (almost like the AI’s “mentalese” form of the user’s request). This is analogous to how a human listens to a sentence and grasps the meaning and intention behind it.
+
+INPUTS:
+ - **Parsed_Input_Structure:** The structured input from M01, which includes the cleaned text and maybe a preliminary type classification. For example, it might be `{ type: "user_message", content: "Book me a flight tomorrow" }`.
+ - **Cleaned_Text:** In cases where we just need the plain text (the module can derive it from the structure, but it’s listed for clarity).
+ - **Short-Term Context:** (Implicitly via dependency on M03) Recent conversation context or relevant info. The module may query M03 (Short-Term Memory) if the input refers to earlier conversation (e.g., “Can you do that?” – we need to know what “that” refers to).
+ - **Safety Guidance:** (Via dependency on M11) While primary filtering is M11’s job, this module might consult safety rules to avoid interpreting something in a way that violates policies (for instance, if a user message is disallowed content, M02 might flag the intent as something to refuse).
+
+OUTPUTS:
+ - **Interpreted_Intent:** A concise representation of what the user wants. For example, “intent: book_flight” or “intent: ask_question” or “intent: casual_chat”. This could be a symbolic label or natural language summary.
+ - **Extracted_Entities:** Key information pieces extracted from the input. E.g., { date: “tomorrow”, action: “book”, object: “flight” } or answers like { topic: “quantum physics” } for a question “Tell me about quantum physics.” These entities will inform planning or reasoning modules.
+ - **Contextualized_Request:** A refined version of the user’s request that includes context resolution. For example, if the user said “Book it for me,” and previously they talked about a hotel, this output might be “User wants to book the mentioned hotel for them.” It essentially fills in blanks using short-term memory so that downstream modules have a self-contained request.
+ - These outputs together form the semantic understanding of the input, which will feed into the Goal Management (M06) or directly to Reasoning (M08) depending on complexity.
+
+DETAILED_DECISION_LOGIC:
+ 1. **Parse Input Structure**: Receive `parsed_input` from M01. Extract the `content` (text) and `type` (if provided).
+ 2. **Understand Basic Intent**: Using simple NLP rules or patterns:
+    - If `type` was provided by M01 (e.g., “command” vs “question”), start from that. Else, determine intent:
+      - Check for a question mark or typical question words (“who”, “what”, “why”, etc.) to classify as a question.
+      - Check for imperative verb forms or known command phrases (“please do X”, “show me Y”) to classify as a command.
+      - Greetings or chit-chat (“hello”, “how are you”) classify as small talk.
+      - If the input content matches no special pattern, default to a general inquiry.
+    - Set a preliminary `intent_label` (like “ask_question”, “execute_command”, “chat”, etc.).
+ 3. **Entity Extraction**: Scan the content for key entities:
+    - Proper nouns (names of people, places, organizations).
+    - Dates, times, numbers (e.g., “tomorrow”, “3 PM”, “$100”).
+    - Keywords related to tasks (like “book”, “buy”, “find”, depending on domain).
+    - If domain-specific parsing is needed (like recognizing “flight” as a travel intent, or “population” as a factoid query indicator), include those rules.
+    - Use simple regex or a small library of patterns for this. For example, a regex for dates (`\b\d{1,2}/\d{1,2}/\d{4}\b` or words like “today/tomorrow”).
+    - Store these in an `entities` map, e.g., entities = { “date”: “tomorrow”, “object”: “flight” }.
+ 4. **Resolve Pronouns & References**: If the input contains pronouns or references like “that”, “it”, “them”, or the user omits context (e.g., “What about Paris?” following a previous question about cities):
+    - Query Short-Term Memory (M03) for recent dialogue or focus. For example, find the last mentioned subject.
+    - Replace or annotate the content with the resolved reference. E.g., if ST Memory indicates the user was talking about *hotels*, and now says “Book it,” we infer “it” = the hotel discussed.
+    - This may involve retrieving a couple of recent messages or facts from M03 and doing a simple coreference resolution.
+    - If resolution is uncertain, note that (the system might have to ask a clarifying question, but that decision might be made by M09 or M14 later).
+ 5. **Contextualize with Environment/User Data**: If needed, incorporate data from M15 (User Profile) or M16 (Environment) — though these are not listed as direct dependencies, M06 or others might add that. For instance, if the user says “remind me to call mom”, and user profile has a field “mom’s phone number”, you might not use it here, but you’d at least recognize “mom” as a person entity. (Full integration with those modules might happen in planning.)
+    - Essentially, just be aware if certain keywords match known user-specific info (like names of their contacts or preferences) and mark those in entities.
+ 6. **Safety Interpretation Check**: Before finalizing, do a quick check if the content *looks* like it’s requesting disallowed content:
+    - e.g., If `intent_label` turned out to be “ask_question” and entities show the user is asking “how to build a bomb”, then flag the intent as something like “disallowed_request”.
+    - This leverages knowledge of safety policy (M11’s rules). We don’t have full access to M11’s logic here, but we know categories. Mark an `intent_label` or a flag like `safety_flag = true` if something seems off.
+    - This flag can be passed along so that either M11 will catch it soon or the system can pre-emptively decide not to proceed normally.
+ 7. **Compose Outputs**: 
+    - Set `Interpreted_Intent` as a concise statement or code for what to do (e.g., “find_flight” or “small_talk”).
+    - Prepare `Extracted_Entities` as a dictionary or list of key: value pairs (from step 3 and 4).
+    - Build `Contextualized_Request` as a possibly reformulated version of the user’s request incorporating resolved context, e.g., “Book [Hotel Sunshine] for [User Name] on [2023-12-01]”.
+    - If a safety flag was set, one of the outputs might include an annotation like `intent_label: "disallowed_request"` or a special flag to alert Safety module down the line.
+    - Output these to the next stage. Typically, this goes to Goal Management (M06) or directly to Reasoning (M08) if it’s a simple Q&A; the system’s orchestrator will decide next step based on the complexity (M06 usually will be involved to decide that).
+
+RECURSION_CHECKS:
+ - This module should not call itself. It’s a one-pass language parser/understander.
+ - It relies on memory (M03) for context but is careful not to get into a loop. For example, if memory retrieval is inconclusive, it does not repeatedly query in a tight loop – it either proceeds with best guess or flags the need for clarification.
+ - No direct recursion or cyclical calls with other interpretive modules (M02 primarily feeds forward). It’s dependent on memory reads which are finite and bounded.
+
+CHANGE_INSTRUCTIONS:
+ - **Improve intent detection**: If the module is misclassifying intents (e.g., missing a new kind of request you introduced), update step 2’s rules. You might add new keywords or patterns. For example, if you add a new feature like handling jokes, include pattern like if content contains “joke” then intent = tell_joke.
+ - **Extend entity extraction**: When the system enters new domains, add patterns in step 3. For instance, if dealing with addresses, include regex for addresses; if dealing with math questions, extract equations or numbers differently. Ensure to update the OUTPUTS description if you add new kinds of entities.
+ - **Coreference enhancements**: To make pronoun resolution smarter, you might integrate a small ML model or more complex logic. Changes here could involve calling an external library or module. If so, note the new dependency (e.g., a coreference resolution tool) in Dependencies. Otherwise, adding a few more heuristic rules (like checking gender of pronoun against known entities in memory) can be done in step 4.
+ - **Safety updates**: If you refine what counts as a flagged request (maybe hooking into M11 more directly), adjust step 6. For example, maintain a list of disallowed intent patterns (like anything with “bomb” or violence) in this module if you want quick filtering. However, keep in mind M11 is the ultimate authority; M02’s safety check is a coarse filter to save effort down the line.
+ - After any change, increment the **Version** in the header and recalc the **Checksum**. If you significantly change the format of outputs or the logic, also verify that the downstream modules (M06, M08) can handle the new output properly (you might need to update their Inputs description or logic accordingly).
+
+---
+Next_Suggest: M06_Goal_Management
+Alternate_Next: M08_Reasoning (if simple Q&A intent identified, skip complex goal handling)
+Resource_Usage: Moderate (parsing and pattern matching on text; negligible in small scale, but grows with input length)

@@ -1,0 +1,91 @@
+Module M06: Goal Management Module
+
+---
+Module: M06_Goal_Management
+Version: 1.0
+Purpose: Track and prioritize user goals/tasks, and initiate or switch plans accordingly
+Triggers: [ "New_Goal_Received", "Task_Completed", "User_Priority_Change" ]
+Inputs: [ "Interpreted_Intent from M02", "User_Goal_Details", "Task_Status_Update" ]
+Outputs: [ "Active_Goal", "Goal_List_Update", "Trigger_Planning" ]
+Dependencies: [ "M07_Planning", "M03_Short_Term_Memory", "M05_Working_Memory" ]
+Safety_Level: Moderate
+Checksum: 00462a89d1911f9b8b1b1dc8d8fa299d
+---
+
+PURPOSE:
+ The Goal Management Module acts as the executive controller that manages what the AI is trying to accomplish at any given time. When a new request or intent comes in (from M02), M06 interprets it as one or more “goals” or tasks. It is responsible for recording these goals, prioritizing them if multiple are in play, and determining when to hand off a goal to the Planner (M07) or directly to the Reasoning module (M08) for execution. It also monitors when goals are completed or need to be reprioritized (for example, if the user interrupts with a more urgent request). In human terms, M06 is like the part of your mind that keeps a to-do list and focuses your attention on one task at a time, while not forgetting about others you promised to do.
+
+INPUTS:
+ - **Interpreted_Intent (New_Goal_Received):** From M02, a structured description of what the user wants. This often includes an intent label and any extracted parameters/entities. M06 uses this to formulate a goal.
+ - **User_Goal_Details:** In some cases, the user might explicitly provide a goal list or priorities (e.g., “First do X, then Y”). Those details would come through this input, possibly as part of the Interpreted_Intent structure or additional data from M02.
+ - **Task_Status_Update (Task_Completed or progress updates):** Signals from other modules (like M07 or M10) that a task has been finished or a subtask completed. Also, reflections from M12 might feed in here if they suggest a goal was satisfied or needs re-evaluation. For example, once an answer is given to the user, that goal can be marked done. Or if a plan fails mid-way, that might update the status to “needs attention”.
+
+OUTPUTS:
+ - **Active_Goal:** The currently focused goal/task that the system should be working on. This might be output to other modules to inform them (e.g., to M05 to set up working memory context, or as context for M08).
+ - **Goal_List_Update:** A representation of the list of goals and their status that could be logged or passed to memory (M03 or M04). This ensures the system remembers pending tasks. For instance, if the user gave two requests, one might be active, the other queued. This output could be something like “[1] Goal A – In Progress; [2] Goal B – Pending”.
+ - **Trigger_Planning:** A signal or data structure sent to M07 (Planning) when a new active goal requires a plan. This might include the goal description and relevant context.
+ - Note: In some implementations, instead of explicit outputs, M06 might directly call M07’s functionality. But given our modular approach, we treat it as producing an output that the orchestrator or M07 will pick up.
+
+DETAILED_DECISION_LOGIC:
+ 1. **Receive and Define New Goal** (on New_Goal_Received):
+    - Parse the `Interpreted_Intent` input. It likely contains something like `intent_label` and details/ entities.
+    - Formulate a goal description. For example, if intent is "ask_question" about topic X, goal = "Answer user's question about X". If intent is "execute_command" like booking, goal = "Book a flight with parameters Y".
+    - If there are multiple intents in one user input (e.g., "Do X and then Y"), split them into multiple goals. Determine if they are sequential or independent. Typically, the phrasing suggests sequential if they said "and then".
+    - Add the new goal(s) to an internal goal list:
+      - If there's no current active goal or if this is urgent, it may become active immediately.
+      - Otherwise, mark it as pending.
+    - If there is an active goal already, decide priority:
+      - If the new goal is high priority (e.g., user says "actually, forget that, do this instead"), you might preempt the current goal. This could trigger a context switch: possibly pause or cancel the ongoing plan for the old goal, and make the new one active.
+      - If the new goal is lower priority or can be queued, keep the current goal active and queue this one.
+    - Output/Update the **Goal_List_Update** to reflect the addition and any changes in status (like "Goal X paused", "Goal Y added and active").
+    - Determine the **Active_Goal** after this update (could be new or remain old).
+ 2. **Initiate Planning or Direct Action**:
+    - For the active goal decided:
+      - If the goal is simple enough (like a straightforward question or single-step action), it might not require complex planning. In such cases, you can bypass M07 and directly engage reasoning or an atomic action. Criteria for this can be based on `intent_label` (e.g., "ask_question" often means answer generation without multi-step plan).
+      - If the goal is complex or multi-step (like "book a flight" which involves searching flights, picking one, booking it), then trigger the planner.
+    - If planning needed:
+      - Prepare a **Trigger_Planning** output with the goal details (and any context or constraints).
+      - Possibly also prepare the working memory via M05 by sending New_Task_Context (M05 is in dependencies, so you might directly call or via output that orchestrator links).
+      - The planner (M07) upon receiving the goal will start generating a plan.
+    - If direct reasoning:
+      - Instead of a planning output, you might send the goal as a query to M08. However, since our structure expects a certain flow, you might still formally go through M07 but M07 could immediately recognize no multi-step needed and delegate to M08.
+      - Alternatively, set Active_Goal and then orchestrator calls M08 with it.
+    - At this stage, essentially M06 hands off execution of the goal to either the Planner or Reasoner.
+ 3. **Monitor Task Progress**:
+    - As tasks proceed, M06 may receive updates (Task_Status_Update):
+      - If a subtask is completed (perhaps signaled by M07 or M10), M06 can update the internal status of the goal (e.g., "50% done" or "step 1 of 3 done").
+      - If a task is completed successfully:
+         * Mark goal as completed. 
+         * Output an updated Goal_List (with that goal removed or marked done).
+         * Possibly trigger any next goal if queued: set that as new Active_Goal and repeat step 2 for it.
+      - If a task fails or is blocked:
+         * M06 might decide to retry, modify the goal, or ask the user for input. For now, a failure might be indicated by a status update like "failed".
+         * In such case, M06 could either mark the goal as failed (and possibly drop it or wait for user clarification), or re-plan by sending it again to M07 with maybe adjusted parameters (this could be guided by Reflection module suggestions).
+      - If user explicitly cancels a goal (User_Priority_Change trigger perhaps used for cancellations too), then mark that goal as cancelled, update list, and pick the next one if any.
+    - Keep the Short-Term Memory (M03) or Long-Term Memory (M04) informed if needed by storing a note like “Goal X completed” for future context. This isn’t a direct output, but M03 might get a New_Context_Item with that info.
+ 4. **Multi-Goal Coordination**:
+    - If multiple goals can be done in parallel (rare in a linear conversational agent, but imagine the AI had background tasks), M06 would manage switching. But typically, it will do one at a time unless explicitly told to do something in parallel (which is out-of-scope for now).
+    - If the user asks "What's the status of X?" M06 can answer by checking its goal list and returning the status. That might be handled by M08 using data from M06 (e.g. a query to goal list).
+    - If a new user turn comes in while a lengthy plan is in progress, M06 might have to decide: do we interrupt or queue the user’s request? Our design likely processes one user request at a time, but if something is ongoing (like waiting for a tool), it could be an interruption scenario.
+
+RECURSION_CHECKS:
+ - M06 shouldn't recursively trigger itself. It responds to events. 
+ - It does call into planning (M07), which in turn might, when done, call back to M06 via Task_Completed input. That loop is normal operation (not infinite, it ends when task done).
+ - Make sure if a plan fails and M06 decides to re-plan, it doesn't get stuck in a loop of reattempting the same plan repeatedly without change. Some guard: maybe attempt only once unless something changes (or rely on Reflection M12 to modify approach).
+ - If multiple goals are added rapidly, ensure the logic in step 1 handles them one by one rather than mixing states (likely the triggers are sequential anyway).
+ - M06 must avoid a scenario where it continuously toggles between two goals due to priority thrash (shouldn't happen unless user keeps changing their mind each turn, in which case each turn is handled separately anyway).
+
+CHANGE_INSTRUCTIONS:
+ - **Goal prioritization rules**: If you find the need to change how priorities are assigned (e.g., always prioritize user’s latest request, or give certain intent types higher priority), adjust the logic in step 1. You might introduce a priority value for each goal and sort the internal list. If doing so, ensure outputs that show the goal list reflect the priority order.
+ - **Parallel goal handling**: Currently assumed mostly sequential. If you want to handle parallel tasks (like background info fetching while talking), you might have to allow an Active_Goal list of more than one or a concept of an "active" and one or more "background" goals. This complicates planning and execution synchronization. Only attempt if necessary, and then carefully adjust how M07 and M10 would handle multiple concurrent plans. Also update Dependencies if needed (maybe needing a scheduler module).
+ - **Integration with Reflection (M12)**: If the Reflection module identifies that a goal was not achieved fully or suggests a new follow-up goal, M06 should handle that input. For example, M12 might feed in something like: “User’s underlying goal wasn’t met, suggest new goal Z”. To integrate, consider adding a trigger from reflection suggestions. Currently triggers don’t list it explicitly, but “New_Goal_Received” could be reused for suggestions if they come in similar format.
+ - **User interrupts**: If you want to explicitly handle user messages like “stop” or “change priority”, incorporate them. Possibly M02 could output an intent like "cancel_goal" or "reprioritize" with a target. M06 should then catch that as a trigger (User_Priority_Change) and execute cancellation or reordering. Implement logic to find the mentioned goal and mark it accordingly.
+ - **Goal output format**: If you change how Active_Goal or Goal_List_Update is represented (say from text to a structured object), adjust the Outputs field and ensure any consumer (like if M07 expects a certain format in Trigger_Planning) is updated. 
+ - **Memory Logging**: If you need to log goals to memory modules differently, you can add an output or direct call to M03 to store the goal context or summary when a goal starts or finishes. This can improve context for conversation (“As you asked earlier, I have now done X”). It’s more of a design choice; currently, we assume M03 will capture the conversation which includes the user’s request and possibly the AI’s confirmation, which is usually enough.
+ - Update **Version** and **Checksum** after any changes. If adding new triggers or dependencies (like hooking Reflection or explicit cancel commands), list them in YAML fields for clarity.
+
+---
+Next_Suggest: M07_Planning
+Alternate_Next: M08_Reasoning (if goal does not require planning)
+Resource_Usage: Low (maintains small list of goals; minor logic per user turn)
+---

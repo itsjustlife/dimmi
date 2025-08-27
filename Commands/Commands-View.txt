@@ -1,0 +1,104 @@
+Here’s the updated **Commands-View.txt**, incorporating both old and new commands in a technical, condensed style, while retaining precision for the AI's use:
+
+---
+
+### **Commands-View.txt**
+
+#### **VIEW Command**
+**Purpose**: Navigate and visualize Arkhive structures at various depths or relationships, offering flexibility in exploring content.
+
+---
+
+#### **Core Subcommands**
+
+1. **VIEW ALL**  
+   - **Purpose**: Displays the full Arkhive structure, including all top-level categories and their subcategories.  
+   - **Syntax**: `VIEW ALL`  
+   - **Output Example**:
+     ```
+     Arkhive Structure:
+     - WHO
+       - People
+       - Organizations
+     - WHAT
+       - Concepts
+       - Objects
+     ```
+
+2. **VIEW ITEM AND SUB ITEMS**  
+   - **Purpose**: Displays a category and its immediate subcategories.  
+   - **Syntax**: `VIEW ITEM AND SUB ITEMS [Category]`  
+   - **Output Example**:
+     ```
+     - WHO
+       - People
+       - Organizations
+     ```
+
+3. **VIEW ONLY ITEM**  
+   - **Purpose**: Displays a specific category without its subcategories.  
+   - **Syntax**: `VIEW ONLY ITEM [Category]`  
+   - **Output Example**:
+     ```
+     - WHO
+     ```
+
+4. **VIEW TOPIC AND SUB ITEMS**  
+   - **Purpose**: Displays a subcategory and its children, omitting parent categories.  
+   - **Syntax**: `VIEW TOPIC AND SUB ITEMS [Topic]`  
+   - **Output Example**:
+     ```
+     - People
+       - Biographies
+       - Leaders
+     ```
+
+5. **VIEW LEVEL**  
+   - **Purpose**: Displays a category and its subcategories up to a specified depth.  
+   - **Syntax**: `VIEW LEVEL [Category] [Depth]`  
+   - **Output Example**:
+     ```
+     - WHO
+       - People
+       - Organizations
+     ```
+
+6. **VIEW RELATED ITEMS**  
+   - **Purpose**: Displays categories related to a specific topic through cross-references.  
+   - **Syntax**: `VIEW RELATED ITEMS [Category or Topic]`  
+   - **Output Example**:
+     ```
+     - Artificial Intelligence
+       - Machine Learning
+       - Neural Networks
+     ```
+
+---
+
+#### **New Subcommands**
+
+7. **VIEW SEARCH**  
+   - **Purpose**: Searches for and displays categories or subcategories matching a keyword or phrase.  
+   - **Syntax**: `VIEW SEARCH [Keyword]`  
+   - **Output Example**:
+     ```
+     Results for "AI":
+     - Artificial Intelligence
+       - Machine Learning
+     ```
+
+8. **VIEW COMPARE**  
+   - **Purpose**: Highlights differences between two categories or versions of the Arkhive.  
+   - **Syntax**: `VIEW COMPARE [Category1] [Category2]`  
+   - **Output Example**:
+     ```
+     Comparison: WHO vs. WHAT
+     - WHO contains "People" and "Organizations".
+     - WHAT contains "Concepts" and "Objects".
+     ```
+
+---
+
+#### **Additional Features**
+- **Interactive Expansion**: Allows dynamic expansion/collapse of subcategories during a session.  
+- **Search Autocomplete**: Suggests terms while typing in `VIEW SEARCH`.

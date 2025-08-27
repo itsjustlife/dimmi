@@ -1,0 +1,122 @@
+Module M20: Self-Modification Guidance Module
+
+---
+Module: M20_Self_Modification_Guidance
+Version: 1.0
+Purpose: Convert the AI's identified improvement plans into clear instructions for a human to update the AI's modules/files
+Triggers: [ "Module_Change_Proposal from M13" ]
+Inputs: [ "Proposed_Changes_List", "Current_Module_States" ]
+Outputs: [ "Edit_Instructions" ]
+Dependencies: [ ]
+Safety_Level: High
+Checksum: 91a7fd22ccac4aac9a6a0f8ba0f299f4
+---
+
+PURPOSE:
+ The Self-Modification Guidance Module bridges the gap between the AI's recommendations for self-improvement and the actual implementation of those changes by a human operator (or developer). Since the AI cannot directly rewrite its code (and doing so autonomously might be risky), M20 takes the improvement proposals from M13 and formulates them into precise, actionable instructions. These instructions are meant for a person maintaining the system to follow, or in some cases for a future automated process to apply. They include what files/modules to edit, which lines or sections to change, and how, in order to realize the suggested improvements. Essentially, M20 is like a technical writer or meta-coder that knows the architecture and can tell you how to modify it.
+
+INPUTS:
+ - **Proposed_Changes_List:** This is the output from M13's improvement suggestions. It likely contains module-specific suggestions (e.g., "In M02, handle slang terms better" or "Increase memory size in M03"). It might be structured or textual but will at least specify what needs changing conceptually.
+ - **Current_Module_States:** Optionally, information about the current version or content of the modules. This might include:
+   - The current YAML headers (so M20 can reference Module IDs and versions).
+   - Access to the pseudocode or logic to pinpoint line numbers or snippets (for context).
+   - If M20 is integrated into a development environment, it might even have diffs or ASTs, but let's assume it has at least enough to know where changes go.
+   - Possibly, M13 or orchestrator could provide relevant excerpts ("here's the section of M02 dealing with slang detection, for reference").
+   - If not provided, M20 relies on its knowledge of the module structures as documented (since we made each module in a standardized way).
+ - If needed, M20 could ask M04 for stored code or use an internal representation, but likely not needed if we assume it has a high-level view from M13’s output and knowledge of structure.
+
+OUTPUTS:
+ - **Edit_Instructions:** A detailed, step-by-step set of instructions to implement each proposed change.
+   - It should be formatted in a way a developer can follow:
+     * Specify the module and file (e.g., "Open `M02_Language_Comprehension.txt`").
+     * Identify where in the file (by section, maybe by a unique comment or the step number in pseudocode, or line number if known).
+     * Describe what to change:
+       - For instance: "In the DETAILED_DECISION_LOGIC of M02, after step 2, insert a new step: '3. Normalize common slang terms to formal equivalents (e.g., "cool" -> "good").' Adjust subsequent step numbering."
+       - Or: "In M03, change the capacity from 5 to 10 in the logic and update any comment about memory size to match."
+       - Provide exact new text if possible for clarity, or at least an example.
+     * If code blocks or YAML changes: present them clearly (like a diff or snippet).
+   - If multiple changes, number them or break into separate instructions for each module.
+   - Include updating of metadata: e.g., "Increment the Version number in the YAML header of that module to 1.1 and update the Checksum (compute the new MD5 for the file)."
+   - Also mention testing or verification if relevant: "After making this change, test by asking the AI to interpret slang like 'brb' to ensure it works."
+   - Use polite imperative tone (the typical instruction style).
+ - These instructions should assume the person has the module files open and knows how to recompute checksums etc., but the text should be explicit about what to do in what order.
+ - The instructions should **not** contain any of the AI's internal reasoning or irrelevant info, just the actionable steps.
+ - If there's any ambiguity, clarify it (like "if section not found, search for XYZ in the file").
+ - Essentially, M20 writes a mini-change request or patch description.
+
+DETAILED_DECISION_LOGIC:
+ 1. **Parse Proposed Changes**:
+    - Read each item in Proposed_Changes_List. Determine:
+      - Target module (which file).
+      - Nature of change (add, remove, modify logic, adjust parameter, update documentation, etc.).
+      - The rationale (for context) – might not need to be in final instructions unless it helps the implementer understand why, but likely the human will do it anyway given trust in the process.
+    - It might be already structured as "Module: X, Change: ...", which makes it easier. If just text, parse for module names or IDs (like "M02" etc. will signal which module).
+    - If multiple suggestions for the same module, consolidate them so instructions for one module are grouped.
+    - Also note if any suggestion affects multiple modules (like "Update dependency reference in M05 after changing M03's output format" – those cascade changes should be included).
+ 2. **Locate Change Points**:
+    - For each proposed change, figure out where in the module file it should be applied:
+      - Use knowledge of module structure (PURPOSE, LOGIC, etc.). For example, if suggestion says "add a new check in input validation", that's likely in DETAILED_DECISION_LOGIC of M01.
+      - If suggestion references a specific step or section, use that.
+      - If not specific, determine the logical place (like if it's "handle slang in comprehension", likely after or within the part that processes language in M02 – maybe in step 2 where it interprets input, as a sub-step to normalize slang).
+      - Possibly search the `Current_Module_States` if provided for keywords to pinpoint lines. E.g., find if "memory capacity = 5" exists as text to replace with 10.
+    - Decide what the new content or edit is:
+      - Some changes are parameter tweaks (easy: find the number and change it).
+      - Some are adding logic: draft the new pseudocode line or lines needed.
+      - Some are altering triggers or dependencies in YAML header: e.g., if suggestion was "the module should also trigger on X", then in YAML header "Triggers: [...]" add X.
+      - For any YAML change (like adding a dependency), ensure formatting (e.g., list format).
+      - If removing something, specify exactly which line or how to identify it.
+    - Plan the instruction wording accordingly with context (like "find the line that reads ... and change it to ...").
+ 3. **Draft Instructions for Each Module**:
+    - Write instructions in an ordered list or paragraphs:
+      - Start with something like "**Module M0X**:" to clearly indicate where changes apply (if multiple modules).
+      - Then steps: "1. Open the module file ...", then "2. In the section ... locate ...".
+      - For modifications: quote the old and show the new if short, or at least describe how to modify.
+      - For insertions: either give the exact new bullet/line in pseudocode or text plus where to insert relative to existing lines.
+      - For deletions: specify which lines to remove or comment out.
+      - Remember to instruct updating Version and Checksum:
+         * If any file changes, at end of that module's instructions: "Increment the Version in the YAML header from X to Y." and "Recompute the Checksum and update it." 
+         * We assume user knows how to compute it (they might use an MD5 tool).
+         * Possibly instruct what part to hash (likely entire file content excluding the Checksum field itself maybe).
+      - If multiple edits in one file, they can be part of one sequence for that file.
+    - Maintain clarity:
+      - Use bullet points or numbered steps so user can follow easily.
+      - Use direct language (imperative).
+      - Ensure the user can do changes in a safe order: usually top-to-bottom in file. If adding a line early in logic might shift line numbers for later instructions, but since we refer by content, not absolute line numbers, it's fine.
+    - If any change could affect another module (like if we change output format of M03, and M05 or M09 expects something, we should instruct to update those too accordingly):
+      - The Proposed_Changes_List likely contained those already via M13's dependency knowledge. But double-check if any suggestion implies cross-file consistency changes. If yes, include instructions for the other file as well.
+ 4. **Review Instructions**:
+    - Ensure each instruction is unambiguous:
+      - If we say "after step 2, insert step 3", make sure the user can identify step 2 in the text (the pseudocode steps are numbered, so yes).
+      - Possibly quote a few words from the line above insertion to locate it.
+      - If telling to replace a phrase, make sure that phrase is unique enough in the file or specify section to avoid confusion.
+    - Check that following all instructions will indeed implement all suggestions.
+      - Compare against Proposed_Changes_List to verify no suggestion was missed.
+    - Check that none of the instructions violate any safety constraints:
+      - They shouldn't; it's just code changes, but for example if a suggestion was to allow riskier behavior (not likely from AI due to Safety module influences). If something like "loosen safety filter on X", the instructions might say "update the policy list in M11 to remove X from disallowed" – that is still fine if legitimately decided. But ensure to include caution if needed.
+    - Ensure to instruct a test or mention restart if needed:
+      - Perhaps after changes, say "Save the files. The AI architecture will reflect these changes on next run." or something.
+      - Suggest any simple test specific to the change if applicable (like "You can then ask the AI to do ... to verify the improvement.").
+    - This might not be explicitly asked, but it's helpful to the user applying the changes.
+ 5. **Output Edit_Instructions**:
+    - Provide the assembled instructions as the final output.
+    - Likely as a formatted Markdown or text block with clear steps and module demarcations.
+    - This is delivered to the user (through the conversation) such that they can execute them.
+    - End of cycle: the user (maintainer) will implement and presumably the system gets updated modules.
+
+Safety_Level is high because messing with code needs to be precise – though instructions won't run on their own, a mistake in them could degrade AI performance or violate rules. So M20 must be careful and accurate, essentially double-checking itself as it writes them (like not telling to remove a safety check accidentally unless that was intended by suggestions).
+However, M20 will not suggest changes beyond what M13 decided, so it won't introduce new risky modifications on its own.
+
+CHANGE_INSTRUCTIONS:
+ - **Format as patch/diff**: If the user/maintainer prefers diffs, M20 could output instructions as a unified diff. That can be very precise. However, given our context, human-readable steps might be more appropriate, as diffs require exact context lines.
+ - **Automated Application**: In some frameworks, the assistant could apply changes itself (if allowed). If that were the case, M20 might instead output a machine-readable diff or a script. But as we rely on manual, stick to human steps.
+ - **If suggestions are vague**: M20 might sometimes have to infer how to do it. If uncertain, it might ask M13 for clarification, but since M13 is not interactive with M20 (they are sequential), M20 should do its best.
+   - If really ambiguous, it could instruct to review certain section manually with a human decision ("Consider updating... if appropriate"). But clarity is key, so avoid leaving uncertainty.
+ - **Extend to configuration**: If improvements involve not code but e.g. updating a configuration file or knowledge base, instructions should cover that too (like "Add this line to the knowledge file..." etc.).
+ - **Multiple people or version control**: Possibly mention "commit these changes with message X" if working with version control, but probably not needed in this answer, focus on changes themselves.
+ - After any modifications to how M20 formulates things, test by simulating an example to see if instructions make sense.
+
+---
+Next_Suggest: (None – final output to user/developer for action)
+Alternate_Next: (None)
+Resource_Usage: Low (text processing of suggestions; relatively straightforward composition)
+---
