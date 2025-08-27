@@ -571,5 +571,17 @@
     "type": "file",
     "name": "index.html",
     "path": "index.html"
+  },
+  {
+    "type": "folder",
+    "name": "ui",
+    "path": "ui",
+    "children": [
+      {
+        "type": "file",
+        "name": "index.html",
+        "path": "ui/index.html"
+      }
+    ]
   }
 ]
