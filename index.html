@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dimmi UI Prototype</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #response { border: 1px solid #ccc; padding: 10px; min-height: 100px; margin-top: 10px; }
+    label { display: block; margin-top: 10px; }
+    textarea { width: 100%; }
+  </style>
+</head>
+<body>
+  <h1>Dimmi UI Prototype</h1>
+  <p>Select an interaction type and enter a message to engage with Dimmi.</p>
+
+  <label for="interaction">Interaction:</label>
+  <select id="interaction">
+    <option value="chat">Chat</option>
+    <option value="research">Research</option>
+    <option value="creative">Creative</option>
+  </select>
+
+  <label for="userInput">Message:</label>
+  <textarea id="userInput" rows="5" placeholder="Type your message here..."></textarea>
+  <button id="sendBtn">Send</button>
+
+  <div id="response"> <!-- Dimmi's response will appear here --> </div>
+
+  <script>
+    document.getElementById('sendBtn').addEventListener('click', function() {
+      const interaction = document.getElementById('interaction').value;
+      const text = document.getElementById('userInput').value;
+      const responseDiv = document.getElementById('response');
+      responseDiv.innerHTML = '<em>Dimmi (' + interaction + ') says:</em> This is a prototype response to "' + text + '"';
+    });
+  </script>
+</body>
+</html>
