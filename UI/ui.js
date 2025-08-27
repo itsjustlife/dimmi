@@ -45,7 +45,7 @@ async function showSummary(path, isFile = false) {
   content.innerHTML = `<h2>${safe(path)}</h2><p class="summary">${safe(summary)}</p>`;
   if (isFile) {
     try {
-      const res = await fetch('/' + encodeURI(path));
+      const res = await fetch('../' + encodeURI(path));
       if (res.ok) {
         const text = await res.text();
         const editor = document.createElement('textarea');
@@ -55,8 +55,13 @@ async function showSummary(path, isFile = false) {
         const saveBtn = document.createElement('button');
         saveBtn.id = 'saveBtn';
         saveBtn.textContent = 'Save';
+        const rawLink = document.createElement('a');
+        rawLink.href = '../' + path;
+        rawLink.textContent = 'Open raw';
+        rawLink.target = '_blank';
         content.appendChild(editor);
         content.appendChild(saveBtn);
+        content.appendChild(rawLink);
         saveBtn.addEventListener('click', async () => {
           const body = JSON.stringify({ path, content: editor.value });
           const resp = await fetch('/save', {
