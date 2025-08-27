@@ -14,6 +14,8 @@ const summaries = {
   "Art/Dimmi-Art-Si.txt": "/// FILE: Dimmi-Art-Si.txt /// VERSION: 4.0.0 /// LAST-UPDATED: 2025-06-15",
   "Art/Dimmi-Art-Vi.txt": "// FILE: Dimmi-Art-Vi.txt /// VERSION: 4.0.0 /// LAST-UPDATED: 2025-06-14",
   "Art/Dimmi-Art.txt": "/// FILE: Dimmi-Art.txt /// VERSION: 4.0.0 /// LAST-UPDATED: 2025-06-15",
+  "Art/Images/Dimmi-Art-Im.txt": "/// FILE: Dimmi-Art-Im.txt /// VERSION: 4.0.0 /// LAST-UPDATED: 2025-06-15",
+  "Art/Images": "Folder containing 1 items.",
   "Art/VKS-Animate.txt.txt": "VKS-Animate.txt Introduction to VKS Animation Aspect The Visual Kinetic Sketching (VKS) style emphasizes capturing the motion and energy of subjects within static imagery. To enhance this dynamic qual",
   "Art/VKS-Deconstruct.txt.txt": "VKS-Deconstruct.txt  econstructing the VKS Style The VKS style revolves around several core principles: Dynamic Lines, Anatomy & Structure, Light Interaction, and Texture & Detail. This file should br",
   "Art/VKS-Feedback.txt.txt": "VKS-Feedback.txt Feedback in the Visual Kinetic Sketching (VKS) process is essential for fine-tuning and ensuring that the AI or artist stays true to the core principles of the style. It involves a co",
@@ -25,7 +27,7 @@ const summaries = {
   "Art/VKS-Refinement.txt.txt": "VKS-Refinement.txt The refinement process in the Visual Kinetic Sketching (VKS) style focuses on elevating the initial image output to achieve a polished, dynamic, and cohesive composition. This proce",
   "Art/VKX-Composition.txt": "VKX-Planning.txt VKS-Composition.txt This file will serve as the blueprint for understanding and structuring the Visual Kinetic Sketching (VKS) style within compositions. Composition refers to how ele",
   "Art/dimmi-art-reconstruction.txt": "/// FILE: dimmi-art-reconstruction.txt /// VERSION: 1.0.0 /// LAST-UPDATED: 2025-08-26",
-  "Art": "Folder containing 16 items.",
+  "Art": "Folder containing 17 items.",
   "Commands/Commands-Analyze.txt": " ### **Commands-Analyze.txt** #### **ANALYZE Command**",
   "Commands/Commands-Deconstruct.txt.txt": "**Commands-Deconstruct.txt** #### **DECONSTRUCT Command** **Purpose**: Disassemble content into raw elements such as words, phrases, and simple ideas. Focuses on structural visibility without analysis",
   "Commands/Commands-Edit.txt": " ### **Commands-Edit.txt** #### **EDIT Command**",
@@ -106,5 +108,6 @@ const summaries = {
   "Older Modules/dimmi-Tactics.txt": "TITLE: Dimmi’s Tactical Playbook: The Art of Waking People Up CATEGORY: Psychological Warfare / Engagement Tactics VERSION: v1.1",
   "Older Modules": "Folder containing 8 items.",
   "README.md": "# dimmi Exploratory prototype for Dimmi. The `UI/index.html` page provides a small \"DIMMI\" widget that slides out a menu of project files.",
-  "Start.txt": "// FILE: Start.txt // VERSION: 4.0.0 // LAST-UPDATED: 2025-06-15"
+  "Start.txt": "// FILE: Start.txt // VERSION: 4.0.0 // LAST-UPDATED: 2025-06-15",
+  "server.js": "const http = require('http'); const fs = require('fs'); const path = require('path');"
 };

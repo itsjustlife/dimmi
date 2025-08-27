@@ -64,4 +64,8 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; 
   border: 1px solid #ccc;
   margin-top: 10px;
 }
+#saveBtn {
+  margin-top: 10px;
+  padding: 6px 12px;
+}
 pre { white-space: pre-wrap; }

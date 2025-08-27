@@ -5,6 +5,7 @@ document.getElementById('dimmiBtn').addEventListener('click', () => {
 
 if (typeof fileTree !== 'undefined') {
   buildTree(fileTree, document.getElementById('fileTree'));
+  showSummary('Start.txt', true);
 } else {
   document.getElementById('content').innerHTML = '<p>Unable to load file tree.</p>';
 }
@@ -36,14 +37,40 @@ function buildTree(nodes, container, currentPath = '') {
     }
   });
 }
-
-function showSummary(path, isFile = false) {
+async function showSummary(path, isFile = false) {
   const safe = (str) =>
     str.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   const summary = summaries && summaries[path] ? summaries[path] : 'No summary available.';
-  let html = `<h2>${safe(path)}</h2><p class="summary">${safe(summary)}</p>`;
+  const content = document.getElementById('content');
+  content.innerHTML = `<h2>${safe(path)}</h2><p class="summary">${safe(summary)}</p>`;
   if (isFile) {
-    html += `<p><a href="../${path}" target="_blank">Open raw file</a></p>`;
+    try {
+      const res = await fetch('../' + encodeURI(path));
+      if (res.ok) {
+        const text = await res.text();
+        const editor = document.createElement('textarea');
+        editor.id = 'editor';
+        editor.className = 'file-viewer';
+        editor.value = text;
+        const saveBtn = document.createElement('button');
+        saveBtn.id = 'saveBtn';
+        saveBtn.textContent = 'Save';
+        content.appendChild(editor);
+        content.appendChild(saveBtn);
+        saveBtn.addEventListener('click', async () => {
+          const body = JSON.stringify({ path, content: editor.value });
+          const resp = await fetch('/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+          });
+          alert(resp.ok ? 'Saved' : 'Save failed');
+        });
+      } else {
+        content.innerHTML += '<p>Unable to load file content.</p>';
+      }
+    } catch (err) {
+      content.innerHTML += '<p>Unable to load file content.</p>';
+    }
   }
-  document.getElementById('content').innerHTML = html;
 }

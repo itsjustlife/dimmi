@@ -80,6 +80,17 @@ const fileTree = [
         "path": "Art/Dimmi-Art.txt"
       },
       {
+        "name": "Images",
+        "type": "folder",
+        "children": [
+          {
+            "name": "Dimmi-Art-Im.txt",
+            "type": "file",
+            "path": "Art/Images/Dimmi-Art-Im.txt"
+          }
+        ]
+      },
+      {
         "name": "VKS-Animate.txt.txt",
         "type": "file",
         "path": "Art/VKS-Animate.txt.txt"
@@ -547,5 +558,10 @@ const fileTree = [
     "name": "Start.txt",
     "type": "file",
     "path": "Start.txt"
+  },
+  {
+    "name": "server.js",
+    "type": "file",
+    "path": "server.js"
   }
 ];
