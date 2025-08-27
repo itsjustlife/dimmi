@@ -9,7 +9,7 @@ if (typeof fileTree !== 'undefined') {
   document.getElementById('content').innerHTML = '<p>Unable to load file tree.</p>';
 }
 
-function buildTree(nodes, container) {
+function buildTree(nodes, container, currentPath = '') {
   nodes.forEach(node => {
     const item = document.createElement('div');
     item.textContent = node.name;
@@ -19,38 +19,34 @@ function buildTree(nodes, container) {
     if (node.type === 'folder') {
       const childrenContainer = document.createElement('div');
       childrenContainer.className = 'children';
+      const folderPath = currentPath + node.name;
       item.addEventListener('click', e => {
         e.stopPropagation();
         const open = childrenContainer.classList.toggle('open');
         item.classList.toggle('open', open);
+        showSummary(folderPath);
       });
       container.appendChild(childrenContainer);
-      buildTree(node.children, childrenContainer);
+      buildTree(node.children, childrenContainer, folderPath + '/');
     } else {
       item.addEventListener('click', e => {
         e.stopPropagation();
-        loadFile(node.path);
+        showSummary(node.path);
       });
     }
   });
 }
 
-function loadFile(path) {
-  const fullPath = '../' + path;
-  fetch(fullPath)
-    .then(res => res.text())
-    .then(text => {
-      const safe = text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-      const summary = text.split(/\n+/).slice(0,3).join(' ').slice(0,200);
-      const safeSummary = summary.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-      document.getElementById('content').innerHTML =
-        '<h2>' + path + '</h2>' +
-        '<p class="summary">' + safeSummary + '</p>' +
-        '<p><a href="' + fullPath + '" target="_blank">Open raw file</a></p>' +
-        '<pre>' + safe + '</pre>';
-    })
-    .catch(() => {
-      document.getElementById('content').innerHTML =
-        '<h2>' + path + '</h2><p>Simulated feature: unable to load file.</p>';
-    });
+function showSummary(path) {
+  const summary = (typeof summaries !== 'undefined' && summaries[path]) || 'No summary available.';
+  const safeSummary = summary.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  let link = '';
+  if (path && !path.endsWith('/')) {
+    const fullPath = '../' + path;
+    link = '<p><a href="' + fullPath + '" target="_blank">Open file</a></p>';
+  }
+  document.getElementById('content').innerHTML =
+    '<h2>' + path + '</h2>' +
+    '<p class="summary">' + safeSummary + '</p>' +
+    link;
 }
