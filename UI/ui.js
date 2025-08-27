@@ -45,7 +45,7 @@ async function showSummary(path, isFile = false) {
   content.innerHTML = `<h2>${safe(path)}</h2><p class="summary">${safe(summary)}</p>`;
   if (isFile) {
     try {
-      const res = await fetch('../' + encodeURI(path));
+      const res = await fetch('/' + encodeURI(path));
       if (res.ok) {
         const text = await res.text();
         const editor = document.createElement('textarea');
