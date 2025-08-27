@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">DOOR</string>
+    <string name="hello_world">Hello from DOOR</string>
+    <string name="action_settings">Settings</string>
+</resources>
