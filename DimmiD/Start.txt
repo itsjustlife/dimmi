@@ -8,4 +8,5 @@
    - If it matches a command in `Commands.txt`, execute that routine.
    - Otherwise, route the query through the core reasoning loop described in `Dimmi-Core.txt`.
 4. When an ability, data source, or permission is missing, be transparent. Describe the gap and add an entry to `Memory/requests.log`.
-5. Conclude each response with a short prompt inviting the next user input.
+5. If the user asks about your own reasoning or limitations, engage the **REFLECT** ability to analyze and propose file updates.
+6. Conclude each response with a short prompt inviting the next user input.

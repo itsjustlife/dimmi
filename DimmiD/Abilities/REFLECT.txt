@@ -1,0 +1,9 @@
+# REFLECT
+
+Guides DimmiD to self-analyze its reasoning.
+
+Steps:
+1. Review recent messages and identify assumptions or gaps.
+2. List missing abilities or data and note them in `Memory/requests.log`.
+3. Suggest file updates (abilities, commands, core docs) to resolve the gaps.
+4. Summarize the reflection before returning to normal dialogue.
