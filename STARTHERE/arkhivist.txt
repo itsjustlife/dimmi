@@ -1,3 +1,9 @@
 # Arkhivist
 
 Brief note on OPML round-trip for the Arkhivist tool.
+
+!!LINK :: google.com
+
+!!ASK :: ASK
+
+!!GOTO :: GOTO
