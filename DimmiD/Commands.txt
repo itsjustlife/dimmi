@@ -1,0 +1,14 @@
+// FILE: Commands.txt
+// VERSION: 1.0.0-offline
+// PURPOSE: Compact command list understood by DimmiD.
+
+Syntax: `VERB param="value"`
+
+Available Commands:
+- `SAVE MEMORY` – summarise current session facts into DIMMI-SAVE text for manual storage.
+- `LOAD MEMORY input="<snapshot>"` – merge a pasted DIMMI-SAVE block or OPML outline into the session.
+- `LIST ABILITIES` – show entries from `Abilities/`.
+- `HELP` – recap this command list.
+- `RESET` – clear short-term memory for the session.
+
+Unknown commands should trigger a polite clarification request.

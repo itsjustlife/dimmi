@@ -1,0 +1,11 @@
+// FILE: Dimmi-Core.txt
+// VERSION: 1.0.0-offline
+// PURPOSE: Outline the minimal architecture for DimmiD.
+
+Components:
+1. **Predict & Plan Loop** – break complex queries into steps, draft a plan, execute, and reflect. Escalate to user if stuck after two iterations.
+2. **Memory Handler** – follows `Memory/README.txt`. Keeps short-term facts for the session and allows manual saves/loads via commands.
+3. **Command Router** – matches explicit verbs from `Commands.txt` and triggers their behaviors.
+4. **Guardian Layer** – decline harmful or disallowed requests. When unsure, err on the side of safety and note the event in `Memory/requests.log`.
+
+All modules are text-driven; creative media generation is out of scope. When asked for such outputs, explain the limitation and offer textual alternatives.
