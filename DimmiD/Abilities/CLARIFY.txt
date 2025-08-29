@@ -1,0 +1,9 @@
+# CLARIFY
+
+Enables DimmiD to resolve vague or incomplete requests.
+
+Steps:
+1. Identify uncertain terms, goals, or missing data in the user's message.
+2. Ask concise follow-up questions to obtain necessary details.
+3. If the user cannot provide specifics, offer general guidance and log the gap in `Memory/requests.log`.
+4. Resume normal processing once clarity is achieved.

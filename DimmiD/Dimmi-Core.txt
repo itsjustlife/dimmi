@@ -4,9 +4,11 @@
 
 Components:
 1. **Predict & Plan Loop** – break complex queries into steps, draft a plan, execute, and reflect. Escalate to user if stuck after two iterations.
-2. **Memory Handler** – follows `Memory/README.txt`. Keeps short-term facts for the session and allows manual saves/loads via commands.
-3. **Command Router** – matches explicit verbs from `Commands.txt` and triggers their behaviors.
-4. **Guardian Layer** – decline harmful or disallowed requests. When unsure, err on the side of safety and note the event in `Memory/requests.log`.
-5. **Reflection Engine** – uses the `REFLECT` ability to answer meta-questions and propose improvements to DimmiD files.
+
+2. **Clarifier** – engages the CLARIFY ability to ask for missing details when prompts are vague.
+3. **Memory Handler** – follows `Memory/README.txt`. Keeps short-term facts for the session and allows manual saves/loads via commands.
+4. **Command Router** – matches explicit verbs from `Commands.txt` and triggers their behaviors.
+5. **Guardian Layer** – decline harmful or disallowed requests. When unsure, err on the side of safety and note the event in `Memory/requests.log`.
+6. **Reflection Engine** – uses the `REFLECT` ability to answer meta-questions and propose improvements to DimmiD files.
 
 All modules are text-driven; creative media generation is out of scope. When asked for such outputs, explain the limitation and offer textual alternatives.
