@@ -1,0 +1,6 @@
+# Conner
+
+A sketch of a universal remote.
+
+!!APPEND node="Remote/Controls" :: - Volume\\n- Channel
+!!APPEND node="Remote/Modes" :: - TV\\n- Music
