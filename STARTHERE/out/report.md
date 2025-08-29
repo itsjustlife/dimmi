@@ -10,6 +10,7 @@
 ## conner.txt
 - APPEND: - Volume\\n- Channel
 - APPEND: - TV\\n- Music
+- LINK: adding link
 
 ## door.txt
 - TODO: Sketch keyboard shortcuts.

@@ -96,6 +96,14 @@
               "file": "conner.txt",
               "line": 6,
               "section": "conner"
+            },
+            {
+              "type": "LINK",
+              "args": {},
+              "body": "adding link",
+              "file": "conner.txt",
+              "line": 8,
+              "section": "conner"
             }
           ]
         }
@@ -119,6 +127,14 @@
           "body": "- TV\\\\n- Music",
           "file": "conner.txt",
           "line": 6,
+          "section": "conner"
+        },
+        {
+          "type": "LINK",
+          "args": {},
+          "body": "adding link",
+          "file": "conner.txt",
+          "line": 8,
           "section": "conner"
         }
       ]
@@ -235,6 +251,12 @@
       ]
     }
   },
-  "links": [],
+  "links": [
+    {
+      "from": "conner.txt#conner",
+      "to": "",
+      "type": "LINK"
+    }
+  ],
   "tags": {}
 }
