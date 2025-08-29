@@ -36,15 +36,16 @@ class DoorApp(tk.Tk):
     def create_widgets(self):
         toolbar = tk.Frame(self)
         toolbar.pack(side=tk.TOP, fill=tk.X)
-        tk.Button(toolbar, text="Start", command=self.go_start).pack(side=tk.LEFT)
-        tk.Button(toolbar, text="Refresh", command=self.refresh_graph).pack(side=tk.LEFT)
-        tk.Button(toolbar, text="Export OPML", command=self.export_opml).pack(side=tk.LEFT)
-        tk.Button(toolbar, text="Open out/", command=lambda: open_path(ROOT / "out")).pack(side=tk.LEFT)
+        tk.Button(toolbar, text="START", command=self.go_start).pack(side=tk.LEFT)
+        tk.Button(toolbar, text="REFRESH", command=self.refresh_graph).pack(side=tk.LEFT)
+        tk.Button(toolbar, text="EXPORT OPML", command=self.export_opml).pack(side=tk.LEFT)
+        tk.Button(toolbar, text="OPEN Out/", command=lambda: open_path(ROOT / "out")).pack(side=tk.LEFT)
 
         main = tk.PanedWindow(self, sashrelief=tk.RAISED, sashwidth=5)
         main.pack(fill=tk.BOTH, expand=True)
 
         left = tk.Frame(main)
+        tk.Label(left, text="FILES").pack(anchor="w")
         self.filter_var = tk.StringVar()
         self.filter_entry = tk.Entry(left, textvariable=self.filter_var)
         self.filter_entry.pack(fill=tk.X)
@@ -53,6 +54,7 @@ class DoorApp(tk.Tk):
         main.add(left, width=150)
 
         middle = tk.Frame(main)
+        tk.Label(middle, text="INFO").pack(anchor="w")
         self.items_list = tk.Listbox(middle)
         self.items_list.pack(fill=tk.BOTH, expand=True)
         add_frame = tk.Frame(middle)
@@ -65,6 +67,7 @@ class DoorApp(tk.Tk):
         main.add(middle, width=250)
 
         right = tk.Frame(main)
+        tk.Label(right, text="CONTENT").pack(anchor="w")
         self.preview = tk.Text(right)
         self.preview.pack(fill=tk.BOTH, expand=True)
         main.add(right, width=400)
