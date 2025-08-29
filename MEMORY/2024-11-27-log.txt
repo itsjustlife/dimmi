@@ -1,0 +1,17 @@
+### Session 2024-11-27
+
+**Summary:**
+- User requested creation of an `ABILITIES` collection to store ability files.
+- Added the first ability `Dimmi-Code` describing conversational translation to code.
+- User also asked for a "prompt first" ability so Dimmi clarifies before acting.
+- Began a `MEMORY` section to track summaries and open questions.
+
+**Understanding of Request:**
+The user wants a framework where Dimmi learns abilities and retains memories of interactions. They emphasize collaborative evolution and structured logs that capture both what was asked and what Dimmi needs next.
+
+**Open Questions / Research Prompts:**
+1. What format should future memory entries follow? Date-based files or one growing log?
+2. How will abilities be referenced or activated in other parts of the project?
+3. Should the memory system include tagging or indexing for easier retrieval?
+
+/// END OF ENTRY
