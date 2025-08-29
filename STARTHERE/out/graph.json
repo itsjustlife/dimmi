@@ -1,0 +1,240 @@
+{
+  "files": {
+    "arkhive.txt": {
+      "title": "Arkhive",
+      "meta": {},
+      "sections": [
+        {
+          "id": "main",
+          "level": 1,
+          "title": "Arkhive",
+          "line": 1,
+          "prompts": []
+        }
+      ],
+      "prompts": []
+    },
+    "arkhiver.txt": {
+      "title": "Arkhiver",
+      "meta": {},
+      "sections": [
+        {
+          "id": "arkhiver",
+          "level": 1,
+          "title": "Arkhiver",
+          "line": 1,
+          "prompts": []
+        },
+        {
+          "id": "ui",
+          "level": 2,
+          "title": "UI",
+          "line": 5,
+          "prompts": [
+            {
+              "type": "LOG",
+              "args": {},
+              "body": "Needs more exploration.",
+              "file": "arkhiver.txt",
+              "line": 9,
+              "section": "ui"
+            }
+          ]
+        }
+      ],
+      "prompts": [
+        {
+          "type": "LOG",
+          "args": {},
+          "body": "Needs more exploration.",
+          "file": "arkhiver.txt",
+          "line": 9,
+          "section": "ui"
+        }
+      ]
+    },
+    "arkhivist.txt": {
+      "title": "Arkhivist",
+      "meta": {},
+      "sections": [
+        {
+          "id": "arkhivist",
+          "level": 1,
+          "title": "Arkhivist",
+          "line": 1,
+          "prompts": []
+        }
+      ],
+      "prompts": []
+    },
+    "conner.txt": {
+      "title": "Conner",
+      "meta": {},
+      "sections": [
+        {
+          "id": "conner",
+          "level": 1,
+          "title": "Conner",
+          "line": 1,
+          "prompts": [
+            {
+              "type": "APPEND",
+              "args": {
+                "node": "Remote/Controls"
+              },
+              "body": "- Volume\\\\n- Channel",
+              "file": "conner.txt",
+              "line": 5,
+              "section": "conner"
+            },
+            {
+              "type": "APPEND",
+              "args": {
+                "node": "Remote/Modes"
+              },
+              "body": "- TV\\\\n- Music",
+              "file": "conner.txt",
+              "line": 6,
+              "section": "conner"
+            }
+          ]
+        }
+      ],
+      "prompts": [
+        {
+          "type": "APPEND",
+          "args": {
+            "node": "Remote/Controls"
+          },
+          "body": "- Volume\\\\n- Channel",
+          "file": "conner.txt",
+          "line": 5,
+          "section": "conner"
+        },
+        {
+          "type": "APPEND",
+          "args": {
+            "node": "Remote/Modes"
+          },
+          "body": "- TV\\\\n- Music",
+          "file": "conner.txt",
+          "line": 6,
+          "section": "conner"
+        }
+      ]
+    },
+    "door.txt": {
+      "title": "Door",
+      "meta": {},
+      "sections": [
+        {
+          "id": "door",
+          "level": 1,
+          "title": "Door",
+          "line": 1,
+          "prompts": [
+            {
+              "type": "TODO",
+              "args": {},
+              "body": "Sketch keyboard shortcuts.",
+              "file": "door.txt",
+              "line": 9,
+              "section": "door"
+            }
+          ]
+        }
+      ],
+      "prompts": [
+        {
+          "type": "TODO",
+          "args": {},
+          "body": "Sketch keyboard shortcuts.",
+          "file": "door.txt",
+          "line": 9,
+          "section": "door"
+        }
+      ]
+    },
+    "start.txt": {
+      "title": "Start",
+      "meta": {
+        "title": "Start",
+        "kind": "chapter"
+      },
+      "sections": [
+        {
+          "id": "intro",
+          "level": 1,
+          "title": "Start",
+          "line": 2,
+          "prompts": [
+            {
+              "type": "ASK",
+              "args": {
+                "to": "dimmi"
+              },
+              "body": "What should DOOR default widths be?",
+              "file": "start.txt",
+              "line": 6,
+              "section": "intro"
+            },
+            {
+              "type": "TODO",
+              "args": {
+                "priority": "high"
+              },
+              "body": "Wire OPML export",
+              "file": "start.txt",
+              "line": 7,
+              "section": "intro"
+            },
+            {
+              "type": "APPEND",
+              "args": {
+                "node": "Demo/Path"
+              },
+              "body": "- Child A\\\\n- Child B",
+              "file": "start.txt",
+              "line": 9,
+              "section": "intro"
+            }
+          ]
+        }
+      ],
+      "prompts": [
+        {
+          "type": "ASK",
+          "args": {
+            "to": "dimmi"
+          },
+          "body": "What should DOOR default widths be?",
+          "file": "start.txt",
+          "line": 6,
+          "section": "intro"
+        },
+        {
+          "type": "TODO",
+          "args": {
+            "priority": "high"
+          },
+          "body": "Wire OPML export",
+          "file": "start.txt",
+          "line": 7,
+          "section": "intro"
+        },
+        {
+          "type": "APPEND",
+          "args": {
+            "node": "Demo/Path"
+          },
+          "body": "- Child A\\\\n- Child B",
+          "file": "start.txt",
+          "line": 9,
+          "section": "intro"
+        }
+      ]
+    }
+  },
+  "links": [],
+  "tags": {}
+}
