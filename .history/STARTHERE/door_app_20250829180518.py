@@ -42,6 +42,7 @@ class DoorApp(tk.Tk):
         toolbar = tk.Frame(self)
         toolbar.pack(side=tk.TOP, fill=tk.X)
         tk.Button(toolbar, text="REFRESH", command=self.refresh_graph).pack(side=tk.LEFT)
+        tk.Button(toolbar, text="EXPORT OPML", command=self.export_opml).pack(side=tk.LEFT)
         tk.Button(toolbar, text="OPEN Out/", command=lambda: open_path(ROOT / "out")).pack(side=tk.LEFT)
         
         # Add Ask AI field directly in the main window
