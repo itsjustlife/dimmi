@@ -182,13 +182,27 @@ class DoorApp(tk.Tk):
         self.copy_btn.config(text="Copied!")
         self.after(1200, lambda: self.copy_btn.config(text="Copy"))
 
+    def ask_ai(self):
+        user_input = self.ai_entry.get().strip()
+        if not user_input:
+            return
+        self.ai_output.config(state="normal")
+        self.ai_output.delete("1.0", tk.END)
+        try:
+            reply = self.dimmi.run(user_input)
+        except Exception as e:
+            reply = f"Error: {e}"
+        self.ai_output.insert(tk.END, reply)
+        self.ai_output.config(state="disabled")
+
+    def on_closing(self):
+        self.save_settings()
+        self.destroy()
+
 def main():
     app = DoorApp()
     app.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()
-
-import subprocess
-subprocess.run([
-    r"C:/Users/itsju/Documents/GitHub/dimmi/.venv/Scripts/python.exe",
-    r"C:/Users/itsju/Documents/GitHub/dimmi/STARTHERE/door_app.py"
-])
+    
+if __name__ == "__main__":
+    main()
