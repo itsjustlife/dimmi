@@ -62,10 +62,60 @@
           "level": 1,
           "title": "Arkhivist",
           "line": 1,
-          "prompts": []
+          "prompts": [
+            {
+              "type": "LINK",
+              "args": {},
+              "body": "google.com",
+              "file": "arkhivist.txt",
+              "line": 5,
+              "section": "arkhivist"
+            },
+            {
+              "type": "ASK",
+              "args": {},
+              "body": "ASK",
+              "file": "arkhivist.txt",
+              "line": 7,
+              "section": "arkhivist"
+            },
+            {
+              "type": "GOTO",
+              "args": {},
+              "body": "GOTO",
+              "file": "arkhivist.txt",
+              "line": 9,
+              "section": "arkhivist"
+            }
+          ]
         }
       ],
-      "prompts": []
+      "prompts": [
+        {
+          "type": "LINK",
+          "args": {},
+          "body": "google.com",
+          "file": "arkhivist.txt",
+          "line": 5,
+          "section": "arkhivist"
+        },
+        {
+          "type": "ASK",
+          "args": {},
+          "body": "ASK",
+          "file": "arkhivist.txt",
+          "line": 7,
+          "section": "arkhivist"
+        },
+        {
+          "type": "GOTO",
+          "args": {},
+          "body": "GOTO",
+          "file": "arkhivist.txt",
+          "line": 9,
+          "section": "arkhivist"
+        }
+      ]
     },
     "conner.txt": {
       "title": "Conner",
@@ -252,6 +302,16 @@
     }
   },
   "links": [
+    {
+      "from": "arkhivist.txt#arkhivist",
+      "to": "",
+      "type": "LINK"
+    },
+    {
+      "from": "arkhivist.txt#arkhivist",
+      "to": "",
+      "type": "GOTO"
+    },
     {
       "from": "conner.txt#conner",
       "to": "",

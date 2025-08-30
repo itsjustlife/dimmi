@@ -9,3 +9,4 @@ Welcome to the starting room.
 !!APPEND node="Demo/Path" :: - Child A\\n- Child B
 !!REFRESH
 
+ Here is a list of some common coding concepts that can be quickly understood by new programmers. These concepts include variables, data types, loops, functions, arrays, conditionals, inheritance, polymorphism, object-oriented programming, event handling, error handling, recursion, and more. Additionally, there are many online resources available to help you learn these concepts in a step-by-step manner.
