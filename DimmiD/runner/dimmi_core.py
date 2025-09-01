@@ -1,10 +1,16 @@
 from pathlib import Path
 from datetime import datetime
 import json
+import os
+import sys
 try:  # gpt4all is optional for reading prompts
     from gpt4all import GPT4All  # type: ignore
 except Exception:  # pragma: no cover - handled at runtime
     GPT4All = None
+try:  # optional HTTP client for detecting models from a local API server
+    import requests  # type: ignore
+except Exception:  # pragma: no cover - requests is optional
+    requests = None
 
 """Core runner logic for the DimmiD offline assistant.
 
@@ -62,6 +68,66 @@ def _load_config():
         return json.loads(cfg.read_text(encoding="utf-8"))
     return {"model_path": "", "max_tokens": 1200, "temp": 0.2, "top_p": 0.9}
 
+
+def _candidate_model_dirs():
+    dirs: list[Path] = []
+    home = Path.home()
+    dirs.append(home / ".cache" / "gpt4all")
+    if sys.platform == "win32":
+        local = Path(os.environ.get("LOCALAPPDATA", ""))
+        dirs.append(local / "nomic.ai" / "GPT4All")
+    elif sys.platform == "darwin":
+        dirs.append(home / "Library" / "Application Support" / "nomic.ai" / "GPT4All")
+    else:
+        dirs.append(home / ".local" / "share" / "nomic.ai" / "GPT4All")
+    return [d for d in dirs if d and d.exists()]
+
+
+def _model_name_from_server() -> str | None:
+    if not requests:
+        return None
+    try:
+        r = requests.get("http://localhost:4891/v1/models", timeout=1)
+        r.raise_for_status()
+        data = r.json().get("data", [])
+        if data:
+            return data[0].get("id")
+    except Exception:
+        return None
+    return None
+
+
+def resolve_model_path(preferred: str | None = None) -> str:
+    """Determine a usable GPT4All model path.
+
+    Order of preference:
+    1. Explicit ``preferred`` path if it exists.
+    2. Model name reported by a local GPT4All server on port 4891.
+    3. First ``*.gguf`` file found in known GPT4All directories.
+    """
+
+    if preferred:
+        p = Path(preferred).expanduser()
+        if p.exists():
+            return str(p)
+
+    name = _model_name_from_server()
+    dirs = _candidate_model_dirs()
+    if name:
+        for d in dirs:
+            p = d / name
+            if p.exists():
+                return str(p)
+
+    for d in dirs:
+        gguf = next(d.glob("*.gguf"), None)
+        if gguf:
+            return str(gguf)
+
+    raise FileNotFoundError(
+        "No local GPT4All model file found. Update config.json or run GPT4All server."
+    )
+
 class DimmiRunner:
     """Wrapper around the GPT4All model used by the project."""
 
@@ -69,11 +135,7 @@ class DimmiRunner:
         cfg = _load_config()
         if GPT4All is None:
             raise ImportError("The 'gpt4all' package is required to run DimmiD.")
-        self.model_path = model_path or cfg.get("model_path", "")
-        if not self.model_path:
-            raise FileNotFoundError(
-                "Model path is not set. Update /DimmiD/config.json or pass --model."
-            )
+        self.model_path = resolve_model_path(model_path or cfg.get("model_path"))
         self.max_tokens = int(cfg.get("max_tokens", 1200))
         self.temp = float(cfg.get("temp", 0.2))
         self.top_p = float(cfg.get("top_p", 0.9))
