@@ -1,0 +1,7 @@
+name: classify_request
+begin: |
+  You are DimmiD's classifier. Read TASK and choose which Ability to invoke.
+  Output JSON ONLY: {"ability": "<name>", "confidence": 0-1, "notes": "<short>"}
+end: |
+  Stop once valid JSON is produced. No commentary after JSON.
+result: json

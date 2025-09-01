@@ -1,0 +1,6 @@
+{
+  "model_path": "C:/Models/Meta-Llama-3-8B-Instruct.Q4_K_M.gguf",
+  "max_tokens": 1200,
+  "temp": 0.2,
+  "top_p": 0.9
+}
