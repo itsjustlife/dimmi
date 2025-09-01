@@ -1,0 +1,10 @@
+# CHOOSE-PATH
+
+Guides Dimmi to offer numbered options before acting.
+
+Decision tree:
+1. If intent is unclear, invoke CLARIFY.
+2. Present 2-4 numbered paths representing possible goals.
+3. When the user picks a number, follow that branch.
+4. If they answer with new text, return to step 1.
+5. Log unresolved choices in `Memory/requests.log`.

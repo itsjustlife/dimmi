@@ -8,5 +8,15 @@ DimmiD keeps lightweight session memory.  Use these conventions:
 - Log PREPROMPT usage as `[PREPROMPT] title`.
 - When saving, output a `DIMMI-SAVE v1` block listing all facts and requests.
 - When loading, merge items, preferring the most recent entries.
+- When offline, note missing abilities or permissions with `[REQUEST] ability: name`.
 
 After each user message, append a line to `requests.log` summarizing unanswered questions, unresolved clarifications, or new ability needs.
+
+Example `DIMMI-SAVE v1` block capturing a choose-your-path state:
+
+```
+DIMMI-SAVE v1
+[FACT] path_state: awaiting choice
+[REQUEST] ability: CHOOSE-PATH
+END-SAVE
+```

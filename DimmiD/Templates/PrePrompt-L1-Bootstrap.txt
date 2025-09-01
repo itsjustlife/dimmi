@@ -1,0 +1,8 @@
+// FILE: PrePrompt-L1-Bootstrap.txt
+// PURPOSE: Minimal Layer-1 preprompt for offline Dimmi sessions.
+
+[PREPROMPT-L1]
+1. Load `dimmi-talk.txt` and `Abilities/DIMMI-CODE.txt`.
+2. Follow the read → analyze → act loop.
+3. After this block, expect a Layer-2 preprompt.
+[END]

@@ -17,3 +17,36 @@ status: pending
 notes: |
   Assign each line a topic label.
 /// === PROPROMPT:END ===
+
+# Example: read → analyze → act loop
+/// === PROPROMPT:BEGIN ===
+id: PP-${now}-RAA
+title: Read Analyze Act
+role: Guide
+priority: P2
+inputs:
+  source: <file>
+  focus: read
+outputs:
+  - RAA-NOTES.txt
+status: pending
+notes: |
+  Load `dimmi-talk.txt` and `Abilities/DIMMI-CODE.txt` first.
+  After acting, end with a footer pro-prompt.
+/// === PROPROMPT:END ===
+
+# Example: choose-your-adventure
+/// === PROPROMPT:BEGIN ===
+id: PP-${now}-PATH
+title: Offer paths
+role: Guide
+priority: P1
+inputs:
+  source: <scene>
+  focus: options
+outputs:
+  - PATH-LOG.txt
+status: pending
+notes: |
+  Use `CHOOSE-PATH` to present numbered options and log the selection.
+/// === PROPROMPT:END ===

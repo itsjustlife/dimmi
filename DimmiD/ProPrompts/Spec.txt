@@ -25,3 +25,7 @@ Result block:
     <summary or follow ups>
   status: done
   /// === PROPROMPT:RESULT ===
+
+Guidelines:
+- Load `dimmi-talk.txt` and `Abilities/DIMMI-CODE.txt` before running a block.
+- After completion, append a footer pro-prompt suggesting the next read → analyze → act step.
