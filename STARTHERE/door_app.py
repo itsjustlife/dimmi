@@ -3,16 +3,26 @@ import os
 import subprocess
 import sys
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from pathlib import Path
 from dimmi_core import DimmiRunner
 
 from dimmi_parser import build_graph
 from refresh import main as refresh_main
 
-ROOT = Path(__file__).parent
-SETTINGS = ROOT / "out" / "settings.json"
+APP_ROOT = Path(__file__).parent
+SETTINGS = APP_ROOT / "out" / "settings.json"
 PROMPT_TYPES = ["ASK", "TODO", "GOTO", "LINK", "TAG", "APPEND", "REFRESH", "LOG"]
+IGNORE_NAMES = {'.git', '.gradle', 'build', '__pycache__', 'node_modules'}
+
+
+def is_text_file(path: Path) -> bool:
+    try:
+        chunk = path.open('rb').read(1024)
+        chunk.decode('utf-8')
+        return True
+    except Exception:
+        return False
 
 def open_path(path: Path):
     if os.name == "nt":
@@ -29,6 +39,8 @@ class DoorApp(tk.Tk):
         self.title("DOOR")
         self.graph = {}
         self.current_file = None
+        self.home_dir = APP_ROOT
+        self.current_dir = self.home_dir
         self.create_widgets()
         self.bind_events()
         self.load_settings()
@@ -42,7 +54,10 @@ class DoorApp(tk.Tk):
         toolbar = tk.Frame(self)
         toolbar.pack(side=tk.TOP, fill=tk.X)
         tk.Button(toolbar, text="REFRESH", command=self.refresh_graph).pack(side=tk.LEFT)
-        tk.Button(toolbar, text="OPEN Out/", command=lambda: open_path(ROOT / "out")).pack(side=tk.LEFT)
+        tk.Button(toolbar, text="HOME", command=self.go_home).pack(side=tk.LEFT)
+        tk.Button(toolbar, text="UP", command=self.go_up).pack(side=tk.LEFT)
+        tk.Button(toolbar, text="SET ROOT", command=self.choose_home_dir).pack(side=tk.LEFT)
+        tk.Button(toolbar, text="OPEN Out/", command=lambda: open_path(APP_ROOT / "out")).pack(side=tk.LEFT)
         
         # Add Ask AI field directly in the main window
         ai_frame = tk.Frame(self)
@@ -70,12 +85,14 @@ class DoorApp(tk.Tk):
 
         left = tk.Frame(main)
         tk.Label(left, text="FILES").pack(anchor="w")
+        self.path_label = tk.Label(left, text=str(self.current_dir))
+        self.path_label.pack(anchor="w")
         self.filter_var = tk.StringVar()
         self.filter_entry = tk.Entry(left, textvariable=self.filter_var)
         self.filter_entry.pack(fill=tk.X)
         self.files_list = tk.Listbox(left)
         self.files_list.pack(fill=tk.BOTH, expand=True)
-        main.add(left, width=150)
+        main.add(left, width=200)
 
         middle = tk.Frame(main)
         tk.Label(middle, text="INFO").pack(anchor="w")
@@ -112,39 +129,36 @@ class DoorApp(tk.Tk):
                 geom = data.get("geometry")
                 if geom:
                     self.geometry(geom)
-                self.last_file = data.get("last_file")
+                home = data.get("home_dir")
+                if home:
+                    self.home_dir = Path(home)
+                self.current_dir = self.home_dir
             except Exception:
-                self.last_file = None
+                self.current_dir = self.home_dir
         else:
-            self.last_file = None
+            self.current_dir = self.home_dir
 
     def save_settings(self):
         SETTINGS.parent.mkdir(exist_ok=True)
-        data = {"geometry": self.geometry(), "last_file": self.current_file}
+        data = {"geometry": self.geometry(), "home_dir": str(self.home_dir)}
         SETTINGS.write_text(json.dumps(data, indent=2))
 
     def refresh_graph(self):
-        self.graph = build_graph(ROOT)
-        self.files_list.delete(0, tk.END)
-        for fname in sorted(self.graph["files"].keys()):
-            if self.filter_var.get().lower() in fname.lower():
-                self.files_list.insert(tk.END, fname)
-        if self.current_file and self.current_file in self.graph["files"]:
-            idx = list(sorted(self.graph["files"].keys())).index(self.current_file)
-            self.files_list.selection_set(idx)
-            self.on_file_select()
-        elif getattr(self, "last_file", None) and self.last_file in self.graph["files"]:
-            idx = list(sorted(self.graph["files"].keys())).index(self.last_file)
-            self.files_list.selection_set(idx)
-            self.on_file_select()
+        self.graph = build_graph(self.home_dir)
+        self.refresh_file_list()
 
     def on_file_select(self):
         sel = self.files_list.curselection()
         if not sel:
             return
-        fname = self.files_list.get(sel[0])
-        self.current_file = fname
-        data = self.graph["files"].get(fname, {})
+        path = self.items[sel[0]]
+        if path.is_dir():
+            self.current_dir = path
+            self.refresh_file_list()
+            return
+        self.current_file = path
+        rel = self.current_file.relative_to(self.home_dir).as_posix()
+        data = self.graph["files"].get(rel, {})
         self.items_list.delete(0, tk.END)
         for sec in data.get("sections", []):
             self.items_list.insert(tk.END, f"# {sec['title']}")
@@ -153,10 +167,13 @@ class DoorApp(tk.Tk):
         for p in data.get("prompts", []):
             if p["section"] == "":
                 self.items_list.insert(tk.END, f"{p['type']}: {p['body']}")
-        try:
-            text = (ROOT / fname).read_text(encoding="utf-8")
-        except Exception as e:
-            text = str(e)
+        if is_text_file(self.current_file):
+            try:
+                text = self.current_file.read_text(encoding="utf-8")
+            except Exception as e:
+                text = f"Error: {e}"
+        else:
+            text = "[binary file]"
         self.preview.delete("1.0", tk.END)
         self.preview.insert("1.0", text)
 
@@ -167,7 +184,7 @@ class DoorApp(tk.Tk):
         body = self.body_var.get().strip()
         if not body:
             return
-        with open(ROOT / self.current_file, "a", encoding="utf-8") as f:
+        with open(self.current_file, "a", encoding="utf-8") as f:
             f.write(f"\n!!{ptype} :: {body}\n")
         self.body_var.set("")
         self.refresh_graph()
@@ -199,6 +216,45 @@ class DoorApp(tk.Tk):
         self.ai_output.delete("1.0", tk.END)
         self.ai_output.insert(tk.END, reply)
         self.ai_output.config(state="disabled")
+
+    def choose_home_dir(self):
+        path = filedialog.askdirectory(initialdir=str(self.home_dir))
+        if path:
+            self.home_dir = Path(path)
+            self.current_dir = self.home_dir
+            self.refresh_graph()
+
+    def go_home(self):
+        self.current_dir = self.home_dir
+        self.refresh_file_list()
+
+    def go_up(self):
+        new_dir = self.current_dir.parent
+        self.current_dir = new_dir
+        self.refresh_file_list()
+
+    def refresh_file_list(self):
+        self.path_label.config(text=str(self.current_dir))
+        self.files_list.delete(0, tk.END)
+        self.items = []
+        for child in sorted(self.current_dir.iterdir(), key=lambda p: (p.is_file(), p.name.lower())):
+            if child.name in IGNORE_NAMES or child.name.startswith('.'):
+                continue
+            if self.filter_var.get().lower() not in child.name.lower():
+                continue
+            display = child.name + ("/" if child.is_dir() else "")
+            self.files_list.insert(tk.END, display)
+            self.items.append(child)
+
+    def save_file(self):
+        if not self.current_file or not self.current_file.is_file():
+            return
+        text = self.preview.get("1.0", tk.END)
+        try:
+            self.current_file.write_text(text, encoding="utf-8")
+        except Exception as e:
+            messagebox.showerror("Save Error", str(e))
+        self.refresh_graph()
 
     def on_closing(self):
         self.save_settings()

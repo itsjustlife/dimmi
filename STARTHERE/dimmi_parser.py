@@ -4,6 +4,8 @@ import shlex
 from collections import defaultdict
 from pathlib import Path
 
+SKIP_DIRS = {'.git', '.gradle', 'build', '__pycache__', 'node_modules'}
+
 PROMPT_LONG_RE = re.compile(r"!!(?P<type>\w+)\s*(?P<args>.*?)::\s*(?P<body>.*)")
 PROMPT_SHORT_RE = re.compile(r"@(?P<type>\w+)@\s*(?P<body>.*)")
 HEADING_RE = re.compile(r"^(#+)\s+(.*)")
@@ -39,8 +41,9 @@ def parse_args(arg_str: str) -> dict:
     return args
 
 
-def parse_file(path: Path) -> dict:
-    lines = path.read_text(encoding="utf-8").splitlines()
+def parse_file(path: Path, base: Path) -> dict:
+    rel = path.relative_to(base).as_posix()
+    lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
     meta = {}
     sections = []
     prompts = []
@@ -77,7 +80,7 @@ def parse_file(path: Path) -> dict:
                 "type": ptype,
                 "args": args,
                 "body": body,
-                "file": path.name,
+                "file": rel,
                 "line": idx,
                 "section": current_section["id"] if current_section else ""
             }
@@ -93,7 +96,7 @@ def parse_file(path: Path) -> dict:
                 "type": ptype,
                 "args": {},
                 "body": body,
-                "file": path.name,
+                "file": rel,
                 "line": idx,
                 "section": current_section["id"] if current_section else ""
             }
@@ -108,26 +111,32 @@ def build_graph(root: Path) -> dict:
     files = {}
     links = []
     tags = defaultdict(list)
-    for path in sorted(root.glob("*.txt")):
-        data = parse_file(path)
-        files[path.name] = data
+    for path in sorted(root.rglob("*.txt")):
+        if any(part in SKIP_DIRS or part.startswith('.') for part in path.relative_to(root).parts):
+            continue
+        try:
+            data = parse_file(path, root)
+        except Exception:
+            continue
+        rel = path.relative_to(root).as_posix()
+        files[rel] = data
         for p in data["prompts"]:
             if p["type"] == "GOTO":
                 links.append({
-                    "from": f"{path.name}#{p['section']}",
+                    "from": f"{rel}#{p['section']}",
                     "to": p["args"].get("path", ""),
                     "type": "GOTO"
                 })
             elif p["type"] == "LINK":
                 links.append({
-                    "from": f"{path.name}#{p['section']}",
+                    "from": f"{rel}#{p['section']}",
                     "to": p["args"].get("url", ""),
                     "type": "LINK"
                 })
             elif p["type"] == "TAG":
                 name = p["args"].get("name")
                 if name:
-                    tags[name].append(f"{path.name}#{p['section']}")
+                    tags[name].append(f"{rel}#{p['section']}")
     return {"files": files, "links": links, "tags": tags}
 
 
