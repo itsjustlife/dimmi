@@ -3,6 +3,7 @@
 ### **Commands-Edit.txt**
 
 #### **EDIT Command**
+**Default confidence_threshold:** 0.8
 **Purpose**: Reorganize the Arkhive by moving, merging, or copying structures to new locations, ensuring logical consistency, reducing redundancy, and maintaining cross-references.
 
 ---

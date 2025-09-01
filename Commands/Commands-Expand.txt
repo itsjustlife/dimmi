@@ -1,6 +1,7 @@
 ### **Command-Expand.txt**
 
 #### **EXPAND Command**
+**Default confidence_threshold:** 0.8
 **Purpose**: Generate new topics, subcategories, and ideas based on an existing structure. Enables both logical and creative growth of the Arkhive while maintaining coherence.
 
 ---

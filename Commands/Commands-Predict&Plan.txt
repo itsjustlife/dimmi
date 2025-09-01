@@ -1,5 +1,7 @@
 **Predict and Plan Command**
 
+**Default confidence_threshold:** 0.8
+
 #### **Purpose**
 The **Predict and Plan** command is designed to analyze large, complex inputs that exceed the AI's immediate processing capacity. It breaks down the content into manageable parts, organizes it into a logical sequence, and creates instructions to process each part iteratively. This ensures comprehensive analysis, efficient execution, and effective integration into the Arkhive or other systems.
 

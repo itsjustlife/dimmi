@@ -5,6 +5,7 @@ Here’s the enhanced **Commands-Export.txt**, incorporating instructions for ex
 ### **Commands-Export.txt**
 
 #### **EXPORT Command**
+**Default confidence_threshold:** 0.8
 **Purpose**: Convert and export Arkhive content into user-specified formats for external use or sharing. Ensures compatibility with various tools like OPML (SimpleMind), JSON, and plain text.
 
 ---

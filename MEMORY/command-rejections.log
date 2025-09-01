@@ -1,0 +1,2 @@
+# Log of commands rejected due to low classifier confidence.
+# Format: ISO-8601 timestamp | command text | score | threshold
