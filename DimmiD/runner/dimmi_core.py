@@ -1,7 +1,18 @@
 from pathlib import Path
 from datetime import datetime
 import json
-from gpt4all import GPT4All
+try:  # gpt4all is optional for reading prompts
+    from gpt4all import GPT4All  # type: ignore
+except Exception:  # pragma: no cover - handled at runtime
+    GPT4All = None
+
+"""Core runner logic for the DimmiD offline assistant.
+
+This module is responsible for composing the system prompt from the
+various text files in the project tree, executing ad-hoc turns, queueing
+tasks, and processing queued tasks.  It is intentionally dependency light
+so it can be reused by both the CLI and the tkinter GUI.
+"""
 
 DIMMID_ROOT = Path(__file__).resolve().parent.parent
 MEM = DIMMID_ROOT / "Memory"
@@ -40,6 +51,11 @@ def compose_system_prompt() -> str:
             parts.append(f"\n/// {rel}\n{_read(pre)}")
     return "<<DIMMID_SYSTEM_START>>\n" + "\n".join(parts) + "\n<<DIMMID_SYSTEM_END>>"
 
+def queue_task(task_text: str) -> None:
+    """Append a task to ``Memory/requests.log`` (module-level helper)."""
+    MEM.mkdir(parents=True, exist_ok=True)
+    (MEM / "requests.log").open("a", encoding="utf-8").write(task_text.strip() + "\n")
+
 def _load_config():
     cfg = DIMMID_ROOT / "config.json"
     if cfg.exists():
@@ -47,27 +63,38 @@ def _load_config():
     return {"model_path": "", "max_tokens": 1200, "temp": 0.2, "top_p": 0.9}
 
 class DimmiRunner:
+    """Wrapper around the GPT4All model used by the project."""
+
     def __init__(self, model_path: str | None = None):
         cfg = _load_config()
+        if GPT4All is None:
+            raise ImportError("The 'gpt4all' package is required to run DimmiD.")
         self.model_path = model_path or cfg.get("model_path", "")
         if not self.model_path:
-            raise FileNotFoundError("Model path is not set. Update /DimmiD/config.json.")
+            raise FileNotFoundError(
+                "Model path is not set. Update /DimmiD/config.json or pass --model."
+            )
         self.max_tokens = int(cfg.get("max_tokens", 1200))
         self.temp = float(cfg.get("temp", 0.2))
         self.top_p = float(cfg.get("top_p", 0.9))
         self.model = GPT4All(self.model_path, allow_download=False)
         self.system_prompt = compose_system_prompt()
 
+    # ------------------------------------------------------------------
+    # Basic interaction helpers
+    # ------------------------------------------------------------------
     def generate(self, user_text: str) -> str:
+        """Run a single-turn conversation with the current system prompt."""
         prompt = f"{self.system_prompt}\n\nUser: {user_text}\nAI:"
         return self.model.generate(
             prompt,
             max_tokens=self.max_tokens,
             temp=self.temp,
-            top_p=self.top_p
+            top_p=self.top_p,
         )
 
     def run_task(self, task_text: str, proprompt_name: str | None = None) -> str:
+        """Execute a TASK optionally seeded with a ProPrompt template."""
         proprompt = ""
         if proprompt_name:
             ppf = DIMMID_ROOT / "ProPrompts" / f"{proprompt_name}.txt"
@@ -79,10 +106,24 @@ class DimmiRunner:
             prompt,
             max_tokens=self.max_tokens,
             temp=self.temp,
-            top_p=self.top_p
+            top_p=self.top_p,
         )
 
+    # ------------------------------------------------------------------
+    # Queue management
+    # ------------------------------------------------------------------
+    def queue(self, task_text: str) -> None:
+        """Append a task to ``Memory/requests.log`` for deferred execution."""
+        queue_task(task_text)
+
     def process_queue(self, max_items: int = 1):
+        """Process up to ``max_items`` queued tasks.
+
+        Each completed task is written to ``Outputs/<DATE>/<TIMESTAMP>.json``
+        and logged to both ``requests.resolved.log`` and ``facts.log``.
+        Returns a list of result objects.
+        """
+
         reqf = MEM / "requests.log"
         reqf.parent.mkdir(parents=True, exist_ok=True)
         if not reqf.exists():
@@ -95,8 +136,7 @@ class DimmiRunner:
         remaining = lines[max_items:]
 
         OUT.mkdir(parents=True, exist_ok=True)
-        day = datetime.utcnow().strftime("%Y-%m-%d")
-        daydir = OUT / day
+        daydir = OUT / datetime.utcnow().strftime("%Y-%m-%d")
         daydir.mkdir(exist_ok=True)
 
         results = []
@@ -105,9 +145,15 @@ class DimmiRunner:
             ts = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
             obj = {"ts": ts, "task": task, "output": out}
             of = daydir / f"{ts}.json"
-            of.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
-            (MEM / "requests.resolved.log").open("a", encoding="utf-8").write(f"{ts}\t{task}\t{of.name}\n")
-            (MEM / "facts.log").open("a", encoding="utf-8").write(f"{ts}\tOUTPUT\t{of}\n")
+            of.write_text(
+                json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+            (MEM / "requests.resolved.log").open("a", encoding="utf-8").write(
+                f"{ts}\t{task}\t{of.name}\n"
+            )
+            (MEM / "facts.log").open("a", encoding="utf-8").write(
+                f"{ts}\tOUTPUT\t{of}\n"
+            )
             results.append(obj)
 
         reqf.write_text(("\n".join(remaining) + "\n") if remaining else "", encoding="utf-8")
