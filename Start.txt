@@ -19,6 +19,11 @@
 //  – Explicit commands or keywords (as defined in Commands.txt) for direct operations (e.g. memory save/load, help, refinement directives).
 
 // DECISION LOGIC:
+//  0. **Prompt Subject & Intent Classification:** Before any specialized handling:
+//     – Parse the user’s prompt to identify the primary subject (noun) ahead of the action (verb).
+//     – Once the subject is detected, branch into intent families such as **IR** (Information Retrieval), **TEP** (Task Execution/Procedure), or **CG** (Creative Generation), and apply verb-level disambiguation within the chosen family.
+//     – If confidence scores for multiple interpretations are in a near tie, emit a clarifying question rather than guessing.
+//     – When intent remains unresolved even after clarification, default to an exploratory **IR** subtype to gather more context.
 //  1. **Memory Restoration Check:** At conversation start (or whenever a structured memory snapshot is detected in user input):
 //     – If the input contains a recognized memory format (e.g. begins with "DIMMI-SAVE v1" or "DIMMI-OPML v1", or includes structured memory tags like [USER], [PREFERENCES], [PROJECT], etc.), invoke `Dimmi-Memory.txt` logic to parse and integrate the provided memory into the current context.
 //     – Ensure the memory parser handles both plain text and OPML outline formats, per the standardized tagging schema (e.g. [USER], [PREF], [NOTE], etc.).
