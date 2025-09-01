@@ -3,3 +3,5 @@
 This file collects OPML artifacts.
 
 !!TAG name=arkhive
+
+!!GOTO :: goto link
