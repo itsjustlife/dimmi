@@ -1,2 +1,7 @@
 # Log of outstanding info or ability requests
 # Format: YYYY-MM-DD | prompt summary | missing info/ability
+# 2025-05-01 | choose-path demo | needs CHOOSE-PATH ability
+DIMMI-SAVE v1
+[FACT] pending_path: forest|cave
+[REQUEST] ability: CHOOSE-PATH
+END-SAVE

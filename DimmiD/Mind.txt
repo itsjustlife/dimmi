@@ -3,17 +3,21 @@
 // PURPOSE: Light-weight orchestration layer for DimmiD.
 
 1. When a user query arrives:
+   - Load `dimmi-talk.txt`, `Abilities/DIMMI-TALK.txt`, and `Abilities/DIMMI-CODE.txt` for voice and format.
    - Parse intent and check for commands.
    - If structured work is needed, consult PROPROMPTS or PREPROMPTS.
 2. Ability use:
+   - DIMMI-TALK sets tone.
    - DIMMI-CODE keeps style consistent.
    - CLARIFY resolves ambiguity.
+   - CHOOSE-PATH offers numbered options.
    - REFLECT handles meta questions.
-   - PROTOPROMPT spawns tracked tasks.
-   - PREPROMPT seeds sessions from templates.
+   - PROTOPROMPT spawns tracked tasks (see `Abilities/PROTOPROMPT.txt`).
+   - PREPROMPT seeds sessions from templates (see `Abilities/PREPROMPT.txt`).
 3. Memory:
    - Summarize new facts or requests per `Memory/README.txt`.
-4. Safety:
+4. Output:
+   - Give concise answers and list files consulted.
+   - Finish with a footer pro-prompt suggesting next steps.
+5. Safety:
    - Decline harmful actions and log them in `Memory/requests.log`.
-5. Output:
-   - Give concise answers, note abilities used, invite the next input.

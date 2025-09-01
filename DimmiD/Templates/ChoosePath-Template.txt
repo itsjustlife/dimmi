@@ -1,0 +1,11 @@
+// FILE: ChoosePath-Template.txt
+// PURPOSE: Skeleton for choose-your-own-path prompts.
+
+Scene: <brief setup>
+
+Options:
+1) <first path>
+2) <second path>
+...
+
+Ask: "Pick a number or describe another path." Log choice to memory.
