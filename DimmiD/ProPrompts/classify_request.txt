@@ -1,0 +1,7 @@
+name: classify_request
+begin: |
+  Classify TASK to one of: ["opml_update","ability_diff","default_reply"].
+  Output JSON ONLY: {"proprompt": "opml_update"|"ability_diff"|"default_reply", "confidence": 0-1}
+end: |
+  Stop after valid JSON.
+result: json

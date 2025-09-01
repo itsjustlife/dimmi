@@ -15,6 +15,9 @@ def load_cfg():
         return json.loads(CFG.read_text(encoding="utf-8"))
     return {"model_path": ""}
 
+def save_cfg(data):
+    CFG.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
 class DimmiGUI:
     def __init__(self, root):
         self.root = root
@@ -22,6 +25,18 @@ class DimmiGUI:
         self.cfg = load_cfg()
         try:
             self.runner = DimmiRunner(self.cfg.get("model_path"))
+        except FileNotFoundError:
+            messagebox.showerror(
+                "Model error", "No GPT4All model found. Please choose a .gguf file."
+            )
+            path = filedialog.askopenfilename(
+                title="Select GPT4All model", filetypes=[("GPT4All model", "*.gguf")]
+            )
+            if not path:
+                raise
+            self.runner = DimmiRunner(path)
+            self.cfg["model_path"] = path
+            save_cfg(self.cfg)
         except Exception as e:
             messagebox.showerror("Model error", str(e)); raise
 
