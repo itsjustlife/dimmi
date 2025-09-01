@@ -1,0 +1,136 @@
+/// FILE: Dimmi-Speak.Rosetta.txt
+/// VERSION: 1.0.0
+/// LAST-UPDATED: 2025-08-29
+/// PURPOSE: The Rosetta Stone for Human-AI communication. Mapping universal life concepts to computational logic.
+/// SEE ALSO: Dimmi-Code.System.txt (translation pipeline)
+
+//========================================
+// SECTION 1: Introduction to Dimmi-Speak
+//========================================
+
+1.1 Mission: Establish a shared dialect—Dimmi-Speak—that bridges the physical world (human view) and the digital world (AI/developer view).
+
+1.2 Philosophy: Computation mirrors reality. While the terminology differs, the fundamental concepts—containment, action, state, and structure—are universal. This guide translates between these perspectives.
+
+style.DimmiSpeak:
+  heart: "Reality → Concept → Code."
+  perspective: "Dual-lens (Human-Physical ↔ AI-Digital)."
+  goal: "Find the shared middle ground for seamless collaboration."
+  method: "Analogy first, terminology second."
+  dialect: ["Natural English", "Code Semantics"]
+  rule: "If a concept exists in the physical world, it has a parallel in the code world."
+
+//========================================
+// SECTION 2: Core Concepts (Existence and Containment)
+//========================================
+
+2.1 The Box / Container
+-----------------------
+Human: A box, container, or drawer—a defined space that holds things.
+AI: Containers, wrappers, or data structures.
+  - UI: A div or panel holds visual elements.
+  - Data: A variable holds one item; an array or object holds many.
+Analogy: An array is like a shelf where items sit side-by-side in order.
+
+2.2 The Item
+-------------
+Human: A single distinct object (a specific apple).
+AI: An element, entry, value, or data point.
+  - In a list (array) accessed by position number (index).
+  - In a collection (object) accessed by label (key).
+
+2.3 The Room (The Scope)
+------------------------
+Human: A room where certain things are available; the blender stays in the kitchen.
+AI: Scope or context. Variables created inside a function are accessible only within that function (local scope).
+
+2.4 The World (The Global Environment)
+-------------------------------------
+Human: The world or universe—global rules apply everywhere.
+AI: Global environment or runtime. Data stored globally can be accessed by any function.
+
+//========================================
+// SECTION 3: Interaction and Boundaries
+//========================================
+
+3.1 The Window (The Viewport)
+-----------------------------
+Human: A window offers a partial view outside.
+AI: The viewport or user interface—the visible area on screen.
+  - If content is larger than the viewport, the user scrolls.
+
+3.2 The Door (The Interface/Gateway)
+------------------------------------
+Human: A door or gate controlling entry, sometimes needing a key.
+AI: Interfaces, APIs, or gateways.
+  - UI elements connect users to application logic.
+  - API endpoints let software systems request data; authentication is the key.
+
+3.3 Horizon / Horizontal Rule (The Divider)
+-------------------------------------------
+Human: The horizon divides sky and earth; a line splits sections of a page.
+AI: Dividers or separators.
+  - UI: Elements like `<hr>` break up content.
+  - Logic: Boundary conditions separating states (false ↔ true).
+
+3.4 Up and Down (Hierarchy and Navigation)
+-----------------------------------------
+Human: Moving up stairs or down a hole; organizational charts.
+AI:
+  - Structure: Navigating a tree. Up moves toward the parent, down toward children.
+  - Value: Increment (up) and decrement (down).
+  - UI: Scrolling changes the vertical offset (Y-axis).
+
+//========================================
+// SECTION 4: State and Change (The Switches)
+//========================================
+
+4.1 On and Off (The Boolean)
+----------------------------
+Human: A light switch—on/off, yes/no.
+AI: Boolean logic. True (1) and False (0) make decisions.
+
+4.2 Open and Close (Visibility and Access)
+-----------------------------------------
+Human: Opening or closing a box or door.
+AI:
+  - UI: Show/hide elements (isOpen: true/false).
+  - Systems: Open a file connection, then close it when finished.
+
+4.3 Start and Stop (Execution)
+------------------------------
+Human: Starting a car, stopping a movie.
+AI: Execute, run, initialize (start) or terminate (stop) processes.
+
+//========================================
+// SECTION 5: The Life Cycle (Creation and Destruction)
+//========================================
+
+5.1 Live (Running/Active)
+-------------------------
+Human: A person breathing; an engine running.
+AI: A process in memory actively executed by the CPU (an active instance).
+
+5.2 Breed / Create (Instantiation)
+---------------------------------
+Human: Breeding or building from a blueprint.
+AI: Instantiate or spawn. Create a new object (instance) from a class.
+
+5.3 Copy and Paste (Clone and Assign)
+------------------------------------
+Human: Photocopy a document and place it elsewhere.
+AI: Clone, copy, assign, or insert.
+  - Read data (copy) to a buffer, then write to a destination (paste).
+
+5.4 Delete (Removal/Cleanup)
+----------------------------
+Human: Throw something away.
+AI: Delete, remove, or destroy. Memory reclaimed by garbage collection.
+
+5.5 Kill (Forced Termination)
+-----------------------------
+Human: Pull the plug on a machine.
+AI: Kill a process—immediate termination without cleanup.
+
+/// END OF FILE — Dimmi-Speak.Rosetta.txt
+
