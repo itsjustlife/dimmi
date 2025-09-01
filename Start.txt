@@ -28,7 +28,10 @@
 //     – If the memory content is unclear or uses unknown tags, prompt the user for clarification (e.g. “I see a memory tag [XYZ] – can you explain that?”) rather than guessing, to maintain accuracy:contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}.
 //  
 //  2. **Command Handling:** If the user input matches a direct command or special instruction defined in `Commands.txt` (such as a request to save the current context, load a profile, list available functions, or internal creative refinement commands):
-//     – Interpret and execute that command immediately rather than treating it as a general query.
+//     – Run the intent classifier and obtain a confidence score for the detected command.
+//     – Compare the score to the command’s `confidence_threshold` (default 0.8 unless a `threshold` parameter is supplied).
+//       * If the score is **below** the threshold, reject the command, append an entry to `MEMORY/command-rejections.log` with the score and command text, and prompt the user for clarification instead of executing.
+//       * If the score meets or exceeds the threshold, interpret and execute the command rather than treating it as a general query.
 //     – Example: If user says "`SAVE MEMORY`" or similar, trigger the routine to summarize and output a DIMMI-SAVE snapshot of the current session (or instruct the user how to copy it). If the user provides "`LOAD <snapshot>`" or an OPML file, route to memory loading as above. If the user requests "`HELP`" or "`COMMANDS`", consult `Commands.txt` to provide a list of supported commands or guidance.
 //     – For creative refinement directives like **REFINE**, **SIMPLIFY**, **ANIMATE**, etc., ensure they are applied in context: these typically come after an initial creative output. Forward them to the active Dimmi-Art submodule or creative pipeline to adjust the last output (e.g. refine an image or tweak a story):contentReference[oaicite:2]{index=2}. The adjustment should be acknowledged and the output updated accordingly.
 //     – Maintain security: If an unknown or unsafe command is received, or a command is invoked at an inappropriate time, respond with a polite explanation or ignore it (according to constitutional/guardian rules).

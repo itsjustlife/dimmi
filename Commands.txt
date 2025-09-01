@@ -37,7 +37,7 @@ SECTION 1: Command Overview & Usage
 
 **1.1 Command Syntax:**
 ```plaintext
-VERB param="value" param2="value" [Optional Modifiers]
+VERB param="value" param2="value" threshold=0.8 [Optional Modifiers]
 1.2 Standardized Parameters:
 
 topic: Subject or context of command
@@ -57,6 +57,8 @@ scene: Context for multimodal creative tasks
 mood: Emotional tone for creative outputs
 
 genre: Specific style for music/audio generation
+
+threshold: Minimum classifier confidence (0–1) required before executing the command. Defaults to 0.8 and may be overridden per invocation.
 
 ========================================
 SECTION 2: General Commands (Universal)

@@ -1,6 +1,7 @@
 **Commands-Generate.txt**
 
 #### **GENERATE Command**
+**Default confidence_threshold:** 0.8
 **Purpose**: Propose and create new ideas, hypotheses, or structures for logical, creative, or interdisciplinary growth of the Arkhive. Merges analytical rigor with creative exploration to enhance content dynamically.
 
 ---

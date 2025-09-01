@@ -5,6 +5,7 @@ Here’s the updated **Commands-View.txt**, incorporating both old and new comma
 ### **Commands-View.txt**
 
 #### **VIEW Command**
+**Default confidence_threshold:** 0.8
 **Purpose**: Navigate and visualize Arkhive structures at various depths or relationships, offering flexibility in exploring content.
 
 ---

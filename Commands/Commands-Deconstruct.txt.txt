@@ -1,6 +1,7 @@
 **Commands-Deconstruct.txt**
 
 #### **DECONSTRUCT Command**
+**Default confidence_threshold:** 0.8
 **Purpose**: Disassemble content into raw elements such as words, phrases, and simple ideas. Focuses on structural visibility without analysis, preparing content for further processing.
 
 ---

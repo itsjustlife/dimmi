@@ -1,6 +1,7 @@
 **Commands-Integrate.txt**
 
 #### **INTEGRATE Command**
+**Default confidence_threshold:** 0.8
 **Purpose**: Incorporate new content into the existing Arkhive or create a new Arkhive when needed. Ensures logical placement and maintains the integrity of the Arkhive’s structure through proposal, review, and finalization.
 
 ---

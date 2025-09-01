@@ -2,6 +2,7 @@
 ### **Commands-Analyze.txt**
 
 #### **ANALYZE Command**
+**Default confidence_threshold:** 0.8
 **Purpose**: Process and deconstruct input to extract core elements, understand context, detect patterns, and categorize information within the Arkhive. It ensures content integration is logical, complete, and contextually relevant.
 
 ---
