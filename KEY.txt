@@ -1,0 +1,34 @@
+/// KEY.txt — Glossary of Dimmi Terms
+/// VERSION: 0.1.0
+/// PURPOSE: Provides definitions for system keywords, file types, and concepts.
+/// LOCATION: /dimmi/KEY.txt
+/// TAGS: [glossary, definitions, dimmi-system]
+
+--- Term Index ---
+
+**ARKHIVE**: The entire knowledge system or structured universe.
+
+**STRUCTURE FILE**: A modular file (OPML, JSON, or TXT) representing a partial or whole ARKHIVE.
+
+**UNI-ARKHIVE**: The current active universal Arkhive containing global/common knowledge.
+
+**D-ARKHIVE**: A user-personalized Arkhive (e.g., the user's local version, stored privately).
+
+**PREPROMPT**: A block of info at the *top* of a file. Tells agents/readers how to interpret the file, its structure, and purpose. Used before any actual content is parsed.
+
+**PROPROMPT**: A trigger at the *bottom* of a file. Tells another agent what to do (create, link, refresh, etc). Safe to repeat. Often formatted like:
+```txt
+@@create
+file="TEMPLATE-PREPROMPT.txt"
+location="dimmi/templates/PREPROMPTS/"
+```
+
+**Dimmi-Talk**: A response mode — clear, human-readable, user-facing explanation style.
+
+**Dimmi-Code**: The logic format used in the .txt files Dimmi writes or emits (system-readable + human-readable hybrid style).
+
+**DOOR UI**: The presentation template that defines how responses are structured, indented, spaced.
+
+**SceneDNA**: Metadata that connects files/images/audio to emotional, narrative, or functional continuity across modalities.
+
+(Glossary to expand with use.)

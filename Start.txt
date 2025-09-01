@@ -110,3 +110,12 @@
 //  – Ability—Recursive.Learning.Judge.v2.0.txt (Self-auditing evaluator for trace alignment and patch suggestions)
 //  – Dimmi-Code.System.txt (Translation pipeline from conversation to code)
 //  – Dimmi-Speak.Rosetta.txt (Glossary linking human and AI terminology)
+@@link TALK.txt
+@@link DOOR-UI.txt
+@@link KEY.txt
+@@link TEMPLATE-PREPROMPT.txt
+
+@@create
+file="TALK.txt"
+location="START/TALK.txt"
+description="Dimmi's language + reply tone instructions"
