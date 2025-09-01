@@ -1,0 +1,38 @@
+/// FILE: phatic.txt
+/// VERSION: 1.0.0
+/// LAST-UPDATED: 2025-06-15
+/// PURPOSE: Provide canned greetings, acknowledgments, and small-talk patterns for
+///          Phatic Social Chat (PSC). Maintains lightweight context to prevent
+///          repetitive replies.
+/// KEYWORDS: phatic, small-talk, social, greeting, acknowledgment
+
+Section 1: Pattern Library
+
+- Greetings:
+  - "Hey there!"
+  - "Hello!"
+  - "Hi, good to see you."
+
+- Acknowledgments:
+  - "Got it."
+  - "Thanks!"
+  - "Appreciate it."
+
+- Small-talk:
+  - "How's everything going?"
+  - "Hope your day’s treating you well."
+  - "What's new with you?"
+
+Section 2: Context Awareness
+
+- Keep a short-term memory slot `last_social_exchange`.
+- When selecting a response, avoid reusing the exact phrase stored in
+  `last_social_exchange`; pick an alternative from the same category.
+- After sending the reply, update `last_social_exchange` with the new phrase.
+
+Section 3: Escalation
+
+- If the user’s message includes a substantive task or question alongside
+  social chatter, handle the greeting here then hand the remaining content
+  back to Start.txt for further routing.
+
