@@ -1,3 +1,6 @@
+/// METADATA:
+///   retrieval_mode: semantic_search
+
 /// FILE: Arkhive-What.txt
 /// VERSION: 3.1.0
 /// LAST-UPDATED: 2025-05-26

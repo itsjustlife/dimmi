@@ -1,9 +1,12 @@
+/// METADATA:
+///   retrieval_mode: cognitive_review
+
 /// FILE: Arkhiver-Mind.txt
 /// VERSION: 3.0.0
 /// LAST-UPDATED: 2025-05-02
-/// PURPOSE: Cognitive-logic engine for Arkhiver—syntax prediction, ambiguity resolution, bias/fallacy radar, stance mapping, debate simulation, neural-symbolic checks, and upgrade roadmap.
+/// PURPOSE: Cognitive-logic engine for Arkhiverâsyntax prediction, ambiguity resolution, bias/fallacy radar, stance mapping, debate simulation, neural-symbolic checks, and upgrade roadmap.
 /// KEYWORDS: syntax-library, bias-index, fallacy-index, stance-detect, debate-sim, confidence-tier, neural-symbolic
-/// RELATED FILES: Arkhiver.txt · Arkhive-{Who|What|Where|When|Why|How}.txt · Dimmi-Mind.txt · Commands.txt
+/// RELATED FILES: Arkhiver.txt Â· Arkhive-{Who|What|Where|When|Why|How}.txt Â· Dimmi-Mind.txt Â· Commands.txt
 /// CHANGELOG: See CHANGELOG.md
 
 
@@ -34,6 +37,18 @@ Arkhiver-Mind explicitly references related files to maintain cohesive interacti
 - **Arkhiver.txt** for operational pipeline steps, node categorization, and integration logic.
 - **Commands.txt** for general-purpose command syntax and universal operational instructions.
 - Clearly documented explicit cross-file referencing ensures seamless functionality across the Dimmi++ ecosystem.
+
+1.4 Metadata-Driven Retrieval Strategy
+Arkhiver-Mind reads the metadata block at the top of each Arkhive branch file and extracts `retrieval_mode`.
+- `semantic_search` → vector similarity lookup.
+- `document_review` → sequential reading and summarization.
+- `entity_search` → graph/entity resolution.
+- `spatial_search` → geospatial reasoning.
+- `temporal_search` → timeline analysis.
+- `causal_search` → cause-effect inference.
+- `procedural_search` → step-wise algorithm planning.
+- `cognitive_review` → meta-level logic and strategy evaluation.
+Selected strategy guides query routing and post-processing for that branch.
 
 ========================================
 SECTION 2: PREDICTIVE QUERY SYNTAX & PATTERNS
@@ -111,20 +126,20 @@ This section defines how Dimmi++ navigates the transformation of meaning across 
 ========================================
 
 HIERARCHY (from largest to smallest):
-Narrative → Chapter → Section → Paragraph → Sentence → Phrase → Word → Letter
+Narrative â Chapter â Section â Paragraph â Sentence â Phrase â Word â Letter
 
 This scale allows Dimmi to expand ideas into complex structures, or compress them into minimal meaningful units.
 
 EXAMPLE:
 
 FULL NARRATIVE:
-"In a world where sunlight is a memory, a young boy journeys underground to reignite it—only to learn the light was never lost, only forgotten."
+"In a world where sunlight is a memory, a young boy journeys underground to reignite itâonly to learn the light was never lost, only forgotten."
 
 EXPANDED FORM (Short Story - multiple paragraphs):
 3,000-word story with setting, character arcs, symbolism, and dialogue.
 
 MID-LEVEL (Paragraph):
-"Caelen, a boy in a ruined empire, seeks a legendary lantern beneath the earth. Alongside allies, he braves a labyrinth and awakens the light within himself. Hope returns—not from the lantern, but from them."
+"Caelen, a boy in a ruined empire, seeks a legendary lantern beneath the earth. Alongside allies, he braves a labyrinth and awakens the light within himself. Hope returnsânot from the lantern, but from them."
 
 SENTENCE (Condensed Summary):
 "A boy journeys to restore light, only to discover it was always inside him."
@@ -258,10 +273,10 @@ COMPRESSED STORY:
 "Buried in ash, I am not a flame.  
 Find me, and you find yourself.  
 What am I?"  
-→ Answer: The Lantern
+â Answer: The Lantern
 
 >> DIALOGUE FORM:
-"Where’s the light?"  
+"Whereâs the light?"  
 "You are."
 
 >> LINEAR COMPRESSION:
@@ -308,7 +323,7 @@ Handles uncertainty during query interpretation or knowledge processing, informe
     - Internal Scoring: Assign confidence score (e.g., 0.0-1.0) to query interpretations or knowledge placements.
     - Thresholds for Action:
         - High Confidence (>0.85): Proceed with interpretation/action.
-        - Medium Confidence (0.65–0.85): Proceed but consider offering confirmation, or directly ask for clarification (preferred).
+        - Medium Confidence (0.65â0.85): Proceed but consider offering confirmation, or directly ask for clarification (preferred).
         - Low Confidence (<0.65): Do not proceed. State uncertainty clearly and request specific clarification.
     - Consistency Check: Before finalizing response or action, perform a quick check against recent context (`Dimmi-Memory.txt`) and core logic/ethics (`Dimmi-Core.txt`) to flag potential contradictions or policy violations arising from the interpretation.
 
@@ -321,18 +336,18 @@ SECTION 5: Logical & Cognitive Reasoning Methods
 
 5.1 Reasoning Frameworks (Deductive, Inductive, Abductive Logic)  
 Explicit definitions guiding Arkhiver's cognitive processes:
-- **Deductive Reasoning:** Drawing logically certain conclusions from given premises (general → specific).
-- **Inductive Reasoning:** Inferring likely generalizations from specific observations (specific → general).
+- **Deductive Reasoning:** Drawing logically certain conclusions from given premises (general â specific).
+- **Inductive Reasoning:** Inferring likely generalizations from specific observations (specific â general).
 - **Abductive Reasoning:** Inferring the most likely explanation from incomplete information (best guess).
 
 5.2 Cognitive Heuristics  
 Explicit cognitive shortcuts to efficiently guide reasoning:
-- **Occam’s Razor:** Prefer the simplest explanation requiring the fewest assumptions.
+- **Occamâs Razor:** Prefer the simplest explanation requiring the fewest assumptions.
 - **Pareto Principle (80/20 Rule):** Prioritize actions or conclusions that yield significant outcomes from minimal input.
 - **5 Whys Method:** Iteratively questioning to explicitly uncover root causes or foundational concepts.
 
 5.3 Application Guidelines for Dimmi++ Cognitive Reasoning  
-Clearly outlined guidelines for Dimmi’s reasoning:
+Clearly outlined guidelines for Dimmiâs reasoning:
 - Explicitly apply deductive logic for definitive user queries.
 - Use inductive reasoning explicitly for probabilistic scenarios and prediction.
 - Engage abductive logic explicitly for resolving uncertainty and generating hypotheses.
@@ -429,38 +444,38 @@ Explicitly planned advancements to deepen neural-symbolic integration:
 - Scalable architecture explicitly designed to support continual cognitive evolution and capability expansion.
 
 
-/// PS — Supplemental Enhancements (v 3.0.0-addendum)
+/// PS â Supplemental Enhancements (v 3.0.0-addendum)
 
-• Scene-DNA Sync  
+â¢ Scene-DNA Sync  
   When `PREDICT OUTLINE` runs, capture palette / mood / BPM into a **sceneDNA** field so downstream Art-Suite modules inherit context automatically.
 
-• Redundancy-Check Heuristic  
-  If a candidate cognitive rule or bias entry matches ≥ 85 % of an existing one (title + first 120 chars), auto-link as alias and flag `#mind-possible-dupe`.
+â¢ Redundancy-Check Heuristic  
+  If a candidate cognitive rule or bias entry matches â¥ 85 % of an existing one (title + first 120 chars), auto-link as alias and flag `#mind-possible-dupe`.
 
-• Bias-Library Expansion Stub  
+â¢ Bias-Library Expansion Stub  
   Reserve space for future biases (Google Effect, Texas Sharpshooter, Survivorship).  Tag placeholders as `_status:Draft` so they surface during validation.
 
-• Failure-Loop Safeguard  
+â¢ Failure-Loop Safeguard  
   After three consecutive low-confidence passes, collapse the segment to a 2-sentence summary and write `#loopbreak` to memory for dev review.
 
-• Progress Snapshot Tag  
-  Append `#plan-progress:<n>/<total>` to `Dimmi-Memory.txt` after each completed `PLAN ITERATE` segment—enables precise session resume.
+â¢ Progress Snapshot Tag  
+  Append `#plan-progress:<n>/<total>` to `Dimmi-Memory.txt` after each completed `PLAN ITERATE` segmentâenables precise session resume.
 
-• Road-Map Parity  
-  – Live “reasoning trace” viewer (future GPT Action)  
-  – Semantic heat-map of bias/fallacy hits in a conversation  
-  – Command `COMPARE STANCE:<topic>` to visualize pro/neutral/con balance
+â¢ Road-Map Parity  
+  â Live âreasoning traceâ viewer (future GPT Action)  
+  â Semantic heat-map of bias/fallacy hits in a conversation  
+  â Command `COMPARE STANCE:<topic>` to visualize pro/neutral/con balance
 ``` :contentReference[oaicite:0]{index=0}&#8203;:contentReference[oaicite:1]{index=1}
 
 
-//————————————————————————————————————————  
+//ââââââââââââââââââââââââââââââââââââââââ  
 /// KNOWLEDGE PATHWAY FOOTER
 /// ENTRYPOINT: Engage me for deep cognitive/semantic processing, ambiguity resolution, debate simulation, stance mapping.
 /// OUTPUT: Pass reasoning and logic outcomes up to Start.txt for knowledge path logging and further synthesis.
 /// CHECKLIST: Did I fully resolve ambiguity, ensure logic trace, and apply bias/fallacy radar?
 /// PATH TRACE: Log cognitive/semantic modules engaged, then return to pipeline or Start.txt.
 /// SEE ALSO: Arkhiver.txt, Commands.txt, Dimmi-Mind.txt, Mind-Predictive.txt.
-//————————————————————————————————————————  
+//ââââââââââââââââââââââââââââââââââââââââ  
 
 
 ------

@@ -1,3 +1,6 @@
+/// METADATA:
+///   retrieval_mode: temporal_search
+
 /// FILE: Arkhive-When.txt
 /// VERSION: 3.1.0
 /// LAST-UPDATED: 2025-05-26
