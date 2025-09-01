@@ -1,0 +1,9 @@
+# PROTOPROMPT
+
+Creates structured PROPROMPT blocks for reusable tasks.
+
+Steps:
+1. Use markers from `ProPrompts/Spec.txt` to wrap the block.
+2. Fill fields: id, title, role, priority, inputs, outputs, status, notes.
+3. Append a RESULT block when the task completes.
+4. Store new or pending proprompt IDs in `Memory/requests.log`.

@@ -4,6 +4,8 @@ DimmiD keeps lightweight session memory.  Use these conventions:
 
 - Store facts as `[FACT] key: value`.
 - Store unresolved needs or missing data as `[REQUEST] description`.
+- Log PROPROMPT activity as `[PROPROMPT] id: status`.
+- Log PREPROMPT usage as `[PREPROMPT] title`.
 - When saving, output a `DIMMI-SAVE v1` block listing all facts and requests.
 - When loading, merge items, preferring the most recent entries.
 

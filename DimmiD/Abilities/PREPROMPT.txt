@@ -1,0 +1,9 @@
+# PREPROMPT
+
+Loads or crafts PREPROMPT templates for session bootstrapping.
+
+Steps:
+1. PREPROMPT files live in `Templates/PREPROMPTS/`.
+2. Layer 1 announces a preprompt; Layer 2 provides system rules.
+3. Use `TEMPLATE-PREPROMPT.txt` when authoring new blocks.
+4. After applying a preprompt, continue with `Start.txt` flow.
