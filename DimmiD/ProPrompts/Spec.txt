@@ -1,31 +1,7 @@
-// FILE: Spec.txt
-// VERSION: 1.0.0-offline
-// PURPOSE: Minimal rules for using PROPROMPTS in DimmiD.
-
-Markers:
-  - Begin:  /// === PROPROMPT:BEGIN ===
-  - End:    /// === PROPROMPT:END ===
-  - Result: /// === PROPROMPT:RESULT ===
-
-Fields (YAML-like):
-  id: PP-YYYYMMDD-hhmmss-xxxx
-  title: short imperative
-  role: Researcher|Cleaner|Classifier|Linker|Renderer|QA|Editor|Other
-  priority: P0|P1|P2
-  inputs: {source, focus, constraints[]}
-  outputs: [artifacts]
-  status: pending|in_progress|done
-  notes: free text
-
-Result block:
-  /// === PROPROMPT:RESULT ===
-  id: <same id>
-  artifacts: [<paths>]
-  notes: |-
-    <summary or follow ups>
-  status: done
-  /// === PROPROMPT:RESULT ===
-
-Guidelines:
-- Load `dimmi-talk.txt` and `Abilities/DIMMI-CODE.txt` before running a block.
-- After completion, append a footer pro-prompt suggesting the next read → analyze → act step.
+# ProPrompt minimalist spec (YAML-like)
+name: <short_name>
+begin: |
+  Instructions that run BEFORE the task details.
+end: |
+  Stop conditions or exit criteria.
+result: (text|json|markdown)
