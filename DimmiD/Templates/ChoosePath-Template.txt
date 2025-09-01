@@ -9,3 +9,18 @@ Options:
 ...
 
 Ask: "Pick a number or describe another path." Log choice to memory.
+
+!!ASK :: ASK Tag
+
+!!TODO :: TODO Tag
+
+!!GOTO :: GOTO Tag
+
+!!LINK :: LINK Tag
+
+!!TAG :: TAG Tag
+
+!!APPEND :: APPEND Tag
+
+!!REFRESH :: REFRESH Tag
+

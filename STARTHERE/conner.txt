@@ -6,3 +6,5 @@ A sketch of a universal remote.
 !!APPEND node="Remote/Modes" :: - TV\\n- Music
 
 !!LINK :: adding link
+
+!!APPEND :: Append Item Type
