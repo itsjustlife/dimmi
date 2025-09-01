@@ -1,0 +1,86 @@
+// FILE: Spec-ProPrompts.txt
+// VERSION: 1.0.0
+// LAST-UPDATED: 2025-09-01
+// PURPOSE: Canonical specification for PROPROMPTS—durable, machine-readable task capsules with status stamping.
+
+# --- WHAT IS A PROPROMPT? ---
+A fenced, self-contained block the system can discover, execute, and mark complete.
+It lives alongside content; never deleted, only stamped DONE with results.
+
+## MARKERS
+Begin/end:  /// === PROPROMPT:BEGIN ===   …   /// === PROPROMPT:END ===
+Result:     /// === PROPROMPT:RESULT ===   (may appear multiple times for retries/updates)
+
+## FIELDS (YAML-ish; tolerant to whitespace)
+- id: globally unique (e.g., PP-20250901-143200-abcd)
+- title: short imperative
+- role: Researcher|Cleaner|Classifier|Linker|Renderer|QA|Editor|Other
+- priority: P0|P1|P2
+- parent: null or another proprompt id (enables “proprompts for proprompts”)
+- scope: UNI|D|mixed
+- inputs: {source, focus, constraints[]}
+- outputs: [filenames or artifact descriptions]
+- checks: [validation steps]
+- spawn_rules: rules to emit child proprompts when conditions are met
+- status: pending|in_progress|blocked|done
+- owner: auto|agent-name|human
+- created/updated: ISO-UTC strings
+- notes: free text
+
+## CANONICAL TEMPLATE
+/// === PROPROMPT:BEGIN ===
+id: PP-${YYYYMMDD}-${HHMMSS}-${shortid}
+title: <short imperative>
+role: <Classifier|Cleaner|Linker|Renderer|QA|Researcher|Editor>
+priority: <P0|P1|P2>
+parent: <PP-… or null>
+scope: <UNI|D|mixed>
+inputs:
+  source: <file-or-blob-ref>
+  focus: <branch|topic|regex|path>
+  constraints:
+    - <rule 1>
+    - <rule 2>
+outputs:
+  - <artifact 1>
+  - <artifact 2>
+checks:
+  - <validation step 1>
+  - <validation step 2>
+spawn_rules:
+  - when: <condition, e.g., unresolved_nodes > 0>
+    then:
+      create:
+        role: <Clarifier|Classifier|Linker|QA>
+        title: <child task title>
+        focus: <subset marker>
+        inherit: [scope, priority]
+status: pending
+owner: auto
+created: ${ISO-UTC}
+updated: ${ISO-UTC}
+notes: |
+  <edge cases or short guidance>
+/// === PROPROMPT:END ===
+
+## RESULT STAMP (append when done)
+/// === PROPROMPT:RESULT ===
+id: PP-…
+artifacts:
+  - path: <file or description>
+diff_summary: |
+  <counts, merges, aliases, cross-links added, nodes parked, unresolved>
+followups:
+  - <PP-… child ids or “none”>
+confidence: 0.0–1.0
+updated: ${ISO-UTC}
+/// === PROPROMPT:RESULT ===
+
+## MAPPING TO POST-PROMPTS
+- A quick `@@todo` can be escalated into a proper PROPROMPT if it requires structure, status, or children.
+- Keep both in the repo: post-prompts for speed; proprompts for durable workflows.
+
+## GOVERNANCE
+- Keep fulfilled proprompts in-file as version history.
+- Do not silently rewrite completed RESULT blocks; add a new RESULT if amended.
+- Prefer small, composable proprompts over giant ones.

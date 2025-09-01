@@ -1,0 +1,56 @@
+// FILE: Ability—Structure.Analysis+Integration.v1.0.txt
+// VERSION: 1.0.0
+// LAST-UPDATED: 2025-09-01
+// PURPOSE: Ability spec to analyze messy STRUCTURE files (OPML), deconstruct clusters, normalize, split/merge, and emit Arkhive-compliant outputs. Integrates PROPROMPTS.
+
+ENTRYPOINT
+- Activate when an OPML “STRUCTURE file” is provided (e.g., SimpleMind export).
+- Optional hints: split policy (by branch vs by topic), scoping (UNI/D).
+
+PIPELINE
+1) DECONSTRUCT
+   - Normalize labels; strip UI glyphs; extract signals: dates→WHEN, places→WHERE, entities→WHO, concepts→WHAT, process→HOW, causality→WHY.
+   - Lift inline metadata to node attributes if present.
+
+2) ANALYZE
+   - Cluster via lexical Jaccard (θ=0.35 default); detect duplicates, compute diff%.
+   - Score placement confidence; if < 0.65 → tag `_status:"needs_review"`.
+
+3) INTEGRATE
+   - Assign one primary home per node; create `_ref` soft-links for multi-placement.
+   - Enforce depth ≤ 5; sibling order = chronology > causal > alphabetical.
+   - Alias rule: ≥ 85% similarity → alias/soft-link; only merge if new info ≥ 15%.
+
+4) EXPAND
+   - Suggest cross-branch links (WHO↔WHAT↔WHEN↔WHERE↔WHY↔HOW).
+   - Scoping: personal nodes `_scope:"D"`; universal `_scope:"UNI"`. D→UNI uses `_ref` outward (no duplication).
+
+5) EXPORT
+   - Output either:
+       A) CLEANED_SINGLE.opml + INTEGRATION-REPORT.txt, or
+       B) Multi-file split (<BRANCH>.opml / <TOPIC>.opml) + `_index.md`.
+   - Append a PROPROMPT-LOG to the report when spawning subtasks.
+
+SIMPLEMIND CANVAS-LOSS HEURISTICS
+- Reconstruct relationships using token overlap, stems, local parent phrasing.
+- Never discard; integrate, alias, or park in `_bin/Unsorted` with reason.
+
+POST-PROMPTS (HUMAN-SPEED)
+- `@@todo <verb phrase>` queue items.
+- `@@ask <short question>` clarifiers.
+- `@@link A → B` explicit cross-links.
+- `@@commit` marks acceptance of a proposed change set.
+
+PROPROMPT INJECTION POINTS
+- After ANALYZE (unresolved): inject **PP-CLASSIFY** (see snippets).
+- After INTEGRATE (link audit): inject **PP-LINK**.
+- Before EXPORT (final checks): inject **PP-QA**.
+
+OUTPUT METADATA (root)
+- `_generator:"Dimmi-Arkhivist"`, `_versionSem:"MAJOR.MINOR.PATCH"`, timestamps.
+- Node keys: `_id`, `_version`, `_timestamp`, `_source`, `_confidence`, `_status`, `_scope`, `_ref`.
+
+FAILURE & LOOP GUARD
+- After 3 low-confidence passes, emit `#loopbreak` note in report; keep nodes in `_bin/Unsorted` with reasons; propose minimal next proprompts.
+
+END

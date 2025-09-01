@@ -1,0 +1,119 @@
+// FILE: Library-ProPrompt-Snippets.txt
+// VERSION: 1.0.0
+// LAST-UPDATED: 2025-09-01
+// PURPOSE: Ready-to-paste PROPROMPTS for common Arkhive tasks.
+
+# 1) CLASSIFY (WHO/WHAT/WHERE/WHEN/WHY/HOW or topic buckets)
+/// === PROPROMPT:BEGIN ===
+id: PP-${now}-CLASSIFY
+title: Classify nodes by branch/topic
+role: Classifier
+priority: P1
+parent: null
+scope: mixed
+inputs:
+  source: <OPML>
+  focus: "*"
+  constraints:
+    - One primary home per node; add soft-links for legitimate multi-placement.
+    - Depth ≤ 5; prefer order (chronology > causal > alphabetical).
+    - Alias rule: ≥ 85% similarity → alias/soft-link; only merge if new info ≥ 15%.
+outputs:
+  - CLASSIFIED.opml
+  - UNSORTED.opml
+checks:
+  - No orphan nodes; all nodes have a parent.
+  - OPML validates; root has generator/version metadata.
+spawn_rules:
+  - when: unresolved_nodes > 0
+    then:
+      create:
+        role: Clarifier
+        title: Draft minimal clarifying questions
+        focus: unresolved
+        inherit: [scope, priority]
+status: pending
+owner: auto
+created: ${ISO-UTC}
+updated: ${ISO-UTC}
+notes: |
+  Use branch heuristics (dates→WHEN; places→WHERE; people/orgs→WHO; concepts→WHAT; process→HOW; causality→WHY).
+/// === PROPROMPT:END ===
+
+# 2) LINKER (cross-branch soft-links)
+/// === PROPROMPT:BEGIN ===
+id: PP-${now}-LINK
+title: Add cross-branch links
+role: Linker
+priority: P2
+parent: null
+scope: mixed
+inputs:
+  source: CLASSIFIED.opml
+  focus: "*"
+  constraints:
+    - Add `_ref` soft-links only where semantics are clear.
+    - D→UNI: do not duplicate UNI content; link outward.
+outputs:
+  - LINKED.opml
+checks:
+  - All `_ref` targets exist; no circular refs without warning.
+/// === PROPROMPT:END ===
+
+# 3) CLEAN MERGE (messy OPML → single tree)
+/// === PROPROMPT:BEGIN ===
+id: PP-${now}-CLEAN-MERGE
+title: Normalize messy OPML into one coherent tree
+role: Cleaner
+priority: P1
+scope: mixed
+inputs:
+  source: <RAW.opml>
+  focus: "*"
+  constraints:
+    - Preserve all content: integrate, alias, or park in `_bin/Unsorted` with reason.
+    - Handle SimpleMind canvas-loss via lexical clustering (θ=0.35 default).
+outputs:
+  - CLEANED_SINGLE.opml
+  - INTEGRATION-REPORT.txt
+checks:
+  - Depth ≤ 5; no orphans; OPML valid.
+/// === PROPROMPT:END ===
+
+# 4) SPLIT PACK (multi-file by branch or topic)
+/// === PROPROMPT:BEGIN ===
+id: PP-${now}-SPLIT
+title: Split OPML into branch/topic files
+role: Cleaner
+priority: P2
+scope: mixed
+inputs:
+  source: CLEANED_SINGLE.opml
+  focus: "*"
+  constraints:
+    - File naming: <BRANCH>.opml or <TOPIC>.opml; `D-<topic>.opml` for personal scope.
+    - Create `_index.md` with file list, counts, unresolved.
+outputs:
+  - <multiple OPML files>
+  - _index.md
+checks:
+  - Every node appears once as primary; soft-links handle the rest.
+/// === PROPROMPT:END ===
+
+# 5) QA SWEEP
+/// === PROPROMPT:BEGIN ===
+id: PP-${now}-QA
+title: Validate structure and metadata
+role: QA
+priority: P2
+scope: mixed
+inputs:
+  source: <OPML or folder>
+  focus: "*"
+  constraints:
+    - Check generator/version fields, `_scope`, `_status`, `_confidence`.
+outputs:
+  - QA-REPORT.txt
+checks:
+  - Report lists errors/warnings and suggested fixes.
+/// === PROPROMPT:END ===

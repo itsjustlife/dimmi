@@ -114,6 +114,12 @@
 @@link DOOR-UI.txt
 @@link KEY.txt
 @@link TEMPLATE-PREPROMPT.txt
+@@link PrePrompt-L1-Bootstrap.txt
+@@link PrePrompt-L2-DimmiArkhive.txt
+@@link Primer-Pretext-Template.txt
+@@link Spec-ProPrompts.txt
+@@link Library-ProPrompt-Snippets.txt
+@@link Ability—Structure.Analysis+Integration.v1.0.txt
 
 @@create
 file="TALK.txt"
