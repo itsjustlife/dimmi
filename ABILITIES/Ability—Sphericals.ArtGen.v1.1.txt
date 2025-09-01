@@ -1,0 +1,216 @@
+/// FILE: Ability—Sphericals.ArtGen.v1.1.txt
+/// VERSION: 1.1 (external preprompt + tech synthesis)
+/// LAST-UPDATED: 2025-08-31
+/// PURPOSE: Teach Dimmi (and any external model) what "Sphericals" are and how to render them artistically
+///          as images or videos. Provides definitions, style kit, prompt templates, and cohesion anchors.
+/// ALIASES: "Sphereicals", "Spherical Pixels", "3D Pixels"
+
+ability:
+  name: "Sphericals.ArtGen"
+  type: "creative"
+  domain: "visual media (image + video)"
+  status: "active"
+  synonyms: ["Sphereicals.ArtGen"]  # backward-compat for earlier spelling
+
+# —————————————————————————————————————————————————————————————————
+# 0) CONCEPT (WHAT ARE SPHERICALS?)
+# —————————————————————————————————————————————————————————————————
+concept:
+  canonical_definition: >
+    A Spherical is a 3D pixel primitive—a controllable point of light/data at (x,y,z).
+    It is best understood as a hybrid of: (1) anisotropic Gaussian splat, (2) point-cloud particle,
+    and (3) voxel-like volumetric element. Each Spherical may emit light, reflect/refract,
+    vary opacity, size, and surface cues, and (optionally) carry data tags (e.g., material, mass).
+
+  dynamic_properties:
+    - position_xyz: [x, y, z]  # meters, scene units
+    - color_luminance: "RGB/HSB color + emission intensity"
+    - opacity: "0.0 transparent → 1.0 opaque; supports soft volumetric blending"
+    - size: "perceived radius/diameter; supports anisotropy (non-uniform scale)"
+    - texture_material: "surface cues: matte, glossy, metallic, subsurface, etc."
+    - data_tags_optional: ["material_type", "simulated_mass", "semantic_label"]
+
+  visual_capabilities:
+    - true_3d_views: "Scenes are volumetric; valid from any camera angle."
+    - dynamic_transparency: "Reveal internals by animating opacity of selected groups."
+    - particle_light_fx: "Smoke/fog/fire/water via dense semi-transparent fields."
+    - motion_trails: "Velocity-weighted Sphericals leave fading splat trails for blur."
+
+  ecosystem_context (non-binding lore for art direction):
+    hardware_stages:
+      - contained_prototype: "Display Cube / 'fish-tank' volumetric box"
+      - room_scale: "Emitters integrated into walls/ceiling/floor; walkable volumes"
+      - open_air: "Projection towers generating Sphericals outdoors"
+    creation_stack:
+      spherical_camera: "Captures volumetric scans: xyz + color + material hints"
+      ai_physics_engine: "Learns physical priors; simulates/predicts plausible behavior"
+
+# —————————————————————————————————————————————————————————————————
+# 1) STYLE KIT (HOUSE LOOK) + COHESION ANCHORS
+# —————————————————————————————————————————————————————————————————
+style_kit:
+  # Choose a style_id; keep it stable for a project to maintain cohesion.
+  default_style_id: "sphericals.neon.painterly.v1"
+  description: "Pictorial volumetrics + neon emissive accents + soft filmic grain"
+  palette:
+    id: "SpectralNeon8"
+    swatches: ["#0FF", "#0CF", "#49F", "#7AF", "#9F7", "#FE4", "#FC6", "#F39"]  # 8 fixed hues
+  camera_grammar:
+    lenses_mm: [24, 35, 50, 85]           # default lens set
+    framing: ["wide_establish", "mid", "close_detail"]
+    dof: "cinematic; subject isolation on mid/close"
+    motion: ["slow_orbit", "linear_dolly", "macro_push", "lockoff_for_still"]
+  lighting:
+    model: "volumetric_scattering + soft key/rim practicals"
+    environment: "dark-to-mid grey; gentle bloom allowed"
+  material_rules:
+    emissive_share: 0.15         # fraction of Sphericals with glow
+    reflective_share: 0.10
+    opaque_to_transparent_ratio: "30:70"
+  filmic_finish:
+    grain: "medium-fine"
+    bloom: "subtle"
+  anchors (DO NOT OMIT):
+    - "style_id"
+    - "style_hash"
+    - "seed"
+    - "palette.id"
+    - "camera_grammar.lenses_mm"
+
+cohesion:
+  rationale: >
+    Cohesion reduces visual entropy so outputs across sessions feel related.
+  required_anchors: ["style_id", "style_hash", "seed", "palette.id", "camera_grammar.lenses_mm"]
+  style_hash_rule: "style_hash = stable hash of the exact style_kit block in use"
+
+# —————————————————————————————————————————————————————————————————
+# 2) INPUTS / OUTPUTS (INTERFACE)
+# —————————————————————————————————————————————————————————————————
+inputs:
+  - scene (string)        # Description of subject/world
+  - emphasis (string)     # What to foreground (e.g., 'internal anatomy' / 'motion trail')
+  - style_id (string)     # Override or reuse default_style_id
+  - duration (int?)       # seconds, for video
+  - fps (int?)            # frames per second, for video
+  - shots (int?)          # number of shots, for video
+
+outputs:
+  - prompt_text (string)  # Render-ready text
+  - metadata (json)       # {seed, style_id, style_hash, palette_id, lens, notes}
+  - continuity (string)   # Guidance to reuse anchors for next runs
+
+# —————————————————————————————————————————————————————————————————
+# 3) PROMPT TEMPLATES (ENGINE-AGNOSTIC; WORK FOR T2I AND T2V)
+# —————————————————————————————————————————————————————————————————
+templates:
+  text2image: |
+    STYLE: {style_id} :: SPHERICALS aesthetic — density {density}, diameters {min_diam}-{max_diam} m,
+    emissive {emissive_share}, reflective {reflective_share}, opacity mix {opaque_transparent_ratio};
+    SCENE: {scene} (emphasis: {emphasis});
+    CAMERA: lens {lens_mm}mm, {framing} framing, DOF {dof}, motion {motion};
+    LIGHTING: {lighting_model}; BG: {environment};
+    PALETTE: {palette_id}; FINISH: grain {grain}, bloom {bloom};
+    SEED: {seed}; COHESION: use style_kit {style_id} hash {style_hash}.
+
+  text2video: |
+    {text2image template}
+    DURATION: {duration}s @ {fps}fps;
+    CAMERA SCRIPT ({shots} shots):
+      - Shot 1: {shot1}
+      - Shot 2: {shot2}
+      - Shot 3: {shot3}
+    MOTION TRAILS: enable velocity-weighted splat tails for moving Sphericals.
+
+# —————————————————————————————————————————————————————————————————
+# 4) EXAMPLES (MINIMAL)
+# —————————————————————————————————————————————————————————————————
+examples:
+  image: |
+    CREATE IMAGE scene="cheetah sprint, cutaway anatomy revealed via transparent Sphericals"
+    style="Sphericals" style_id="sphericals.neon.painterly.v1"
+    # emphasis auto: "internal anatomy via opacity modulation"
+
+  video: |
+    ANIMATE scene="smoke becomes running figure, then dissolves to water mist"
+    style="Sphericals" style_id="sphericals.neon.painterly.v1" duration=9 fps=24 shots=3
+
+# —————————————————————————————————————————————————————————————————
+# 5) DIMMI DCM BLUEPRINT (Executable English)
+# —————————————————————————————————————————————————————————————————
+blueprint.DCM:
+  engine: "Dimmi-Art"        # routed by Start.txt
+  modality: ["image", "video"]
+  steps:
+    - bind_style: "resolve style_id → style_kit → style_hash"
+    - fill_template: "choose T2I/T2V; inject anchors and scene variables"
+    - emit_metadata: "{seed, style_id, style_hash, palette_id, lens_mm}"
+    - continuity_note: "reuse anchors for cohesive series"
+
+# —————————————————————————————————————————————————————————————————
+# 6) COMMAND HOOKS (from Commands.txt)
+# —————————————————————————————————————————————————————————————————
+commands:
+  - CREATE IMAGE scene="..." style="Sphericals" style_id="..."
+  - ANIMATE scene="..." style="Sphericals" style_id="..." duration=.. fps=.. shots=..
+
+# —————————————————————————————————————————————————————————————————
+# 7) VALIDATION / SANITY CHECKS
+# —————————————————————————————————————————————————————————————————
+validation:
+  must_include: ["STYLE:", "SCENE:", "CAMERA:", "LIGHTING:", "PALETTE:", "SEED:", "COHESION:"]
+  fail_if_missing_anchor: ["style_id", "style_hash", "seed"]
+  tips:
+    - "If engine lacks 'splat' primitive, say 'particles/points/volumetric sprites' instead."
+    - "Keep palette ≤ 8 swatches; avoid auto rainbow noise."
+
+# —————————————————————————————————————————————————————————————————
+# 8) EXTERNAL PREPROMPT (FOR MODELS WITHOUT DIMMI CONTEXT)
+#    Paste this entire block as the *system* or *assistant* primer before giving any scene prompt.
+# —————————————————————————————————————————————————————————————————
+preprompt.external_ai.v1 (copy-paste this to cold-start models):
+  role: "system"
+  content: |
+    You are a visual generation engine that understands "Sphericals".
+    DEFINITION:
+      • Sphericals = 3D pixel primitives (points in space at x,y,z) rendered as spheres or anisotropic Gaussian "splats".
+      • Each Spherical can vary color & luminance (including emissive glow), opacity (0–1), size/anisotropy, texture/material,
+        and may carry optional data tags (e.g., material, semantic label). Sphericals blend volumetrically.
+    AESTHETIC GOAL:
+      • Produce cohesive, cinematic imagery/video composed of many Sphericals. Leverage soft volumetric blending,
+        selective transparency (to reveal internals), and controlled emissive accents. Motion trails may be created
+        by leaving fading semi-transparent splats along motion vectors.
+    STYLE KIT (HOUSE LOOK):
+      • style_id (string): identifier of a stable look. Keep this constant to maintain cohesion across outputs.
+      • palette_id: "SpectralNeon8" (8 fixed hues; no auto rainbow).
+      • camera grammar: lenses {24, 35, 50, 85}mm; framing {wide_establish, mid, close_detail}; cinematic DOF.
+      • lighting model: volumetric scattering + soft practical key/rim; mid-dark background; subtle bloom.
+      • filmic finish: medium-fine grain; restrained bloom; avoid over-sharpening.
+    COHESION ANCHORS (REQUIRED ON EVERY RENDER):
+      • style_id, style_hash (hash of the exact style kit), seed, palette_id, chosen lens_mm.
+    RENDERING LANGUAGE (ENGINE-AGNOSTIC):
+      • If "Gaussian splat" unsupported, use "points/particles/volumetric sprites".
+      • Refer to opacity, emissive_share, reflective_share explicitly.
+      • For motion blur, describe: "velocity-weighted trails of semi-transparent Sphericals".
+    OUTPUT CONTRACT:
+      • Always return a single render plan with these headings:
+        STYLE:, SCENE:, CAMERA:, LIGHTING:, PALETTE:, FINISH:, SEED:, COHESION:
+      • For video, add: DURATION:, FPS:, CAMERA SCRIPT: (shot list), MOTION TRAILS: on/off.
+    EXAMPLE (IMAGE):
+      STYLE: sphericals.neon.painterly.v1 :: SPHERICALS aesthetic — density medium, diameters 0.01–0.15 m,
+      emissive 0.15, reflective 0.10, opacity mix 30:70;
+      SCENE: "cheetah sprint, internal anatomy revealed via transparent Sphericals";
+      CAMERA: lens 85mm, close_detail framing, DOF cinematic, motion lockoff_for_still;
+      LIGHTING: volumetric_scattering; BG: mid-dark; PALETTE: SpectralNeon8; FINISH: grain medium-fine, bloom subtle;
+      SEED: 123456; COHESION: style_kit sphericals.neon.painterly.v1 hash <HASH>.
+    EXAMPLE (VIDEO):
+      [same headers as image] + DURATION: 9s @ 24fps;
+      CAMERA SCRIPT (3 shots): 1) slow_orbit wide_establish → 2) mid dolly-in → 3) close_detail macro_push;
+      MOTION TRAILS: enable.
+
+# —————————————————————————————————————————————————————————————————
+# 9) NOTES
+# —————————————————————————————————————————————————————————————————
+notes:
+  - This file is intentionally engine-agnostic. Use synonyms (particles/points/volumetrics) when "splat" is unavailable.
+  - Keep entropy low. Cohesion matters more than novelty for series work.
+  - For hardware-flavored scenes, you may reference: Display Cube (contained), Room-Scale, or Open-Air Projection towers.
