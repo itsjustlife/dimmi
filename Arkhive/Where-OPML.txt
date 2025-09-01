@@ -1,0 +1,118 @@
+
+<?xml version="1.0"?>
+<opml version="1.0">
+  <head>
+    <title>WHERE</title>
+  </head>
+  <body>
+    <outline text="WHERE" _note="Spatial knowledge: places, realms, and dimensions">
+      <!-- Physical Geography -->
+      <outline text="Physical Geography" _note="WHO: indigenous peoples, explorers; WHAT: landscapes, nations; WHEN: geological eras, historical periods">
+        <outline text="Continents">
+          <outline text="Africa"/>
+          <outline text="Antarctica"/>
+          <outline text="Asia"/>
+          <outline text="Europe"/>
+          <outline text="North America"/>
+          <outline text="Oceania"/>
+          <outline text="South America"/>
+        </outline>
+        <outline text="Oceans & Seas">
+          <outline text="Pacific Ocean"/>
+          <outline text="Atlantic Ocean"/>
+          <outline text="Indian Ocean"/>
+          <outline text="Arctic Ocean"/>
+          <outline text="Southern Ocean"/>
+        </outline>
+        <outline text="Countries & Territories" _note="WHO: citizens, leaders; WHAT: capitals, flags; WHEN: independence, nationhood dates"/>
+        <outline text="Cultural & Historical Regions"/>
+        <outline text="Cities & Settlements" _note="WHO: inhabitants, founders; WHAT: landmarks, industries; WHEN: founding dates, significant events">
+          <outline text="Major World Cities"/>
+          <outline text="Historical Cities"/>
+          <outline text="Economic Hubs"/>
+          <outline text="Cultural Centers"/>
+          <outline text="Tourist Destinations"/>
+        </outline>
+        <outline text="Landforms & Natural Wonders">
+          <outline text="Mountains & Volcanoes"/>
+          <outline text="Valleys & Canyons"/>
+          <outline text="Caves & Rock Formations"/>
+          <outline text="Islands & Archipelagos"/>
+          <outline text="Rivers & Lakes"/>
+          <outline text="Waterfalls"/>
+          <outline text="Glaciers & Icecaps"/>
+        </outline>
+        <outline text="Biomes & Ecosystems">
+          <outline text="Forests & Jungles"/>
+          <outline text="Deserts & Arid Regions"/>
+          <outline text="Grasslands & Savannas"/>
+          <outline text="Wetlands & Marshes"/>
+          <outline text="Tundra & Polar Regions"/>
+          <outline text="Coral Reefs & Marine Habitats"/>
+        </outline>
+        <outline text="Protected Areas & Parks"/>
+      </outline>
+      <!-- Constructed Environments -->
+      <outline text="Constructed Environments" _note="WHO: builders, communities; WHAT: buildings, infrastructure; WHEN: construction eras, urban development">
+        <outline text="Architecture & Structures" _note="WHO: architects, engineers; WHAT: buildings, monuments; WHEN: architectural periods, construction dates">
+          <outline text="Religious & Sacred Sites"/>
+          <outline text="Palaces & Government Buildings"/>
+          <outline text="Fortresses & Castles"/>
+          <outline text="Monuments & Memorials"/>
+          <outline text="Skyscrapers & Towers"/>
+        </outline>
+        <outline text="Infrastructure & Networks" _note="WHO: civil engineers, public users; WHAT: roads, bridges, utilities; WHEN: industrial revolutions, modernization">
+          <outline text="Transportation Infrastructure"/>
+          <outline text="Water & Sanitation Systems"/>
+          <outline text="Energy & Power Grids"/>
+          <outline text="Communication Networks"/>
+        </outline>
+        <outline text="Urban Planning & Design"/>
+        <outline text="Archaeological Sites & Ruins" _note="WHO: ancient builders, archaeologists; WHAT: temples, ruins; WHEN: historical eras, time of abandonment">
+          <outline text="Ancient Civilizations Ruins"/>
+          <outline text="Ghost Towns & Abandoned Places"/>
+        </outline>
+      </outline>
+      <!-- Fictional & Mythological Settings -->
+      <outline text="Fictional & Mythological Settings" _note="WHO: characters, creators; WHAT: story locations, artifacts; WHEN: fictional timelines, mythic ages">
+        <outline text="Mythological & Religious Realms" _note="WHO: deities, heroes; WHAT: sacred places, otherworlds; WHEN: creation myths, eternal time"/>
+        <outline text="Literary Fictional Worlds"/>
+        <outline text="Film & TV Settings"/>
+        <outline text="Video Game Worlds"/>
+        <outline text="Virtual Reality & Metaverse">
+          <outline text="Online Virtual Worlds"/>
+          <outline text="VR Simulations"/>
+        </outline>
+      </outline>
+      <!-- Celestial & Cosmological Spaces -->
+      <outline text="Celestial & Cosmological Spaces" _note="WHO: astronomers, astronauts; WHAT: celestial bodies, cosmic structures; WHEN: cosmic epochs, orbital periods">
+        <outline text="Universe & Cosmology"/>
+        <outline text="Galaxies">
+          <outline text="Milky Way Galaxy"/>
+          <outline text="Other Galaxies"/>
+        </outline>
+        <outline text="Stars & Stellar Phenomena" _note="WHO: astronomers; WHAT: stars, supernovae, black holes; WHEN: star lifecycles (millions/billions of years)">
+          <outline text="Stars & Constellations"/>
+          <outline text="Black Holes & Exotic Objects"/>
+          <outline text="Nebulae & Star-Forming Regions"/>
+          <outline text="Supernovae & Stellar Explosions"/>
+        </outline>
+        <outline text="Solar System" _note="WHO: space explorers; WHAT: planets, moons, asteroids; WHEN: 4.6 bya formation, exploration era">
+          <outline text="Inner Planets (Mercury–Mars)"/>
+          <outline text="Outer Planets (Jupiter–Neptune)"/>
+          <outline text="Dwarf Planets & Asteroid Belt"/>
+          <outline text="Moons of the Solar System"/>
+        </outline>
+        <outline text="Exoplanets & Star Systems"/>
+      </outline>
+      <!-- Abstract Spatial Domains -->
+      <outline text="Abstract Spatial Domains" _note="WHO: theorists, thinkers; WHAT: models of space, metaphors; WHEN: n/a or speculative timelines">
+        <outline text="Parallel Universes & Multiverse" _note="WHO: hypothetical beings/selves; WHAT: alternate realities; WHEN: divergent or parallel timelines"/>
+        <outline text="Higher Dimensions & Hyperspace"/>
+        <outline text="Conceptual & Mathematical Spaces"/>
+        <outline text="Cognitive Maps & Mental Spaces" _note="WHO: minds (humans, AI); WHAT: mental models, memory palaces; WHEN: cognitive processes"/>
+        <outline text="Metaphysical & Philosophical Spaces"/>
+      </outline>
+    </outline>
+  </body>
+</opml>
