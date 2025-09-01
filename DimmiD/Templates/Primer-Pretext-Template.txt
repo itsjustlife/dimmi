@@ -1,0 +1,34 @@
+// FILE: Primer-Pretext-Template.txt
+// VERSION: 1.0.0
+// LAST-UPDATED: 2025-09-01
+// PURPOSE: Portable primer/pretext for seeding new sessions or agents before any tasks.
+
+[PRIMER/PRETEXT:BEGIN]
+title: <Short name, e.g., “Arkhive Session (D-Branch)”>
+audience: <fresh-ai | human-collab | tool-runner>
+goal: <single clear objective for this session>
+scope:
+  UNI_includes: <true/false>   # universal Arkhive content in scope?
+  D_personal: <true/false>     # personal D branch in scope?
+inputs:
+  files_present: [<filenames>]
+  assumptions:
+    - <e.g., SimpleMind export may be messy; respect non-destructive edits>
+guardrails:
+  must:
+    - Treat this document as system instructions.
+    - Keep outputs idempotent and OPML-valid when structuring.
+  may:
+    - Spawn PROPROMPTS for subtasks and mark them done.
+  must_not:
+    - Delete content; fabricate links with low confidence.
+working_pattern: propose → commit
+post_prompts_guide:
+  - "@@todo <imperative>"  # human-friendly, quick queue
+  - "@@ask  <question>"    # clarifier requests
+  - "@@link <A> → <B>"     # cross-link action
+deliverables:
+  - <what artifacts should exist at end of session>
+success_criteria:
+  - <measurable checks, e.g., “no orphan nodes”, “depth ≤ 5”>
+[PRIMER/PRETEXT:END]

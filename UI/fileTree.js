@@ -1,5 +1,41 @@
 const fileTree = [
   {
+    "name": "ABILITIES",
+    "type": "folder",
+    "children": [
+      {
+        "name": "Ability—Recursive.Learning.Judge.v2.0.txt",
+        "type": "file",
+        "path": "ABILITIES/Ability—Recursive.Learning.Judge.v2.0.txt"
+      },
+      {
+        "name": "Ability—Sphericals.ArtGen.v1.1.txt",
+        "type": "file",
+        "path": "ABILITIES/Ability—Sphericals.ArtGen.v1.1.txt"
+      },
+      {
+        "name": "Ability—Structure.Analysis+Integration.v1.0.txt",
+        "type": "file",
+        "path": "ABILITIES/Ability—Structure.Analysis+Integration.v1.0.txt"
+      },
+      {
+        "name": "Dimmi-Code.System.txt",
+        "type": "file",
+        "path": "ABILITIES/Dimmi-Code.System.txt"
+      },
+      {
+        "name": "Dimmi-Prompt-First.System.txt",
+        "type": "file",
+        "path": "ABILITIES/Dimmi-Prompt-First.System.txt"
+      },
+      {
+        "name": "Dimmi-Speak.Rosetta.txt",
+        "type": "file",
+        "path": "ABILITIES/Dimmi-Speak.Rosetta.txt"
+      }
+    ]
+  },
+  {
     "name": "Arkhive",
     "type": "folder",
     "children": [
@@ -204,6 +240,202 @@ const fileTree = [
     "path": "Commands.txt"
   },
   {
+    "name": "DOOR",
+    "type": "folder",
+    "children": [
+      {
+        "name": "app",
+        "type": "folder",
+        "children": [
+          {
+            "name": "build.gradle",
+            "type": "file",
+            "path": "DOOR/app/build.gradle"
+          },
+          {
+            "name": "proguard-rules.pro",
+            "type": "file",
+            "path": "DOOR/app/proguard-rules.pro"
+          },
+          {
+            "name": "src",
+            "type": "folder",
+            "children": [
+              {
+                "name": "main",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "AndroidManifest.xml",
+                    "type": "file",
+                    "path": "DOOR/app/src/main/AndroidManifest.xml"
+                  },
+                  {
+                    "name": "java",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "com",
+                        "type": "folder",
+                        "children": [
+                          {
+                            "name": "example",
+                            "type": "folder",
+                            "children": [
+                              {
+                                "name": "door",
+                                "type": "folder",
+                                "children": [
+                                  {
+                                    "name": "MainActivity.kt",
+                                    "type": "file",
+                                    "path": "DOOR/app/src/main/java/com/example/door/MainActivity.kt"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "res",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "layout",
+                        "type": "folder",
+                        "children": [
+                          {
+                            "name": "activity_main.xml",
+                            "type": "file",
+                            "path": "DOOR/app/src/main/res/layout/activity_main.xml"
+                          }
+                        ]
+                      },
+                      {
+                        "name": "menu",
+                        "type": "folder",
+                        "children": [
+                          {
+                            "name": "main_menu.xml",
+                            "type": "file",
+                            "path": "DOOR/app/src/main/res/menu/main_menu.xml"
+                          }
+                        ]
+                      },
+                      {
+                        "name": "values",
+                        "type": "folder",
+                        "children": [
+                          {
+                            "name": "strings.xml",
+                            "type": "file",
+                            "path": "DOOR/app/src/main/res/values/strings.xml"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "build.gradle",
+        "type": "file",
+        "path": "DOOR/build.gradle"
+      },
+      {
+        "name": "build.gradle.kts",
+        "type": "file",
+        "path": "DOOR/build.gradle.kts"
+      },
+      {
+        "name": "settings.gradle",
+        "type": "file",
+        "path": "DOOR/settings.gradle"
+      },
+      {
+        "name": "src",
+        "type": "folder",
+        "children": [
+          {
+            "name": "main",
+            "type": "folder",
+            "children": [
+              {
+                "name": "AndroidManifest.xml",
+                "type": "file",
+                "path": "DOOR/src/main/AndroidManifest.xml"
+              },
+              {
+                "name": "java",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "com",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "example",
+                        "type": "folder",
+                        "children": [
+                          {
+                            "name": "dimmi",
+                            "type": "folder",
+                            "children": [
+                              {
+                                "name": "door",
+                                "type": "folder",
+                                "children": [
+                                  {
+                                    "name": "MainActivity.kt",
+                                    "type": "file",
+                                    "path": "DOOR/src/main/java/com/example/dimmi/door/MainActivity.kt"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "res",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "values",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "strings.xml",
+                        "type": "file",
+                        "path": "DOOR/src/main/res/values/strings.xml"
+                      },
+                      {
+                        "name": "themes.xml",
+                        "type": "file",
+                        "path": "DOOR/src/main/res/values/themes.xml"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "Dimmi",
     "type": "folder",
     "children": [
@@ -240,6 +472,157 @@ const fileTree = [
     ]
   },
   {
+    "name": "DimmiD",
+    "type": "folder",
+    "children": [
+      {
+        "name": "Abilities",
+        "type": "folder",
+        "children": [
+          {
+            "name": "CLARIFY.txt",
+            "type": "file",
+            "path": "DimmiD/Abilities/CLARIFY.txt"
+          },
+          {
+            "name": "DIMMI-CODE.txt",
+            "type": "file",
+            "path": "DimmiD/Abilities/DIMMI-CODE.txt"
+          },
+          {
+            "name": "PREPROMPT.txt",
+            "type": "file",
+            "path": "DimmiD/Abilities/PREPROMPT.txt"
+          },
+          {
+            "name": "PROTOPROMPT.txt",
+            "type": "file",
+            "path": "DimmiD/Abilities/PROTOPROMPT.txt"
+          },
+          {
+            "name": "README.txt",
+            "type": "file",
+            "path": "DimmiD/Abilities/README.txt"
+          },
+          {
+            "name": "REFLECT.txt",
+            "type": "file",
+            "path": "DimmiD/Abilities/REFLECT.txt"
+          }
+        ]
+      },
+      {
+        "name": "Commands.txt",
+        "type": "file",
+        "path": "DimmiD/Commands.txt"
+      },
+      {
+        "name": "Dimmi-Core.txt",
+        "type": "file",
+        "path": "DimmiD/Dimmi-Core.txt"
+      },
+      {
+        "name": "Memory",
+        "type": "folder",
+        "children": [
+          {
+            "name": "README.txt",
+            "type": "file",
+            "path": "DimmiD/Memory/README.txt"
+          },
+          {
+            "name": "requests.log",
+            "type": "file",
+            "path": "DimmiD/Memory/requests.log"
+          }
+        ]
+      },
+      {
+        "name": "Mind.txt",
+        "type": "file",
+        "path": "DimmiD/Mind.txt"
+      },
+      {
+        "name": "Personality.txt",
+        "type": "file",
+        "path": "DimmiD/Personality.txt"
+      },
+      {
+        "name": "ProPrompts",
+        "type": "folder",
+        "children": [
+          {
+            "name": "Library.txt",
+            "type": "file",
+            "path": "DimmiD/ProPrompts/Library.txt"
+          },
+          {
+            "name": "Spec.txt",
+            "type": "file",
+            "path": "DimmiD/ProPrompts/Spec.txt"
+          }
+        ]
+      },
+      {
+        "name": "README.md",
+        "type": "file",
+        "path": "DimmiD/README.md"
+      },
+      {
+        "name": "Start.txt",
+        "type": "file",
+        "path": "DimmiD/Start.txt"
+      },
+      {
+        "name": "Templates",
+        "type": "folder",
+        "children": [
+          {
+            "name": "PREPROMPTS",
+            "type": "folder",
+            "children": [
+              {
+                "name": "PrePrompt-L1-Bootstrap.txt",
+                "type": "file",
+                "path": "DimmiD/Templates/PREPROMPTS/PrePrompt-L1-Bootstrap.txt"
+              },
+              {
+                "name": "PrePrompt-L2-DimmiArkhive.txt",
+                "type": "file",
+                "path": "DimmiD/Templates/PREPROMPTS/PrePrompt-L2-DimmiArkhive.txt"
+              },
+              {
+                "name": "TEMPLATE-PREPROMPT.txt",
+                "type": "file",
+                "path": "DimmiD/Templates/PREPROMPTS/TEMPLATE-PREPROMPT.txt"
+              }
+            ]
+          },
+          {
+            "name": "Primer-Pretext-Template.txt",
+            "type": "file",
+            "path": "DimmiD/Templates/Primer-Pretext-Template.txt"
+          }
+        ]
+      },
+      {
+        "name": "dimmi.py",
+        "type": "file",
+        "path": "DimmiD/dimmi.py"
+      },
+      {
+        "name": "dimmi_core.py",
+        "type": "file",
+        "path": "DimmiD/dimmi_core.py"
+      },
+      {
+        "name": "dimmi_gui.py",
+        "type": "file",
+        "path": "DimmiD/dimmi_gui.py"
+      }
+    ]
+  },
+  {
     "name": "Ideas",
     "type": "folder",
     "children": [
@@ -249,6 +632,11 @@ const fileTree = [
         "path": "Ideas/idea-Dimmi-Control Interface Gui.txt"
       }
     ]
+  },
+  {
+    "name": "KEY.txt",
+    "type": "file",
+    "path": "KEY.txt"
   },
   {
     "name": "Knowledge Base",
@@ -363,6 +751,22 @@ const fileTree = [
         "name": "deep-research-dimmi-knowledge.txt",
         "type": "file",
         "path": "Knowledge Base/deep-research-dimmi-knowledge.txt"
+      }
+    ]
+  },
+  {
+    "name": "MEMORY",
+    "type": "folder",
+    "children": [
+      {
+        "name": "2024-11-27-log.txt",
+        "type": "file",
+        "path": "MEMORY/2024-11-27-log.txt"
+      },
+      {
+        "name": "command-rejections.log",
+        "type": "file",
+        "path": "MEMORY/command-rejections.log"
       }
     ]
   },
@@ -523,11 +927,6 @@ const fileTree = [
         "path": "Older Modules/dimmi-Emotions.txt"
       },
       {
-        "name": "dimmi-Personality.txt",
-        "type": "file",
-        "path": "Older Modules/dimmi-Personality.txt"
-      },
-      {
         "name": "dimmi-Philosophy-X.txt",
         "type": "file",
         "path": "Older Modules/dimmi-Philosophy-X.txt"
@@ -550,9 +949,216 @@ const fileTree = [
     ]
   },
   {
+    "name": "ProPrompts",
+    "type": "folder",
+    "children": [
+      {
+        "name": "Library-ProPrompt-Snippets.txt",
+        "type": "file",
+        "path": "ProPrompts/Library-ProPrompt-Snippets.txt"
+      },
+      {
+        "name": "Spec-ProPrompts.txt",
+        "type": "file",
+        "path": "ProPrompts/Spec-ProPrompts.txt"
+      }
+    ]
+  },
+  {
     "name": "README.md",
     "type": "file",
     "path": "README.md"
+  },
+  {
+    "name": "START",
+    "type": "folder",
+    "children": [
+      {
+        "name": "DOOR-UI.txt",
+        "type": "file",
+        "path": "START/DOOR-UI.txt"
+      },
+      {
+        "name": "TALK.txt",
+        "type": "file",
+        "path": "START/TALK.txt"
+      }
+    ]
+  },
+  {
+    "name": "STARTHERE",
+    "type": "folder",
+    "children": [
+      {
+        "name": "New Text Document.txt",
+        "type": "file",
+        "path": "STARTHERE/New Text Document.txt"
+      },
+      {
+        "name": "README.md",
+        "type": "file",
+        "path": "STARTHERE/README.md"
+      },
+      {
+        "name": "__init__.py",
+        "type": "file",
+        "path": "STARTHERE/__init__.py"
+      },
+      {
+        "name": "__pycache__",
+        "type": "folder",
+        "children": [
+          {
+            "name": "__init__.cpython-311.pyc",
+            "type": "file",
+            "path": "STARTHERE/__pycache__/__init__.cpython-311.pyc"
+          },
+          {
+            "name": "dimmi_core.cpython-311.pyc",
+            "type": "file",
+            "path": "STARTHERE/__pycache__/dimmi_core.cpython-311.pyc"
+          },
+          {
+            "name": "dimmi_parser.cpython-311.pyc",
+            "type": "file",
+            "path": "STARTHERE/__pycache__/dimmi_parser.cpython-311.pyc"
+          },
+          {
+            "name": "door_app.cpython-311.pyc",
+            "type": "file",
+            "path": "STARTHERE/__pycache__/door_app.cpython-311.pyc"
+          },
+          {
+            "name": "generate_opml.cpython-311.pyc",
+            "type": "file",
+            "path": "STARTHERE/__pycache__/generate_opml.cpython-311.pyc"
+          },
+          {
+            "name": "refresh.cpython-311.pyc",
+            "type": "file",
+            "path": "STARTHERE/__pycache__/refresh.cpython-311.pyc"
+          }
+        ]
+      },
+      {
+        "name": "arkhive.txt",
+        "type": "file",
+        "path": "STARTHERE/arkhive.txt"
+      },
+      {
+        "name": "arkhiver.txt",
+        "type": "file",
+        "path": "STARTHERE/arkhiver.txt"
+      },
+      {
+        "name": "arkhivist.txt",
+        "type": "file",
+        "path": "STARTHERE/arkhivist.txt"
+      },
+      {
+        "name": "assets",
+        "type": "folder",
+        "children": [
+          {
+            "name": "icons.txt",
+            "type": "file",
+            "path": "STARTHERE/assets/icons.txt"
+          }
+        ]
+      },
+      {
+        "name": "conner.txt",
+        "type": "file",
+        "path": "STARTHERE/conner.txt"
+      },
+      {
+        "name": "dimmi_code.md",
+        "type": "file",
+        "path": "STARTHERE/dimmi_code.md"
+      },
+      {
+        "name": "dimmi_core.py",
+        "type": "file",
+        "path": "STARTHERE/dimmi_core.py"
+      },
+      {
+        "name": "dimmi_parser.py",
+        "type": "file",
+        "path": "STARTHERE/dimmi_parser.py"
+      },
+      {
+        "name": "door.txt",
+        "type": "file",
+        "path": "STARTHERE/door.txt"
+      },
+      {
+        "name": "door_app.py",
+        "type": "file",
+        "path": "STARTHERE/door_app.py"
+      },
+      {
+        "name": "generate_opml.py",
+        "type": "file",
+        "path": "STARTHERE/generate_opml.py"
+      },
+      {
+        "name": "out",
+        "type": "folder",
+        "children": [
+          {
+            "name": "graph.json",
+            "type": "file",
+            "path": "STARTHERE/out/graph.json"
+          },
+          {
+            "name": "report.md",
+            "type": "file",
+            "path": "STARTHERE/out/report.md"
+          },
+          {
+            "name": "settings.json",
+            "type": "file",
+            "path": "STARTHERE/out/settings.json"
+          },
+          {
+            "name": "structure.opml",
+            "type": "file",
+            "path": "STARTHERE/out/structure.opml"
+          }
+        ]
+      },
+      {
+        "name": "refresh.py",
+        "type": "file",
+        "path": "STARTHERE/refresh.py"
+      },
+      {
+        "name": "sampleOPML.opml",
+        "type": "file",
+        "path": "STARTHERE/sampleOPML.opml"
+      },
+      {
+        "name": "schema.json",
+        "type": "file",
+        "path": "STARTHERE/schema.json"
+      },
+      {
+        "name": "start.txt",
+        "type": "file",
+        "path": "STARTHERE/start.txt"
+      },
+      {
+        "name": "tests",
+        "type": "folder",
+        "children": [
+          {
+            "name": "run_smoke.py",
+            "type": "file",
+            "path": "STARTHERE/tests/run_smoke.py"
+          }
+        ]
+      }
+    ]
   },
   {
     "name": "Start.txt",
@@ -560,8 +1166,86 @@ const fileTree = [
     "path": "Start.txt"
   },
   {
+    "name": "__pycache__",
+    "type": "folder",
+    "children": [
+      {
+        "name": "door_structure.cpython-311.pyc",
+        "type": "file",
+        "path": "__pycache__/door_structure.cpython-311.pyc"
+      }
+    ]
+  },
+  {
+    "name": "build.gradle",
+    "type": "file",
+    "path": "build.gradle"
+  },
+  {
+    "name": "door.py",
+    "type": "file",
+    "path": "door.py"
+  },
+  {
+    "name": "door_structure.py",
+    "type": "file",
+    "path": "door_structure.py"
+  },
+  {
+    "name": "generate_repo_structure_opml.py",
+    "type": "file",
+    "path": "generate_repo_structure_opml.py"
+  },
+  {
+    "name": "phatic.txt",
+    "type": "file",
+    "path": "phatic.txt"
+  },
+  {
+    "name": "run_door.py",
+    "type": "file",
+    "path": "run_door.py"
+  },
+  {
     "name": "server.js",
     "type": "file",
     "path": "server.js"
+  },
+  {
+    "name": "settings.gradle",
+    "type": "file",
+    "path": "settings.gradle"
+  },
+  {
+    "name": "templates",
+    "type": "folder",
+    "children": [
+      {
+        "name": "PREPROMPTS",
+        "type": "folder",
+        "children": [
+          {
+            "name": "PrePrompt-L1-Bootstrap.txt",
+            "type": "file",
+            "path": "templates/PREPROMPTS/PrePrompt-L1-Bootstrap.txt"
+          },
+          {
+            "name": "PrePrompt-L2-DimmiArkhive.txt",
+            "type": "file",
+            "path": "templates/PREPROMPTS/PrePrompt-L2-DimmiArkhive.txt"
+          },
+          {
+            "name": "TEMPLATE-PREPROMPT.txt",
+            "type": "file",
+            "path": "templates/PREPROMPTS/TEMPLATE-PREPROMPT.txt"
+          }
+        ]
+      },
+      {
+        "name": "Primer-Pretext-Template.txt",
+        "type": "file",
+        "path": "templates/Primer-Pretext-Template.txt"
+      }
+    ]
   }
 ];

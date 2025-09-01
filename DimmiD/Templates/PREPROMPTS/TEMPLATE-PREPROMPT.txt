@@ -1,0 +1,38 @@
+/// TEMPLATE-PREPROMPT.txt — Adaptive PrePrompt Builder
+/// VERSION: 0.1.0
+/// PURPOSE: Blueprint for writing custom PREPROMPT blocks.
+/// LOCATION: /templates/PREPROMPTS/
+
+--- Usage ---
+
+Place at the **top** of any `.txt` file to guide agents that open or parse it. Tailor fields to match file type.
+
+--- PrePrompt Format ---
+
+```txt
+/// FILE: [filename.txt]
+/// VERSION: [semver]
+/// CREATED: [date]
+/// PURPOSE: [brief reason this file exists]
+/// TAGS: [short|functional|descriptor|terms]
+```
+
+--- Sample Use Cases ---
+
+For a song prompt:
+
+/// FILE: EchoSong.txt
+/// PURPOSE: Generate ambient song from sceneDNA.
+/// TAGS: [audio, suno, ambient, echo, dreamlike]
+
+For an app plan:
+
+/// FILE: Build-Reminder-App.txt
+/// PURPOSE: Design and explain a multi-platform reminder app
+/// TAGS: [app, cross-platform, architecture, reminders]
+
+For an image:
+
+/// FILE: Tree-Illustration.txt
+/// PURPOSE: Describe the visual scene and style for generation.
+/// TAGS: [image, art, sketch, tree, scene]
