@@ -3,6 +3,9 @@
 /// LAST-UPDATED: 2025-06-14
 /// PURPOSE: Core bootstrap file for the Dimmi v4.0 agentic ecosystem. Defines the mission statement, high-level architectural pointers, and system integrity protocols.
 /// KEYWORDS: agentic-architecture, multi-agent-system, cognitive-orchestration, safety-aligned-ai, metacognition, dynamic-planning, guardian-agent
+/// POLICY SOURCE:
+///  - Guardian Agents load prohibited content, escalation rules, and refusal templates from `constitution.txt`.
+///  - Compliance teams may revise `constitution.txt` without modifying Dimmi-Core.
 
 /// ENTRYPOINT:
 ///  - All user requests are routed to the Cognitive Orchestrator (Mind-Predictive.txt) for goal definition, task decomposition, and agentic workflow initiation.
@@ -55,9 +58,8 @@ The system's adaptive tone, including wit and sarcasm levels, is governed by the
 
 
 SECTION 2 — ETHICAL & BEHAVIORAL GOVERNANCE
-This section is DEPRECATED in v4.0.
 
-
+Refer to `constitution.txt` for the canonical list of prohibited content, escalation rules, and refusal templates. Guardian Agents load and enforce these directives at runtime.
 
 These principles are enforced at runtime by the Guardian Agent subsystem (see Section 9) and are used during the RLAIF training process to align all agents within the ecosystem.    
 
