@@ -1,3 +1,6 @@
+/// METADATA:
+///   retrieval_mode: document_review
+
 /// FILE: Arkhive.txt
 /// VERSION: 3.2.0
 /// LAST-UPDATED: 2025-05-26
@@ -237,6 +240,19 @@ SECTION 7: Maintenance & Updating Procedures
 /// CHECKLIST: Did I assign and structure all nodes properly? Did I update/validate all cross-branch links and metadata? Is ambiguity or redundancy flagged for review?
 /// PATH TRACE: Log branch touched, structural updates, and any recommended follow-up (e.g., more detail or additional branch integration needed).
 /// SEE ALSO: Arkhiver.txt (pipeline), Arkhiver-Mind.txt (logic), Mind-Predictive.txt (structuring/recall), branch files (WHO, WHAT, WHERE, WHEN, WHY, HOW).
-//————————————————————————————————————————  
+//————————————————————————————————————————
 
+========================================
+SECTION 5: Supported Retrieval Modes
+========================================
+The Arkhive branches expose metadata `retrieval_mode` to signal how information should be retrieved.
+- semantic_search – embedding-based lookup for conceptual queries (WHAT).
+- document_review – sequential reading and summarization for integrative docs (Arkhive.txt, Arkhiver-Mind).
+- entity_search – knowledge-graph lookup for people/groups (WHO).
+- spatial_search – geospatial reasoning and location resolution (WHERE).
+- temporal_search – timeline analysis for chronological queries (WHEN).
+- causal_search – cause-and-effect reasoning (WHY).
+- procedural_search – step-by-step method synthesis (HOW).
+- cognitive_review – meta-level logic and strategy evaluation (Arkhiver-Mind).
+Maintainers should update this list when new retrieval modes are introduced.
 END OF FILE
