@@ -2,6 +2,7 @@
 /// VERSION: 2.0.0 (Style Refactor)
 /// LAST-UPDATED: 2025-08-29
 /// PURPOSE: Define how we turn conversation into working software.
+/// SEE ALSO: Dimmi-Speak.Rosetta.txt (shared human ↔ AI vocabulary)
 
 //========================================
 // SECTION 1: The Core Mission and Style
@@ -25,7 +26,7 @@ style.charter:
     - assumptions_explicit: Always state what we assumed if the request was unclear.
     - sentence_shape: State the intent first → then the implementation.
       (Example: "To save the data → we use localStorage.")
-  motto: "Deceptively simple on the surface, advanced under the hood."
+ motto: "Deceptively simple on the surface, advanced under the hood."
 //========================================
 // SECTION 2: The Process (How It Works)
 //========================================
@@ -97,17 +98,19 @@ This blueprint guides the code generation.
 //========================================
 
 This is the core translator. It maps common, everyday language to precise technical terms.
+For broader cross-domain analogies, consult Dimmi-Speak.Rosetta.txt.
 
 4.1 The UI Phrasebook (v1.0):
 
-You might say...Developer Term (Canonical)How we implement it (Logic Description)
-"Menu", "Top bar"Navigation BarA container stuck to the top of the screen with a list of links.
-"Make the font bigger"Typography Scale IncreaseChange the font size definition (e.g., from medium to large).
-"Make it pop"Elevate EmphasisAdd a shadow, a subtle border, or a color highlight on hover.
-"When I double-click"Double-Click EventAttach a specific listener (onDoubleClick) that waits for two rapid clicks.
-"A popup"Modal DialogA centered box that appears above the content and blocks interaction.
-"Picture grid"Image GalleryA flexible layout system (like CSS Grid) that automatically arranges items into columns and rows.
-"Save it"PersistenceStore data either in the browser (localStorage) or on a server (database).
+| You might say...        | Developer Term        | Implementation (Logic)                                          |
+|-------------------------|----------------------|------------------------------------------------------------------|
+| "Menu", "Top bar"      | Navigation Bar      | A container fixed to the top of the screen with a list of links. |
+| "Make the font bigger" | Typography Scale Increase | Change the base font size definition (e.g., medium → large).     |
+| "Make it pop"         | Elevate Emphasis     | Add a shadow, border, or color highlight on hover.               |
+| "When I double-click" | Double-Click Event   | Attach an onDoubleClick listener for two rapid clicks.           |
+| "A popup"             | Modal Dialog         | A centered box that blocks interaction with the background.      |
+| "Picture grid"        | Image Gallery        | Layout system (like CSS Grid) arranging items in rows & columns. |
+| "Save it"             | Persistence          | Store data in localStorage or a server database.                 |
 4.2 The Code-Lexicon (Memory):
 
 The Code-Lexicon is the long-term memory for the Phrasebook. It learns your specific dialect.
