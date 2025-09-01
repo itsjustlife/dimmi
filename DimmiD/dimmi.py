@@ -22,6 +22,7 @@ except ImportError as exc:  # pragma: no cover
 CORE_FILES = [
     "Start.txt",
     "Dimmi-Core.txt",
+    "Mind.txt",
     "Commands.txt",
     "Personality.txt",
 ]

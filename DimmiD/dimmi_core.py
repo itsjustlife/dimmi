@@ -4,6 +4,7 @@ from gpt4all import GPT4All
 CORE_FILES = [
     "Start.txt",
     "Dimmi-Core.txt",
+    "Mind.txt",
     "Commands.txt",
     "Personality.txt",
 ]

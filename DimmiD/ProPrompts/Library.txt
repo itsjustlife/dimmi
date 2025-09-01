@@ -1,0 +1,19 @@
+// FILE: Library.txt
+// VERSION: 1.0.0-offline
+// PURPOSE: Sample PROPROMPTS for DimmiD.
+
+# Example: quick classifier
+/// === PROPROMPT:BEGIN ===
+id: PP-${now}-CLASSIFY
+title: Classify notes
+role: Classifier
+priority: P1
+inputs:
+  source: <text>
+  focus: "*"
+outputs:
+  - CLASSIFIED.txt
+status: pending
+notes: |
+  Assign each line a topic label.
+/// === PROPROMPT:END ===
