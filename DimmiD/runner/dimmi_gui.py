@@ -2,10 +2,13 @@ import tkinter as tk
 from tkinter import filedialog, scrolledtext, messagebox
 from pathlib import Path
 import json
-from .dimmi_core import DimmiRunner
+import sys
+
+# Allow running as a script without installation
+sys.path.append(str(Path(__file__).resolve().parent))
+from dimmi_core import DimmiRunner
 
 CFG = Path(__file__).resolve().parent.parent / "config.json"
-MEM = Path(__file__).resolve().parent.parent / "Memory"
 
 def load_cfg():
     if CFG.exists():
@@ -29,9 +32,9 @@ class DimmiGUI:
         self.prompt_editor.pack(padx=10, pady=(0,10))
 
         btns = tk.Frame(root); btns.pack(pady=5)
-        tk.Button(btns, text="Send Turn", command=self.send_turn).pack(side=tk.LEFT, padx=5)
+        tk.Button(btns, text="Run", command=self.run_prompt).pack(side=tk.LEFT, padx=5)
         tk.Button(btns, text="Queue Task", command=self.queue_task).pack(side=tk.LEFT, padx=5)
-        tk.Button(btns, text="Load PREPROMPT", command=self.load_preprompt).pack(side=tk.LEFT, padx=5)
+        tk.Button(btns, text="Load Prompt File", command=self.load_prompt_file).pack(side=tk.LEFT, padx=5)
         tk.Button(btns, text="Clear", command=self.clear_chat).pack(side=tk.LEFT, padx=5)
 
     def append_chat(self, role, text):
@@ -39,7 +42,7 @@ class DimmiGUI:
         self.chat_log.insert(tk.END, f"\n{role}:\n{text}\n")
         self.chat_log.config(state='disabled'); self.chat_log.see(tk.END)
 
-    def send_turn(self):
+    def run_prompt(self):
         prompt = self.prompt_editor.get("1.0", tk.END).strip()
         if not prompt: return
         self.append_chat("You", prompt)
@@ -53,14 +56,13 @@ class DimmiGUI:
     def queue_task(self):
         task = self.prompt_editor.get("1.0", tk.END).strip()
         if not task: return
-        MEM.mkdir(parents=True, exist_ok=True)
-        (MEM/"requests.log").open("a", encoding="utf-8").write(task + "\n")
+        self.runner.queue(task)
         self.append_chat("Queued", task)
         self.prompt_editor.delete("1.0", tk.END)
 
-    def load_preprompt(self):
-        base = Path(__file__).resolve().parent.parent / "Templates" / "PREPROMPTS"
-        path = filedialog.askopenfilename(initialdir=base, title="Select PREPROMPT", filetypes=[("Text", "*.txt")])
+    def load_prompt_file(self):
+        base = Path(__file__).resolve().parent.parent
+        path = filedialog.askopenfilename(initialdir=base, title="Select Prompt File", filetypes=[("Text", "*.txt")])
         if path:
             try:
                 text = Path(path).read_text(encoding="utf-8")
