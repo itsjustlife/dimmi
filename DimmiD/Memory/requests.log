@@ -7,3 +7,29 @@ DIMMI-SAVE v1
 END-SAVE
 Show me the sequence from start.txt
 Can you do more than one when the other one is done?
+show me the path you take from start.txt
+// FILE: ChoosePath-Template.txt
+// PURPOSE: Skeleton for choose-your-own-path prompts.
+
+Scene: <brief setup>
+
+Options:
+1) <first path>
+2) <second path>
+...
+
+Ask: "Pick a number or describe another path." Log choice to memory.
+
+!!ASK :: ASK Tag
+
+!!TODO :: TODO Tag
+
+!!GOTO :: GOTO Tag
+
+!!LINK :: LINK Tag
+
+!!TAG :: TAG Tag
+
+!!APPEND :: APPEND Tag
+
+!!REFRESH :: REFRESH Tag

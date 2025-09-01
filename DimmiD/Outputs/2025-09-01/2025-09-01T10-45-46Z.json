@@ -1,0 +1,5 @@
+{
+  "ts": "2025-09-01T10-45-46Z",
+  "task": "[REQUEST] ability: CHOOSE-PATH",
+  "output": "ERROR: The prompt size exceeds the context window size and cannot be processed."
+}
