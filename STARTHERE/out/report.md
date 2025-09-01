@@ -1,6 +1,7 @@
 # Post-Prompt Report
 
 ## arkhive.txt
+- GOTO: goto link
 
 ## arkhiver.txt
 - LOG: Needs more exploration.
@@ -10,13 +11,18 @@
 - ASK: ASK
 - GOTO: GOTO
 
+## assets/icons.txt
+
 ## conner.txt
 - APPEND: - Volume\\n- Channel
 - APPEND: - TV\\n- Music
 - LINK: adding link
+- APPEND: Append Item Type
 
 ## door.txt
 - TODO: Sketch keyboard shortcuts.
+
+## New Text Document.txt
 
 ## start.txt
 - ASK: What should DOOR default widths be?

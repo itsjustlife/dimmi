@@ -9,10 +9,28 @@
           "level": 1,
           "title": "Arkhive",
           "line": 1,
-          "prompts": []
+          "prompts": [
+            {
+              "type": "GOTO",
+              "args": {},
+              "body": "goto link",
+              "file": "arkhive.txt",
+              "line": 7,
+              "section": "main"
+            }
+          ]
         }
       ],
-      "prompts": []
+      "prompts": [
+        {
+          "type": "GOTO",
+          "args": {},
+          "body": "goto link",
+          "file": "arkhive.txt",
+          "line": 7,
+          "section": "main"
+        }
+      ]
     },
     "arkhiver.txt": {
       "title": "Arkhiver",
@@ -117,6 +135,12 @@
         }
       ]
     },
+    "assets/icons.txt": {
+      "title": "icons",
+      "meta": {},
+      "sections": [],
+      "prompts": []
+    },
     "conner.txt": {
       "title": "Conner",
       "meta": {},
@@ -154,6 +178,14 @@
               "file": "conner.txt",
               "line": 8,
               "section": "conner"
+            },
+            {
+              "type": "APPEND",
+              "args": {},
+              "body": "Append Item Type",
+              "file": "conner.txt",
+              "line": 10,
+              "section": "conner"
             }
           ]
         }
@@ -185,6 +217,14 @@
           "body": "adding link",
           "file": "conner.txt",
           "line": 8,
+          "section": "conner"
+        },
+        {
+          "type": "APPEND",
+          "args": {},
+          "body": "Append Item Type",
+          "file": "conner.txt",
+          "line": 10,
           "section": "conner"
         }
       ]
@@ -220,6 +260,12 @@
           "section": "door"
         }
       ]
+    },
+    "New Text Document.txt": {
+      "title": "New Text Document",
+      "meta": {},
+      "sections": [],
+      "prompts": []
     },
     "start.txt": {
       "title": "Start",
@@ -302,6 +348,11 @@
     }
   },
   "links": [
+    {
+      "from": "arkhive.txt#main",
+      "to": "",
+      "type": "GOTO"
+    },
     {
       "from": "arkhivist.txt#arkhivist",
       "to": "",
