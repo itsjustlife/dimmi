@@ -5,3 +5,5 @@ DIMMI-SAVE v1
 [FACT] pending_path: forest|cave
 [REQUEST] ability: CHOOSE-PATH
 END-SAVE
+Show me the sequence from start.txt
+Can you do more than one when the other one is done?
