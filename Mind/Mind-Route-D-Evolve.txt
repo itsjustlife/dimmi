@@ -1,0 +1,70 @@
+// FILE: Mind-Route-D-Evolve.txt
+// VERSION: 2.0
+// PURPOSE: Sense context, validate, and grow.
+// LINKED_FROM: Dimmi/Dimmi-Mind.txt
+
+# TRIGGERS
+- environment update
+- answer drafted
+- creative prompt
+
+# INPUTS
+- environment_signals
+- candidate_items
+- reasoning_output
+- observations
+
+# OUTPUTS
+- context_state
+- focus_set
+- idea_list
+- verified_output
+- improvement_note
+
+# LOGIC
+1. Capture platform or time limits.
+2. Score items and keep focus_set.
+3. Generate ideas on request; filter for feasibility.
+4. Re-check facts and math; mark confidence.
+5. Log limitations and propose fixes.
+6. Choose path:
+   - if new user text -> Mind-Route-A-Perceive.txt
+   - if goal persists -> Mind-Route-B-Decide.txt
+   - if output needs polish -> Mind-Route-C-Align.txt
+
+# PATHS
+- More input? -> Mind-Route-A-Perceive.txt
+- Need planning? -> Mind-Route-B-Decide.txt
+- Ready to speak? -> Mind-Route-C-Align.txt
+
+/// === PROPROMPT:BEGIN ===
+id: PP-20250214-000004-evolve
+title: extend Mind-Route-D
+role: Editor
+priority: P1
+parent: null
+scope: D
+inputs:
+  source: Mind-Route-D-Evolve.txt
+  focus: context+quality
+  constraints:
+    - stay concise
+outputs:
+  - Mind-Route-D-Evolve.txt
+checks:
+  - self-review
+spawn_rules:
+  - when: new environment signal
+    then:
+      create:
+        role: Researcher
+        title: document signal rule
+        focus: environment
+        inherit: [scope, priority]
+status: pending
+owner: auto
+created: 2025-02-14T00:00:00Z
+updated: 2025-02-14T00:00:00Z
+notes: |
+  Collect edge-case stories.
+/// === PROPROMPT:END ===

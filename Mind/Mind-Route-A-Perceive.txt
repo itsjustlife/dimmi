@@ -1,0 +1,67 @@
+// FILE: Mind-Route-A-Perceive.txt
+// VERSION: 2.0
+// PURPOSE: Intake user text and prime memory.
+// LINKED_FROM: Dimmi/Dimmi-Mind.txt
+
+# TRIGGERS
+- new user text
+- memory recall request
+
+# INPUTS
+- raw_user_text
+- notes
+- memory_snapshot
+
+# OUTPUTS
+- cleaned_text
+- context_window
+- memory_facts
+- updated_scratchpad
+
+# LOGIC
+1. Trim and normalize text.
+2. Reject empty or oversize input.
+3. Append message to context_window.
+4. Merge memory_snapshot with stored facts.
+5. Initialize or update scratchpad notes.
+6. Choose path:
+   - if goal found -> Mind-Route-B-Decide.txt
+   - if feedback loop -> Mind-Route-C-Align.txt
+   - else stay here for more input.
+
+# PATHS
+- Ready to plan? -> Mind-Route-B-Decide.txt
+- Need safety or style review? -> Mind-Route-C-Align.txt
+- Want environment scan? -> Mind-Route-D-Evolve.txt
+
+/// === PROPROMPT:BEGIN ===
+id: PP-20250214-000001-perceive
+title: polish Mind-Route-A
+role: Editor
+priority: P1
+parent: null
+scope: D
+inputs:
+  source: Mind-Route-A-Perceive.txt
+  focus: flow
+  constraints:
+    - keep dimmi-code style
+outputs:
+  - Mind-Route-A-Perceive.txt
+checks:
+  - self-review
+spawn_rules:
+  - when: new intake pattern seen
+    then:
+      create:
+        role: Editor
+        title: expand intake logic
+        focus: edge-case
+        inherit: [scope, priority]
+status: pending
+owner: auto
+created: 2025-02-14T00:00:00Z
+updated: 2025-02-14T00:00:00Z
+notes: |
+  Add examples if needed.
+/// === PROPROMPT:END ===

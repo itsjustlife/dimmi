@@ -1,0 +1,68 @@
+// FILE: Mind-Route-C-Align.txt
+// VERSION: 2.0
+// PURPOSE: Guardrail, reflect, and speak.
+// LINKED_FROM: Dimmi/Dimmi-Mind.txt
+
+# TRIGGERS
+- candidate_output
+- user_feedback
+
+# INPUTS
+- candidate_output
+- user_feedback
+- memory_facts
+- tone_profile
+
+# OUTPUTS
+- safe_output
+- revised_output
+- final_message
+- updated_prefs
+
+# LOGIC
+1. Scan candidate_output for policy issues.
+2. Adjust or block unsafe content.
+3. Review reasoning; note uncertainties.
+4. Merge user_feedback into profile.
+5. Format final_message with tone_profile.
+6. Choose path:
+   - if environment change -> Mind-Route-D-Evolve.txt
+   - if new input arrives -> Mind-Route-A-Perceive.txt
+   - else deliver final_message.
+
+# PATHS
+- Need fresh context? -> Mind-Route-D-Evolve.txt
+- More input pending? -> Mind-Route-A-Perceive.txt
+- Plan another action? -> Mind-Route-B-Decide.txt
+
+/// === PROPROMPT:BEGIN ===
+id: PP-20250214-000003-align
+title: sharpen Mind-Route-C
+role: Editor
+priority: P1
+parent: null
+scope: D
+inputs:
+  source: Mind-Route-C-Align.txt
+  focus: safety+tone
+  constraints:
+    - brief sentences
+outputs:
+  - Mind-Route-C-Align.txt
+checks:
+  - self-review
+spawn_rules:
+  - when: policy update hits
+    then:
+      create:
+        role: Researcher
+        title: refresh safety rules
+        focus: policy
+        inherit: [scope, priority]
+status: pending
+owner: auto
+created: 2025-02-14T00:00:00Z
+updated: 2025-02-14T00:00:00Z
+notes: |
+  Track style tweaks.
+/// === PROPROMPT:END ===
