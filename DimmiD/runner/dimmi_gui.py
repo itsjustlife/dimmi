@@ -40,16 +40,44 @@ class DimmiGUI:
         except Exception as e:
             messagebox.showerror("Model error", str(e)); raise
 
-        self.chat_log = scrolledtext.ScrolledText(root, height=22, width=90, state='disabled', font=("Consolas", 11))
+        self.chat_log = scrolledtext.ScrolledText(
+            root, height=22, width=90, state="disabled", font=("Consolas", 11)
+        )
         self.chat_log.pack(padx=10, pady=10)
+        self.chat_log.bind("<1>", lambda _e: self.chat_log.focus_set())
 
         self.prompt_editor = tk.Text(root, height=6, width=90, font=("Consolas", 11))
         self.prompt_editor.pack(padx=10, pady=(0,10))
 
-        btns = tk.Frame(root); btns.pack(pady=5)
-        tk.Button(btns, text="Run", command=self.run_prompt).pack(side=tk.LEFT, padx=5)
-        tk.Button(btns, text="Queue Task", command=self.queue_task).pack(side=tk.LEFT, padx=5)
-        tk.Button(btns, text="Load Prompt File", command=self.load_prompt_file).pack(side=tk.LEFT, padx=5)
+        btns = tk.Frame(root)
+        btns.pack(pady=5)
+
+        tk.Button(btns, text="Run", command=self.run_prompt).pack(
+            side=tk.LEFT, padx=5
+        )
+        tk.Button(btns, text="Queue Task", command=self.queue_task).pack(
+            side=tk.LEFT, padx=5
+        )
+        tk.Button(btns, text="Run Queue", command=self.run_queue).pack(
+            side=tk.LEFT, padx=5
+        )
+
+        self.template_var = tk.StringVar(value="Select Template")
+        self.template_menu = tk.OptionMenu(
+            btns,
+            self.template_var,
+            "Select Template",
+            *self._template_list(),
+            command=self.load_template,
+        )
+        self.template_menu.pack(side=tk.LEFT, padx=5)
+
+        tk.Button(btns, text="Load Prompt File", command=self.load_prompt_file).pack(
+            side=tk.LEFT, padx=5
+        )
+        tk.Button(btns, text="Save Selected", command=self.save_selected).pack(
+            side=tk.LEFT, padx=5
+        )
         tk.Button(btns, text="Clear", command=self.clear_chat).pack(side=tk.LEFT, padx=5)
 
     def append_chat(self, role, text):
@@ -75,6 +103,15 @@ class DimmiGUI:
         self.append_chat("Queued", task)
         self.prompt_editor.delete("1.0", tk.END)
 
+    def run_queue(self):
+        results = self.runner.process_queue(max_items=999)
+        if not results:
+            messagebox.showinfo("Queue", "No queued tasks.")
+            return
+        for res in results:
+            self.append_chat("Task", res.get("task", ""))
+            self.append_chat("AI", res.get("output", ""))
+
     def load_prompt_file(self):
         base = Path(__file__).resolve().parent.parent
         path = filedialog.askopenfilename(initialdir=base, title="Select Prompt File", filetypes=[("Text", "*.txt")])
@@ -85,6 +122,37 @@ class DimmiGUI:
                 self.prompt_editor.insert(tk.END, text)
             except Exception as e:
                 messagebox.showerror("Error", f"Could not load file:\n{e}")
+
+    def _template_list(self):
+        base = Path(__file__).resolve().parent.parent / "Templates"
+        return [str(p.relative_to(base)) for p in base.glob("**/*.txt")]
+
+    def load_template(self, rel_path):
+        if rel_path == "Select Template":
+            return
+        base = Path(__file__).resolve().parent.parent / "Templates"
+        path = base / rel_path
+        try:
+            text = path.read_text(encoding="utf-8")
+            self.prompt_editor.delete("1.0", tk.END)
+            self.prompt_editor.insert(tk.END, text)
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not load template:\n{e}")
+
+    def save_selected(self):
+        try:
+            text = self.chat_log.selection_get()
+        except tk.TclError:
+            messagebox.showinfo("Save Selected", "No text selected.")
+            return
+        base = Path(__file__).resolve().parent.parent
+        path = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            initialdir=base,
+            filetypes=[("Text", "*.txt")],
+        )
+        if path:
+            Path(path).write_text(text, encoding="utf-8")
 
     def clear_chat(self):
         self.chat_log.config(state='normal'); self.chat_log.delete("1.0", tk.END); self.chat_log.config(state='disabled')

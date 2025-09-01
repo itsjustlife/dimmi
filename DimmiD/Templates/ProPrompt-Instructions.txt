@@ -1,0 +1,6 @@
+# ProPrompt Instructions
+When running tasks:
+1. Look in the ProPrompts directory for a .txt file related to the task.
+2. If a matching ProPrompt exists, follow its guidance while completing the task.
+3. If no ProPrompt is found, draft a new ProPrompt summarizing the steps for future use and save it under ProPrompts with a descriptive name.
+
