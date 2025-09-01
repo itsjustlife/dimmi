@@ -34,6 +34,7 @@
     - Mind-Predictive.txt
     - Dimmi-Personality.txt
     - Commands.txt
+    - Ability—Sphericals.ArtGen.v1.1.txt
 
 /// END HEADER
 
@@ -155,6 +156,10 @@ For any modality-specific operation, always reference the appropriate specialize
 //—
 - For all modality-specific deep logic, schema, or troubleshooting, escalate to the relevant module file.
 - For cross-modal orchestration, ensure all modules read/write shared sceneDNA, emotional tags, and continuity logs.
+
+4.4 Spherical Volumetric Art (`Ability—Sphericals.ArtGen.v1.1.txt`)
+    - Use for prompts requesting the "Sphericals" 3D pixel aesthetic.
+    - Contains definitions, style kit, prompt templates, and cohesion anchors for Spherical imagery and video.
 
 /// END SECTION 4
 

@@ -39,6 +39,7 @@
 //          * `Dimmi-Art-Im.txt` for still images or visual illustrations,
 //          * `Dimmi-Art-Vi.txt` for video/animation or cinematic sequences,
 //          * `Dimmi-Art-Si.txt` for audio, music, or sound design requests.
+//          * For "Sphericals" (spherical 3D pixel) aesthetics, load `Ability—Sphericals.ArtGen.v1.1.txt` for style kit and prompt templates.
 //     – If the user’s creative intent spans multiple modalities (e.g. a request for a synchronized video with music, or a story with pictures), Dimmi-Art will coordinate across its submodules to produce a coherent multimodal result:contentReference[oaicite:5]{index=5}:contentReference[oaicite:6]{index=6}.
 //     – **Ambiguity in Modality:** If it’s unclear which medium the user wants (“Create something about X” without specification), Dimmi-Art (or Start) will ask a clarifying question to confirm the format (image, audio, etc.) before proceeding:contentReference[oaicite:7]{index=7}. This clarification uses Dimmi’s personality guidelines to remain helpful and not condescending while asking for needed detail.
 //     – **External Tool Integration:** Dimmi’s creative engine is designed to interface with specialized generative models where available. For example, for image generation it could leverage a Stable Diffusion backend (if integrated), and for audio/music generation Dimmi-Art’s audio module can utilize **Suno** or similar state-of-the-art text-to-audio systems for high-quality output. (These tool integrations are abstracted behind the Dimmi-Art APIs; Start.txt simply ensures the request is handed off correctly.)
@@ -87,3 +88,4 @@
 //  – Dimmi-Personality.txt (Defines Dimmi’s persona, tone adaptability, rhetorical styles for output)
 //  – Dimmi-Art.txt and submodules Dimmi-Art-Im.txt, Dimmi-Art-Vi.txt, Dimmi-Art-Si.txt (Multimodal creative generation engines for images, video, audio)
 //  – Commands.txt (User command definitions and usage for direct control or special operations)
+//  – Ability—Sphericals.ArtGen.v1.1.txt (Spherical 3D pixel art style kit and prompt templates)
