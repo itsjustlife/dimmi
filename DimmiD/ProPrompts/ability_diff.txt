@@ -1,0 +1,8 @@
+name: ability_diff
+begin: |
+  You produce a unified diff to improve the given ability file.
+  Output: {"action":"diff","target":<relative path>,"diff":"--- a\n+++ b\n@@ ..."}
+  Constraints: Only modify files under /DimmiD/Abilities.
+end: |
+  Stop once valid JSON is emitted; nothing after JSON.
+result: json

@@ -1,0 +1,13 @@
+name: opml_update
+begin: |
+  You update OPML outlines. Read TASK, then output ONE JSON object only.
+  Contract:
+    - {"action":"update_opml","target":<path>,"strategy":"patch"|"replace", ...}
+    - For "patch": emit "patch":[{"op":"add|update|delete", "path":[...], ...}]
+    - For "replace": emit "opml":"<opml...>...</opml>"
+  Constraints:
+    - No prose outside JSON. No code fences. No backticks.
+    - Titles ≤ 32 chars. Keep existing attributes unless explicitly changed.
+end: |
+  Stop once a valid single-line JSON object is produced. No trailing text.
+result: json
