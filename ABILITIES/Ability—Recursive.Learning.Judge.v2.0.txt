@@ -1,0 +1,359 @@
+/// FILE: Ability—Recursive.Learning.Judge.v2.0.txt
+/// VERSION: 2.0
+/// LAST-UPDATED: 2025-09-01
+/// PURPOSE: Self-auditing evaluator. Compare (Ability Spec ↔ Prompt ↔ Output) with full
+///          knowledge-path tracing. Emit scores, diffs, and patch-ready edits to improve future runs.
+/// ALIASES: "Recursive.Judge", "RLJ", "Judge.Meta"
+
+ability:
+  name: "Recursive.Learning.Judge"
+  type: "meta-evaluator"
+  domain: "self-improvement"
+  status: "active"
+
+description:
+  "Judge the fit between what was asked (Prompt), how Dimmi decided (Knowledge Path),
+   what rules applied (Ability Spec), and what was produced (Output).
+   Record the trace, score alignment, detect drift, and propose small, safe patches.
+   Return machine-readable reports plus human-readable notes."
+
+# —————————————————————————————————————————————————————————————————
+# 0) TRACE CONTRACT (What must be captured to judge correctly)
+# —————————————————————————————————————————————————————————————————
+trace.contract:
+  required:
+    - original_prompt.raw                 # exact user text or command
+    - route.module                        # e.g., Start→Dimmi-Art-Im, Mind-Predictive, Deep-Research
+    - ability_used.name                   # e.g., "Sphericals.ArtGen"
+    - ability_used.ref                    # file path or blob of the ability spec
+    - knowledge_files[]:                  # precise sources Dimmi read to decide
+        - file: "Dimmi/…/SomeFile.txt"
+          version: "x.y.z"                # if known
+          section: "heading or anchor"    # e.g., 'templates.text2video'
+          hash: "<short content hash>"    # for reproducibility
+    - parameters: {}                      # normalized params resolved from prompt (style_id, fps…)
+    - environment:
+        model: "backend/model-id"
+        time_utc: "YYYY-MM-DDThh:mm:ssZ"
+        seed: int?                        # if applicable
+  optional:
+    - prior_history.refs[]                # earlier outputs used as continuity anchors
+    - tool_calls[]                        # external model calls with settings/sampler etc.
+
+trace.capture_rules:
+  - "If the active module can log a path trace, ingest it; else reconstruct from ability_used + parameters."
+  - "Missing version/hash → compute ephemeral hash of content snippet used for decision."
+  - "Always store minimal but sufficient trace to reproduce the render plan."
+
+# —————————————————————————————————————————————————————————————————
+# 1) INPUTS / OUTPUTS
+# —————————————————————————————————————————————————————————————————
+inputs:
+  - ability_ref (file|blob): Ability spec to evaluate against
+  - prompt_ref (string|json): Original prompt or command with resolved params
+  - outputs (list):
+      # Each output item carries a type and payload.
+      - { type: "image", uri?: string, bytes?: base64, meta?: {} }
+      - { type: "video", uri?: string, meta?: { duration, fps, shots? } }
+      - { type: "text", content?: string }
+      - { type: "structure", kind?: "style_kit|metadata|camera_script|json", content: {} }
+      - { type: "research", content: {} }  # Deep Research result or prompt
+  - metadata_ref (json?): includes trace.contract fields if available
+
+outputs:
+  - eval_report.json:
+      {
+        "summary": "1-2 sentences",
+        "scores": {
+          "content_alignment": 0.0-1.0,
+          "style_cohesion": 0.0-1.0,
+          "technical_quality": 0.0-1.0,
+          "trace_completeness": 0.0-1.0
+        },
+        "by_type": {
+          "image?":   { "composition": 0-1, "palette_drift": 0-1, "anchor_usage": 0-1, "notes": [] },
+          "video?":   { "shot_match": 0-1, "camera_grammar": 0-1, "temporal_cohesion": 0-1, "notes": [] },
+          "structure?": { "schema_valid": 0-1, "anchor_integrity": 0-1, "notes": [] },
+          "text?":    { "clarity": 0-1, "fidelity_to_spec": 0-1, "notes": [] },
+          "research?":{ "contract_conformance": 0-1, "verification_rigor": 0-1, "notes": [] }
+        },
+        "confidence": "High|Medium|Low",
+        "drift_flags": ["palette", "seed", "style_hash", "camera_grammar", "schema", "logic"],
+        "knowledge_trace": [ { "file": "...", "section": "...", "hash": "..." } ],
+        "proposed_edits": [ /* see patches.contract */ ],
+        "next_run_hints": [ "short prescriptive tips for immediate improvement" ],
+        "time_utc": "YYYY-MM-DDThh:mm:ssZ"
+      }
+
+# —————————————————————————————————————————————————————————————————
+# 2) PATCHES CONTRACT (How to propose precise, safe updates)
+# —————————————————————————————————————————————————————————————————
+patches.contract:
+  item:
+    target: "file_path or logical name"          # e.g., "Abilities/Sphericals.ArtGen.v1.1.txt"
+    scope: "section.anchor"                      # e.g., "templates.text2video"
+    action: "insert|replace|remove|append"
+    patch_type: "unified_diff|yaml_merge|json_pointer"
+    payload: "string or object"                  # diff or minimal replacement block
+    rationale: "why this change"
+    risk: "low|medium|high"
+    test: "how to verify the change worked"
+  policy:
+    - "Prefer smallest viable patch."
+    - "Never change semantics outside evaluated scope."
+    - "If risk != low, include rollback note."
+  example:
+    - target: "Abilities/Sphericals.ArtGen.v1.1.txt"
+      scope: "style_kit.material_rules.emissive_share"
+      action: "replace"
+      patch_type: "yaml_merge"
+      payload: { emissive_share: 0.12 }
+      rationale: "Output appeared over-bloomed; reduce emissive share."
+      risk: "low"
+      test: "Re-render same seed; bloom histogram drops < 10%."
+
+# —————————————————————————————————————————————————————————————————
+# 3) CORE PROCESS (Blueprint DCM)
+# —————————————————————————————————————————————————————————————————
+blueprint.DCM:
+  engine: "Dimmi-Core"
+  stages:
+    - stage: "ingest"
+      do:
+        - "load ability_ref; parse headers, inputs, templates, anchors"
+        - "normalize prompt_ref → params map"
+        - "establish trace = metadata_ref.trace || reconstruct"
+    - stage: "extract_rules"
+      do:
+        - "find anchors (style_id, style_hash, seed, palette_id, lenses, schema versions)"
+        - "gather type-specific requirements from ability_ref (e.g., required headers)"
+    - stage: "type_split"
+      do:
+        - "bucket outputs by type: image/video/structure/text/research"
+    - stage: "evaluate"
+      do:
+        - "for each bucket → run rubric (see §4) → compute sub-scores"
+        - "aggregate → scores.* and by_type.*"
+    - stage: "drift_detect"
+      do:
+        - "compare anchors vs trace; flag diffs (palette drift, wrong lens, missing hash)"
+    - stage: "patch_suggest"
+      do:
+        - "derive minimal patches (see §2) targeting the right file/section"
+    - stage: "emit"
+      do:
+        - "compose eval_report.json and return"
+
+# —————————————————————————————————————————————————————————————————
+# 4) RUBRICS (by output type)
+# —————————————————————————————————————————————————————————————————
+rubrics:
+  weights_global:
+    content_alignment: 0.35
+    style_cohesion:    0.30
+    technical_quality: 0.25
+    trace_completeness:0.10
+
+  image:
+    required_headers: ["STYLE:", "SCENE:", "CAMERA:", "LIGHTING:", "PALETTE:", "FINISH:", "SEED:", "COHESION:"]
+    checks:
+      - "anchor_usage: style_id+style_hash+seed present"
+      - "palette_drift: ≤ 8 swatches; off-palette colors penalized"
+      - "camera_grammar: lens in allowed set; framing matches template"
+      - "composition: primary emphasis visible; clutter penalty"
+      - "artifact_scan: over-sharpening/ringing/banding penalties if detected"
+    scoring:
+      composition: 0-1
+      palette_drift: 0-1 (invert drift)
+      anchor_usage: 0-1
+      notes: []
+
+  video:
+    required_headers: ["STYLE:", "SCENE:", "CAMERA:", "LIGHTING:", "PALETTE:", "FINISH:", "SEED:", "COHESION:", "DURATION:", "FPS:", "CAMERA SCRIPT:"]
+    checks:
+      - "shot_match: number and semantics match script"
+      - "camera_grammar: lens/framing per shot valid"
+      - "temporal_cohesion: consistent anchors across shots"
+      - "motion_trails: on when requested; not excessive"
+      - "cut_quality: avoid unmotivated jump cuts if script specifies smooth moves"
+    scoring:
+      shot_match: 0-1
+      camera_grammar: 0-1
+      temporal_cohesion: 0-1
+      notes: []
+
+  structure:
+    kinds: ["style_kit","metadata","camera_script","json"]
+    checks:
+      - "schema_valid: must conform to declared schema/kind"
+      - "anchor_integrity: anchors present and consistent"
+      - "hash_stability: style_hash matches style_kit content"
+    scoring:
+      schema_valid: 0-1
+      anchor_integrity: 0-1
+      notes: []
+
+  text:
+    checks:
+      - "fidelity_to_spec: uses ability’s terminology and required headers, if any"
+      - "clarity: concise, unambiguous, step-wise when required"
+      - "consistency: does not contradict knowledge files used"
+    scoring:
+      clarity: 0-1
+      fidelity_to_spec: 0-1
+      notes: []
+
+  research:
+    contract: "Deep-Research output contract"
+    checks:
+      - "contract_conformance: required keys present (question, findings, counterevidence, deltas, next_steps)"
+      - "verification_rigor: sources cited; counterevidence search performed"
+    scoring:
+      contract_conformance: 0-1
+      verification_rigor: 0-1
+      notes: []
+
+# —————————————————————————————————————————————————————————————————
+# 5) SUB-SECTIONS: FILE TYPES & PROMPTS Dimmi GENERATES
+# —————————————————————————————————————————————————————————————————
+sections:
+  image_prompts:
+    description: "Text-to-image render plans"
+    must_have:
+      - headers: ["STYLE:","SCENE:","CAMERA:","LIGHTING:","PALETTE:","FINISH:","SEED:","COHESION:"]
+      - anchors: ["style_id","style_hash","seed","palette_id","lens_mm"]
+    special_instructions:
+      - "If engine lacks 'splat', say 'particles/points/volumetric sprites'."
+      - "Cap palette at ≤ 8. Penalize rainbow drift."
+      - "Favor clean emphasis; avoid busy background."
+    notes:
+      - "Seed reuse ⇒ stability checks. If different seed used without reason, flag drift."
+
+  video_prompts:
+    description: "Text-to-video plans with camera scripts"
+    must_have:
+      - headers: ["... (all image) + DURATION:, FPS:, CAMERA SCRIPT:"]
+      - consistency: "Same anchors for each shot unless explicitly changed"
+    special_instructions:
+      - "List shots with lens+framing each."
+      - "Enable motion trails only when motivated."
+      - "If shots > 5, compress or split into sequences."
+    notes:
+      - "If any shot deviates from grammar, suggest patch in template rather than ad-hoc fix."
+
+  structure_files:
+    description: "Supporting JSON/YAML: style kits, metadata, camera scripts"
+    must_have:
+      - "schema names: style_kit|metadata|camera_script"
+      - "style_hash = stable hash(style_kit content)"
+    special_instructions:
+      - "Reject unknown keys unless whitelisted."
+      - "Normalize numeric ranges (e.g., emissive_share 0–1)."
+    notes:
+      - "Prefer small diffs to minimize ripple effects."
+
+  regular_answers:
+    description: "Explanatory text or step-by-step guides"
+    must_have:
+      - "Direct references to anchors when advising (style_id, seed, etc.)"
+      - "No contradictions with used knowledge files"
+    special_instructions:
+      - "Use Executable-English when giving procedures."
+    notes:
+      - "If ambiguity detected, propose question set, not guesses."
+
+  deep_research_prompts:
+    description: "Prompts/results under Deep-Research contract"
+    must_have:
+      - keys: ["question","findings[]","counterevidence[]","deltas[]","next_steps[]"]
+    special_instructions:
+      - "Score per-claim confidence; insist on counterevidence scan."
+    notes:
+      - "If VERIFY mode not run, add as proposed_next_step."
+
+# —————————————————————————————————————————————————————————————————
+# 6) EFFICIENCY RULES & RECURSION GUARD
+# —————————————————————————————————————————————————————————————————
+efficiency:
+  - "Short-circuit if trace_completeness < 0.4 → return 'insufficient trace' with capture_todo."
+  - "Cache ability_ref parse by hash."
+  - "Batch-scan outputs by type before detailed scoring."
+  - "Limit judge loops to 2 unless patches applied (then allow 1 extra verification loop)."
+
+recursion_guard:
+  max_loops_without_patch: 2
+  on_violation: "Emit partial report + safe default patches; stop."
+
+# —————————————————————————————————————————————————————————————————
+# 7) COMMANDS (Invocations)
+# —————————————————————————————————————————————————————————————————
+commands:
+  - EVAL TRACE ability="Sphericals.ArtGen" prompt_ref="…" outputs=[…] metadata_ref={…}
+  - EVAL ART   ability="Sphericals.ArtGen" prompt_ref="…" outputs=[{type:'image',…}]
+  - EVAL VIDEO ability="Sphericals.ArtGen" prompt_ref="…" outputs=[{type:'video',…}]
+  - EVAL STRUCT outputs=[{type:'structure',kind:'style_kit',…}]
+  - EVAL TEXT  outputs=[{type:'text',content:'…'}]
+  - EVAL DRM   outputs=[{type:'research',content:{…}}]
+
+# —————————————————————————————————————————————————————————————————
+# 8) EXAMPLES (Minimal)
+# —————————————————————————————————————————————————————————————————
+examples:
+  image_judge:
+    prompt_ref: |
+      CREATE IMAGE scene="cheetah sprint…" style="Sphericals" style_id="sphericals.neon.painterly.v1"
+    metadata_ref:
+      trace:
+        ability_used:
+          name: "Sphericals.ArtGen"
+          ref: "Abilities/Sphericals.ArtGen.v1.1.txt"
+        knowledge_files:
+          - { file: "Abilities/Sphericals.ArtGen.v1.1.txt", section: "templates.text2image", hash: "abc123" }
+          - { file: "Abilities/Sphericals.ArtGen.v1.1.txt", section: "style_kit", hash: "def456" }
+        parameters: { seed: 123456, lens_mm: 85, palette_id: "SpectralNeon8" }
+    outputs:
+      - { type: "image", uri: "…/img.png" }
+
+  report_snippet (result):
+    eval_report.json: |
+      {
+        "summary": "Strong alignment; minor bloom drift.",
+        "scores": { "content_alignment":0.92, "style_cohesion":0.86, "technical_quality":0.88, "trace_completeness":0.95 },
+        "by_type": { "image": { "composition":0.9, "palette_drift":0.85, "anchor_usage":1.0, "notes":["slightly hot highlights"] } },
+        "confidence":"High",
+        "drift_flags":["palette"],
+        "knowledge_trace":[{"file":"Abilities/Sphericals.ArtGen.v1.1.txt","section":"style_kit","hash":"def456"}],
+        "proposed_edits":[
+          {
+            "target":"Abilities/Sphericals.ArtGen.v1.1.txt",
+            "scope":"style_kit.material_rules.emissive_share",
+            "action":"replace",
+            "patch_type":"yaml_merge",
+            "payload":{"emissive_share":0.12},
+            "rationale":"Reduce over-bloom.",
+            "risk":"low",
+            "test":"Re-render same seed; bloom histogram −10%."
+          }
+        ],
+        "next_run_hints":[ "Reuse seed=123456; prefer lens 50–85mm on close shots." ],
+        "time_utc":"2025-09-01T00:00:00Z"
+      }
+
+# —————————————————————————————————————————————————————————————————
+# 9) SPECIAL INSTRUCTIONS (Accuracy & Safety)
+# —————————————————————————————————————————————————————————————————
+special:
+  - "Never hallucinate knowledge file names; only report those in trace or ability_ref."
+  - "If a required anchor is missing, set style_cohesion ≤ 0.5 and propose a template patch."
+  - "When output is uninspectable (missing bytes/uri), judge headers/metadata only; mark confidence='Low'."
+  - "Prefer edits to ability templates over ad-hoc one-off fixes in outputs."
+  - "When research outputs lack counterevidence, propose VERIFY task."
+
+# —————————————————————————————————————————————————————————————————
+# 10) NOTES (For maintainers)
+# —————————————————————————————————————————————————————————————————
+notes:
+  - "This judge is engine-agnostic; evaluate plans/headers/anchors rather than vendor tokens."
+  - "Keep patches minimal; include explicit verification steps."
+  - "Encourage stable anchors (style_id, style_hash, seed) for cohesion across sessions."
+  - "Where possible, fold learned deltas back into Style Kits and Prompt Templates, not just notes."

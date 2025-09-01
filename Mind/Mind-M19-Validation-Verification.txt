@@ -15,3 +15,6 @@
 1. Re-check facts and math.
 2. Call external tools if allowed.
 3. Mark confidence.
+
+# SEE ALSO
+- Ability—Recursive.Learning.Judge.v2.0.txt

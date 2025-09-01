@@ -78,6 +78,7 @@
 //  – **Module Integration Improvements:** If Start.txt repeatedly encounters scenarios where it had to fallback because a module was missing or incomplete (e.g., many requests for a feature not loaded in the 20-file limit), it should flag this to developers or the system maintainers. For example, it might suggest: “Consider including the <X> module in the deployment, as users frequently request X functionality.” This is an out-of-band suggestion (likely logged or communicated via a development channel rather than to the end-user).
 //  – **Memory Usage Feedback:** Over multiple sessions, if users consistently provide very large memory files or frequently need clarifications on memory content, Start (in conjunction with `Dimmi-Memory.txt`) could recommend updates to the memory format or pruning of outdated info. E.g., it might internally note: “Memory snapshot often includes redundant info – maybe encourage the user to summarize it more concisely.” Such suggestions help refine the memory handling conventions over time.
 //  – **Ambiguity & UX:** If the system finds that it is often asking the user for clarification at the start of queries, it might prompt a review of how queries are interpreted or if the user instructions can guide them better. Dimmi’s goal is smooth interaction, so Start will monitor if our decision logic causes friction (like too many back-and-forths) and propose adjustments (perhaps adjusting thresholds for when to auto-guess vs. ask, based on success rates).
+//  – **Meta-Evaluation:** When outputs show misalignment, invoke `Ability—Recursive.Learning.Judge.v2.0.txt` to compare prompt, trace, and result, proposing safe patches.
 //  – In summary, Start.txt not only routes and handles immediate decisions, but also keeps an eye on long-term patterns to help evolve Dimmi’s effectiveness. Many self-optimization insights from Start will feed into updates of the specific modules (for instance, telling `Dimmi-Art.txt` to expand its modality detection if users keep requesting a new media type, etc.).
 //  
 // SEE ALSO:
@@ -89,3 +90,4 @@
 //  – Dimmi-Art.txt and submodules Dimmi-Art-Im.txt, Dimmi-Art-Vi.txt, Dimmi-Art-Si.txt (Multimodal creative generation engines for images, video, audio)
 //  – Commands.txt (User command definitions and usage for direct control or special operations)
 //  – Ability—Sphericals.ArtGen.v1.1.txt (Spherical 3D pixel art style kit and prompt templates)
+//  – Ability—Recursive.Learning.Judge.v2.0.txt (Self-auditing evaluator for trace alignment and patch suggestions)
