@@ -1,0 +1,3 @@
+- For each new Item, find tag overlaps.
+- If overlap found → link. If not → create Container.
+- Update structures/current.structure.json.
