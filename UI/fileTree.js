@@ -38,6 +38,27 @@ const fileTree = [
         "type": "file",
         "path": "ABILITIES/Dimmi-Speak.Rosetta.txt"
       }
+      ,
+      {
+        "name": "Dimmi-Ability—Triad Refiner.txt",
+        "type": "file",
+        "path": "ABILITIES/Dimmi-Ability—Triad Refiner.txt"
+      },
+      {
+        "name": "Dimmi-Controls—Triad Refiner.txt",
+        "type": "file",
+        "path": "ABILITIES/Dimmi-Controls—Triad Refiner.txt"
+      },
+      {
+        "name": "Dimmi-Data—OptionTree Schema.txt",
+        "type": "file",
+        "path": "ABILITIES/Dimmi-Data—OptionTree Schema.txt"
+      },
+      {
+        "name": "Triad-Refiner.md",
+        "type": "file",
+        "path": "ABILITIES/Triad-Refiner.md"
+      }
     ]
   },
   {
