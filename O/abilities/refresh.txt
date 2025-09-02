@@ -1,0 +1,3 @@
+- Validate JSON vs schema.
+- Rebuild links list.
+- Write a short report to agents/codex_outbox/last_refresh.md.
