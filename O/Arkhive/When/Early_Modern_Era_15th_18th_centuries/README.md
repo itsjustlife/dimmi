@@ -1,0 +1,1 @@
+Renaissance polymaths and explorers (WHO like da Vinci & Columbus) revive learning and connect continents (WHERE global voyages). Scientific inquiry and Enlightenment ideas (WHAT) challenge old authorities (WHY), laying groundwork for modern nation-states and industries (HOW).
