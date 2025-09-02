@@ -1,0 +1,61 @@
+[DOCUMENT TITLE]: Dimmi-Controls — Triad Refiner (Phrases & UI)
+[VERSION]: 1.0
+[DATE]: 2025-09-02
+[AUTHOR]: Dimmi × User
+[TAGS]: controls, commands, ui, prompts, phrases
+[STATUS]: Stable
+[PURPOSE]:
+Provide natural-language control phrases and micro-UI conventions Dimmi should use
+while running the Triad Refiner ability. Keeps phrasing consistent and compact.
+
+[SCOPE]:
+Covers start cues, selection, branching, knob changes, navigation, and exports.
+
+[CONTINUATION & REFINEMENT PROMPT]:
+Use these phrases exactly or near-identically for consistency. Keep them short and scannable.
+
+────────────────────────────────────────────────────────────────────────
+# START CUES
+• “Triad: <seed>”
+• “Give me 3 options for <goal>”
+• “Start Triad for <mode>: <seed>”
+• “Refine this with three options: <text>”
+
+# SELECTION
+• “Select A/B/C”  |  “Select 1/2/3”
+• “Select: ‘<handle>’”
+• “Keep Original” (keep prior selection available)
+• “Back” (go to previous round)
+• “Undo” (revert last action)
+
+# BRANCHING
+• “Fork A as ‘<BranchName>’”
+• “Switch to branch ‘<BranchName>’”
+• “List branches”
+• “Merge branch ‘<BranchName>’ into main” (summarize deltas, do not overwrite)
+
+# KNOBS (examples)
+• “Change Knobs: spread=wild, tone=playful, length=condense”
+• “Focus on imagery; audience=kids; format=outline”
+• “Add constraints: must include ‘urban’, avoid ‘pesticide’”
+• “Reset knobs” (back to defaults)
+
+# NAVIGATION
+• “Show Path” (breadcrumb lineage with short reasons)
+• “Show Options” (reprint most recent A/B/C)
+• “Explain B” (1–2 line rationale for B)
+• “Compare A vs C” (succinct comparison)
+
+# EXPORTS
+• “Export: json”
+• “Export: opml”
+• “Export: html”
+• “Export: txt (compact)”
+
+# FINISH
+• “Finish” (lock selection & output final bundle)
+• “Finish with summary” (add 5-bullet recap: what was chosen, why, next steps)
+
+────────────────────────────────────────────────────────────────────────
+[END OF FILE]
+────────────────────────────────────────────────────────────────────────
