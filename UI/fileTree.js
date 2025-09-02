@@ -1,5 +1,10 @@
 const fileTree = [
   {
+    "name": "INDEX.md",
+    "type": "file",
+    "path": "INDEX.md"
+  },
+  {
     "name": "ABILITIES",
     "type": "folder",
     "children": [
@@ -974,14 +979,19 @@ const fileTree = [
     "type": "folder",
     "children": [
       {
-        "name": "DOOR-UI.txt",
+        "name": "START.md",
         "type": "file",
-        "path": "START/DOOR-UI.txt"
+        "path": "START/START.md"
       },
       {
-        "name": "TALK.txt",
+        "name": "DOOR-UI.md",
         "type": "file",
-        "path": "START/TALK.txt"
+        "path": "START/DOOR-UI.md"
+      },
+      {
+        "name": "TALK.md",
+        "type": "file",
+        "path": "START/TALK.md"
       }
     ]
   },
