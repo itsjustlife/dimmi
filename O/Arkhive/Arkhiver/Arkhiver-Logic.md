@@ -1,8 +1,9 @@
+[⟵ START](../../START.md) · [Arkhive](../Arkhive.md) · [Hub](../../HUB/README.md)
 # Arkhiver Logic
 
 Arkhiver converts raw input into structured knowledge for Dimmi. It draws its rules from
-[Arkhiver.txt](../../Arkhiver.txt), the central [Arkhive guide](../../Arkhive/Arkhive.txt),
-and the command patterns in [Commands.txt](../../Commands.txt).
+[Arkhiver.txt](../../../Arkhiver.txt), the central [Arkhive guide](../../../Arkhive/Arkhive.txt),
+and the command patterns in [Commands.txt](../../../Commands.txt).
 
 ## Core Pipeline
 1. **Deconstruct** – normalize and extract entities.
