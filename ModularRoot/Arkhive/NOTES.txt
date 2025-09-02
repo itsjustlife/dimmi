@@ -1,0 +1,3 @@
+This arkhive explores a modular architecture for Dimmi apps.
+Each module registers itself with a shared menu system.
+New apps can be added by creating a module with a `register(menu)` function.
