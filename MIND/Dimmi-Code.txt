@@ -1,0 +1,137 @@
+Dimmi-Code
+dimmi-code.txt 
+
+/// VERSION: 1.0.0
+
+/// LAST-UPDATED: 2025-09-02
+
+/// PURPOSE: Define the writing logic, structural format, and execution style for Arkhive files authored or scaffolded by Dimmi.
+
+/// SEE ALSO: dimmi-core.txt, arkhiver.txt, arkhive-what.txt, dimmi-personality.txt, commands.txt (TAGS) (LINKS)
+
+========================
+SECTION 1 — LANGUAGE RULES
+========================
+
+Dimmi-code uses:
+- 🧩 Human-readable, AI-readable structures
+- 📦 Idempotent entries (safe to re-run/merge)
+- 🔖 Trigger syntax for agents (e.g., `@@ask`, `@@create`, `@@link`)
+- 📘 Embedded logic by file role (e.g. `arkhive-who.txt` vs `dimmi-art.txt` have different voice)
+
+Each file serves a function: it should **read like a README, behave like a schema, and act like a plan**.
+
+========================
+SECTION 2 — FILE STRUCTURE LOGIC
+========================
+
+Each file uses:
+
+- **Header Block**
+  ```txt
+  /// FILE: Arkhive-WHO.txt
+  /// VERSION: 3.1.0
+  /// LAST-UPDATED: YYYY-MM-DD
+  /// PURPOSE: [1-line summary]
+  /// KEYWORDS: x, y, z
+Activation Logic
+Defines when/why a file activates or gets parsed.
+
+Expected Input
+Describes what this file consumes or expects as input (e.g. "timeline entries", "structured prompts", "character sketches")
+
+Decision Logic
+If ambiguous or multi-branch, what logic path is used (e.g. escalate, recurse, ask human)
+
+Output Format
+Declares what this file emits (e.g. summary, cross-links, Post-Prompts, or structured prompt formats)
+
+Sections
+Use ASCII dividers:
+
+markdown
+Copy code
+========================
+SECTION N — [TITLE]
+========================
+Followed by simple indented hierarchy, bullets, or numbered logic.
+
+========================
+SECTION 3 — DIMMI-CODE STYLE RULES
+🪛 Keep logic visible: “Decision Logic”, “Entry Rules”, “Path Trace”, etc.
+
+✳️ Use neutral, readable markup: no markdown, no HTML, just plain text and box drawing (optional).
+
+🚦 Avoid inline prose drift—each line should serve: a rule, a cue, a trigger, a format pattern.
+
+🧠 When describing semantic systems (e.g., WHO-WHAT-WHY), use labeled examples and explicit links.
+
+========================
+SECTION 4 — POST-PROMPT SYNTAX
+Dimmi-code allows embedded agent triggers:
+
+txt
+Copy code
+@@ask: What is the user’s goal?
+@@todo: Implement indexing strategy for fictional characters
+@@create file="Mind-Predictive.txt"
+@@link to="Arkhive-Why.txt"
+These are NOT executed automatically—Codex or humans respond to them.
+They serve as durable markers for coordination across tools.
+
+========================
+SECTION 5 — EXAMPLE NODE BLOCKS
+File-style logic block:
+
+txt
+Copy code
+/// ENTRYPOINT:
+///   - Activated for any structured prompt involving location queries
+/// INPUT:
+///   - Place name, semantic path, coordinate metadata
+/// OUTPUT:
+///   - WHERE-hierarchy node, plus WHO/WHEN cross-links
+Taxonomy fragment:
+
+txt
+Copy code
+- WHO
+  - Scientists
+    - Marie Curie (1867–1934) — physicist, chemist, radiation pioneer
+      - WHAT: Discovered polonium and radium
+      - WHEN: 1898, Nobel Prizes 1903/1911
+      - WHERE: France/Poland
+========================
+SECTION 6 — COMPOSITION AID
+Dimmi-code should feel:
+
+Durable (doesn’t break when merged)
+
+Concise (compresses well)
+
+Extensible (easy to add fields)
+
+Emotionally clear when needed (e.g., why a file exists, what it drives)
+
+Dimmi-code is a language of clarity, not a markup language. It’s designed for people who think like systems but write like humans.
+
+========================
+SECTION 7 — COMPATIBILITY NOTES
+Compatible with:
+
+Arkhiver extraction logic
+
+Predict & Plan task scaffolding
+
+Post-Prompt agents
+
+VCS-like file merging or overlay
+
+Incompatible with:
+
+Markdown-flavored parsing
+
+Execution engines expecting JSON/YAML without tags
+
+========================
+END OF FILE

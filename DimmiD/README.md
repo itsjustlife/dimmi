@@ -2,7 +2,7 @@
 
 This folder contains a reduced, text-only reconstruction of **Dimmi** for offline use with GPT4All or similar models.
 The goal is to capture essential behavior, personality, and memory handling without relying on network calls or external creative engines.
-
+THIS VERSION OF DIMMI IS SPECIFICALLY CREATED TO WORK VIA AN OFFLINE LLM MODEL AND WHEN IT"S CONTENTS ARE UPDATED THE MODEL WILL BE RETRAINED ON IT. 
 ## Structure
 - `Start.txt` – entrypoint instructions for every chat session.
 - `Dimmi-Core.txt` – architecture overview and routing rules.
