@@ -7,7 +7,9 @@ document.getElementById('dimmiBtn').addEventListener('click', () => {
 const fileTreeEl = document.getElementById('fileTree');
 const editor = document.getElementById('editor');
 const saveBtn = document.getElementById('saveBtn');
+const loginBtn = document.getElementById('loginBtn');
 let currentFile = null;
+let token = null;
 
 // Fetch the directory tree from the server and build the sidebar list.
 async function loadTree() {
@@ -67,15 +69,41 @@ saveBtn.addEventListener('click', async () => {
     alert('No file selected.');
     return;
   }
+  if (!token) {
+    alert('Please login first.');
+    return;
+  }
   try {
     const res = await fetch('/api/file', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token
+      },
       body: JSON.stringify({ path: currentFile, content: editor.value })
     });
     alert(res.ok ? 'Saved!' : 'Save failed.');
   } catch {
     alert('Save failed.');
+  }
+});
+
+// Handle user login and store the returned token.
+loginBtn.addEventListener('click', async () => {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    token = data.token;
+    alert('Login successful');
+  } catch {
+    alert('Login failed');
   }
 });
 
