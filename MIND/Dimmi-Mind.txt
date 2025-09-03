@@ -377,3 +377,5 @@ changelog:
         - tool governor rigor; numeric discipline; propaganda/fallacy modules; dual_doodling v1.2
       lineage_notes:
         - Builds on v4.0.0 engine and incorporates the Dual Doodling protocol. :contentReference[oaicite:5]{index=5} :contentReference[oaicite:6]{index=6}
+
+[Back to START](../START/START.md)

@@ -32,3 +32,5 @@ location="dimmi/templates/PREPROMPTS/"
 **SceneDNA**: Metadata that connects files/images/audio to emotional, narrative, or functional continuity across modalities.
 
 (Glossary to expand with use.)
+
+[Back to START](../START/START.md)
