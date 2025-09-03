@@ -26,3 +26,5 @@ The boot path: `Start.txt` loads dimmi-code and dimmi-talk, reads memory, branch
 Templates such as `Templates/PrePrompt-L1-Bootstrap.txt` and `Templates/ChoosePath-Template.txt` demonstrate preprompting and choose-your-own-adventure flows.
 
 To retrain GPT4All, feed the contents of `DimmiD/` in order: start, mind, abilities, templates, proprompts, and memory examples. The package is self-contained and mirrors the root project’s Start sequence in simplified offline form.
+
+[Back to root](../INDEX.md)
