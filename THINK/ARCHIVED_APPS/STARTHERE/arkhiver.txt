@@ -1,9 +1,0 @@
-# Arkhiver
-
-File operations and dual-pane idea.
-
-## UI {#ui}
-
-Concept for a dual-pane file navigator.
-
-!!LOG :: Needs more exploration.

@@ -1,9 +1,0 @@
-# Door
-
-Rationale and UI map for the DOOR application.
-
-* Rooms: list of files.
-* Items: sections and prompts.
-* Preview: full text.
-
-!!TODO :: Sketch keyboard shortcuts.

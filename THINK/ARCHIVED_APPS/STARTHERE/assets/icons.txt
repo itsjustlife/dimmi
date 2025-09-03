@@ -1,4 +1,0 @@
-paperclip
-link
-folder
-refresh
