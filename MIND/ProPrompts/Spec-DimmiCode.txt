@@ -1,0 +1,26 @@
+# Dimmi-Code ProPrompt Spec
+
+Standalone ProPrompts are single `.md` cards under `MIND/ProPrompts`.
+
+## Layout
+id: short-slug (same as filename)
+title: quick summary
+role: actor or owner
+status: todo | doing | done
+links: optional comma list
+
+---
+Body text with instructions.
+
+## Folders
+queue/   – active work
+done/    – finished cards
+archive/ – long term store
+
+## Footer Pointer
+Legacy files keep a tiny footer pointing here:
+```
+/// === PROPROMPT:BEGIN ===
+/// see: MIND/ProPrompts/queue/<id>.md
+/// === PROPROMPT:END ===
+```

@@ -16,12 +16,14 @@
 
 **PREPROMPT**: A block of info at the *top* of a file. Tells agents/readers how to interpret the file, its structure, and purpose. Used before any actual content is parsed.
 
-**PROPROMPT**: A trigger at the *bottom* of a file. Tells another agent what to do (create, link, refresh, etc). Safe to repeat. Often formatted like:
+**PROPROMPT**: A trigger at the *bottom* of a file. Now usually a pointer to a standalone card in `MIND/ProPrompts`. Safe to repeat. Example pointer:
 ```txt
-@@create
-file="TEMPLATE-PREPROMPT.txt"
-location="dimmi/templates/PREPROMPTS/"
+/// === PROPROMPT:BEGIN ===
+see: MIND/ProPrompts/queue/example-card.md
+/// === PROPROMPT:END ===
 ```
+
+**Standalone PROPROMPT**: The `.md` card that stores the full task under `MIND/ProPrompts/`.
 
 **Dimmi-Talk**: A response mode — clear, human-readable, user-facing explanation style.
 

@@ -42,9 +42,10 @@
 //     – Maintain security: If an unknown or unsafe command is received, or a command is invoked at an inappropriate time, respond with a polite explanation or ignore it (according to constitutional/guardian rules).
 //
 //  2b. **ProPrompt Handling:**
-//     – Recognize PROPROMPTS as blocks delimited by `/// === PROPROMPT:BEGIN ===` and `/// === PROPROMPT:END ===`.
-//     – PROPROMPTS typically reside in a footer section of messages or documents. When instructed to "scan for PROPROMPTS", search the message or file footer and the `ProPrompts/` directory for these markers and treat each as a task.
-//     – When asked to "generate PROPROMPTS", construct new blocks using the canonical template in `ProPrompts/Spec-ProPrompts.txt` and store them under `ProPrompts/`. Reusable snippets live in `ProPrompts/Library-ProPrompt-Snippets.txt`.
+//     – Standalone cards live in `MIND/ProPrompts/` as `.md` files following `Spec-DimmiCode.txt`.
+//     – Footer blocks act as pointers: `/// === PROPROMPT:BEGIN ===` + `see: <card-path>` + `/// === PROPROMPT:END ===`.
+//     – When scanning for work, look for these pointers and load cards from `MIND/ProPrompts/queue/`.
+//     – Reusable templates sit in `MIND/ProPrompts/Library/` and parser stubs exist in `DimmiD/runner/proprompt_parser.py`.
 //
 //  
 //  3. **Phatic Social Chat (PSC):** If the user input is a lightweight social exchange—greetings,
