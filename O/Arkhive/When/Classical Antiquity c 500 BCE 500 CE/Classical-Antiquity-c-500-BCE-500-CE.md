@@ -1,1 +1,0 @@
-Era of Greco-Roman and parallel classical civilizations. Thinkers like Socrates and Aristotle (WHO) advance philosophy (WHAT) in city-states (WHERE Greece); Roman law and engineering (HOW) unify the Mediterranean, while new faiths (WHY e.g. Christianity) spread.

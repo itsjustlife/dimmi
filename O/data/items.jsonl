@@ -1,2 +1,0 @@
-{"id": "seed", "title": "Seed", "type": "container", "tags": ["root"], "content_path": "content/seed.md", "children": ["item_2"], "relations": []}
-{"id": "item_2", "title": "tITLE", "type": "container", "tags": [], "content_path": "", "children": [], "relations": []}

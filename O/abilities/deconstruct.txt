@@ -1,5 +1,0 @@
-- Read input text.
-- Extract candidate titles, tags, snippets.
-- Create Items with minimal fields.
-- Append to data/items.jsonl.
-- @@todo: add NLP tagging later.

@@ -1,1 +1,0 @@
-Synthesized discontinuously (Okazaki fragments).

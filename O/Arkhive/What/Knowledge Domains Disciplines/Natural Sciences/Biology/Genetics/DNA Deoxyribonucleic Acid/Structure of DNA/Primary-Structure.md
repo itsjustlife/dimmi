@@ -1,1 +1,0 @@
-Linear sequence of nucleotides.

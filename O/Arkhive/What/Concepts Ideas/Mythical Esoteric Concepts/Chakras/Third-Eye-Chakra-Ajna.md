@@ -1,1 +1,0 @@
-Forehead; intuition and insight

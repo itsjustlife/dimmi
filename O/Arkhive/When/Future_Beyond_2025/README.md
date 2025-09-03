@@ -1,1 +1,0 @@
-Anticipated developments and scenarios. Advancing AI and biotechnology (WHAT) could transform society; humanity (WHO) may expand to Mars (WHERE); solving climate challenges (WHY) will demand global cooperation and innovation (HOW).

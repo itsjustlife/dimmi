@@ -1,1 +1,0 @@
-Conscious disbelief in deities.
