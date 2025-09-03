@@ -1,3 +1,4 @@
-- Add user authentication before allowing file edits.
+~Add user authentication before allowing file edits.~
 - Create automated tests for file operations and directory listing.
 - Add syntax highlighting for the editor.
+- Implement token expiration and logout.
