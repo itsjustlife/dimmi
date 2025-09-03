@@ -2,7 +2,12 @@ import os
 import logging
 from flask import Flask, request, jsonify
 
+# Import authentication blueprint and helper
+from auth import auth_bp, token_required
+
 app = Flask(__name__)
+# Register authentication routes so login is available
+app.register_blueprint(auth_bp)
 
 # Set up basic logging to keep track of actions
 logging.basicConfig(level=logging.INFO,
@@ -60,8 +65,9 @@ def get_file():
         return jsonify({"error": "permission denied"}), 403
 
 @app.post('/api/file')
+@token_required
 def save_file():
-    """Save text to a file."""
+    """Save text to a file. Requires a valid auth token."""
     data = request.get_json() or {}
     path = data.get('path')
     content = data.get('content')
