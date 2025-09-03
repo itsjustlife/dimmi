@@ -171,17 +171,17 @@ def cmd_stage(args) -> None:
     apps = detect_apps()
     apps_dir = REPO_ROOT / "Apps"
     if args.dry_run:
-        print("[dry-run] would create Apps registry")
-    else:
-        for lang, paths in apps.items():
-            for p in paths:
-                target = REPO_ROOT / p
-                link_dir = apps_dir / lang
-                ensure_dir(link_dir)
-                link = link_dir / Path(p).name
-                if link.exists() or link.is_symlink():
-                    continue
-                os.symlink(target, link)
+        print("[dry-run] would create Apps registry and DIRECTORY")
+        return
+    for lang, paths in apps.items():
+        for p in paths:
+            target = REPO_ROOT / p
+            link_dir = apps_dir / lang
+            ensure_dir(link_dir)
+            link = link_dir / Path(p).name
+            if link.exists() or link.is_symlink():
+                continue
+            os.symlink(target, link)
     # Apps README
     readme_lines = ["# Apps", ""]
     for lang, paths in apps.items():
@@ -243,6 +243,9 @@ def cmd_apply(args) -> None:
 
 
 def cmd_map(args) -> None:
+    if getattr(args, "dry_run", False):
+        print("[dry-run] would regenerate START and HUB maps")
+        return
     start_path = REPO_ROOT / "O" / "START.md"
     lines = ["# START", "", "- [Hub](HUB/README.md)", "- [Arkhive](Arkhive/Arkhive.md)", "- [Dimmi](Dimmi/README.md)", "- [Apps](../Apps/README.md)"]
     write_text(start_path, "\n".join(lines) + "\n")
@@ -263,6 +266,9 @@ def cmd_map(args) -> None:
 
 
 def cmd_history(args) -> None:
+    if getattr(args, "dry_run", False):
+        print("[dry-run] would record repository tree snapshot")
+        return
     when_dir = REPO_ROOT / "O" / "Dimmi" / "Memory" / "When"
     ensure_dir(when_dir)
     timestamp = _dt.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -305,9 +311,11 @@ def main(argv: List[str] | None = None) -> None:
     p_apply.set_defaults(func=cmd_apply)
 
     p_map = sub.add_parser("map", help="regenerate START/HUB pages")
+    p_map.add_argument("--dry-run", action="store_true")
     p_map.set_defaults(func=cmd_map)
 
     p_hist = sub.add_parser("history", help="record repository tree snapshot")
+    p_hist.add_argument("--dry-run", action="store_true")
     p_hist.set_defaults(func=cmd_history)
 
     args = parser.parse_args(argv)
