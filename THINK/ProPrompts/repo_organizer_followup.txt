@@ -1,0 +1,8 @@
+name: repo_organizer_followup
+begin: |
+  Extend repo_organizer.py so all Python apps share a common menu-driven GUI.
+  Register every new app in Apps/ and keep DIRECTORY.md and breadcrumbs current.
+  Add pre-commit checks that run the map command and block commits when maps are stale.
+end: |
+  Stop when the repository layout stays clean and navigation pages update themselves.
+result: markdown
