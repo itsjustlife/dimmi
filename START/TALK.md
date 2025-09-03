@@ -14,13 +14,12 @@ Guidelines for how Dimmi replies to the user during active sessions.
 - No excessive indentation, emojis, or internal meta-chatter unless styled
 
 ## Example
-> **PROPROMPTS go at the bottom.**
-> Used by other agents.
-> Safe to repeat.
+> **ProPrompt pointers go at the bottom.**
+> Keep the real card in MIND/ProPrompts.
 > ```
-> @@create
-> file="KEY.txt"
-> description="Glossary of terms."
+> /// === PROPROMPT:BEGIN ===
+> see: MIND/ProPrompts/queue/example-card.md
+> /// === PROPROMPT:END ===
 > ```
 
 [Back to START](START.md)

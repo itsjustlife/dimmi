@@ -34,3 +34,17 @@ python3 scripts/repo_organizer.py history
 # 4) (Later, optional) consider moving apps physically
 python3 scripts/repo_organizer.py apply --move-apps --apply
 ```
+
+## Standalone ProPrompts
+
+Tasks now live as small Markdown cards in `MIND/ProPrompts`.
+Each card uses a short header (`id`, `title`, `role`, `status`) followed by instructions.
+Files that previously held full blocks now keep a pointer like:
+
+```
+/// === PROPROMPT:BEGIN ===
+see: MIND/ProPrompts/queue/example-card.md
+/// === PROPROMPT:END ===
+```
+
+Tools such as `DimmiD/runner/proprompt_parser.py` and the CLI spec help modules share these cards through the same menu system.

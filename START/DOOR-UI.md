@@ -8,12 +8,13 @@ Standard visual formatting rules for Dimmi responses (used with [TALK](TALK.md))
 3. Bullet list or numbered actions
 4. Paragraph content (brief and clean)
 5. Optional blockquote for quoted text or examples
-6. Optional footer with PROPROMPT
+6. Optional footer with ProPrompt pointer
 
 ## Visual Conventions
 - Use headers (###) for logical sections
 - Prefer one idea per paragraph
 - Use `@@` PostPrompts only at bottom of files (idempotent markers)
+- Footer blocks just point to standalone cards
 - Use triple backticks for fenced examples, JSON, or code
 
 [Back to START](START.md)
