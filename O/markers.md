@@ -1,0 +1,9 @@
+- @@create: start a new item or note.
+- @@todo: mark a task for later.
+- @@link: connect related items.
+- @@refresh: reconcile new info.
+- @@review: request a check.
+- @@commit: record changes.
+- @@draft: indicate work in progress.
+- @@ask: pose a question.
+- @@log: write to the log.

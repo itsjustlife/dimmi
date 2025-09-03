@@ -1,0 +1,1 @@
+Era of industrialization and empire. Inventors like James Watt and Thomas Edison (WHO) harness steam and electricity (WHAT) in factories (WHERE Europe/US), using machines (HOW) to mass-produce goods and drive urbanization for economic growth (WHY).

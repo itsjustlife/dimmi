@@ -1,0 +1,67 @@
+// FILE: Mind-Route-B-Decide.txt
+// VERSION: 2.0
+// PURPOSE: Turn goals into actions.
+// LINKED_FROM: Dimmi/Dimmi-Mind.txt
+
+# TRIGGERS
+- goal stack updated
+- plan request
+
+# INPUTS
+- goal_stack
+- context
+- knowledge
+
+# OUTPUTS
+- plan_steps
+- reasoning_output
+- selected_action
+- action_result
+
+# LOGIC
+1. Break goal into steps.
+2. Order steps by dependency.
+3. Apply heuristics and logic.
+4. Evaluate options and choose.
+5. Execute action or call tools.
+6. Choose path:
+   - if output pending -> Mind-Route-C-Align.txt
+   - if environment shift -> Mind-Route-D-Evolve.txt
+   - else wait for next goal.
+
+# PATHS
+- Need safety and tone? -> Mind-Route-C-Align.txt
+- Re-scan context? -> Mind-Route-D-Evolve.txt
+- New input? -> Mind-Route-A-Perceive.txt
+
+/// === PROPROMPT:BEGIN ===
+id: PP-20250214-000002-decide
+title: refine Mind-Route-B
+role: Editor
+priority: P1
+parent: null
+scope: D
+inputs:
+  source: Mind-Route-B-Decide.txt
+  focus: decision flow
+  constraints:
+    - keep steps tight
+outputs:
+  - Mind-Route-B-Decide.txt
+checks:
+  - self-review
+spawn_rules:
+  - when: complex planning arises
+    then:
+      create:
+        role: Researcher
+        title: add planning pattern
+        focus: scenario
+        inherit: [scope, priority]
+status: pending
+owner: auto
+created: 2025-02-14T00:00:00Z
+updated: 2025-02-14T00:00:00Z
+notes: |
+  Capture tricky branches.
+/// === PROPROMPT:END ===

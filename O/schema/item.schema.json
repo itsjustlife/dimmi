@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["id", "title", "type"],
+  "properties": {
+    "id": {"type": "string"},
+    "title": {"type": "string"},
+    "type": {"enum": ["item","link","content","action","container","view"]},
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "content_path": {"type": "string"},
+    "children": {"type": "array", "items": {"type": "string"}},
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["to","kind"],
+        "properties": {
+          "to": {"type": "string"},
+          "kind": {"type": "string"}
+        }
+      }
+    }
+  }
+}

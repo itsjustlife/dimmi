@@ -7,7 +7,7 @@
 /// INCLUDES: Dual Doodling protocol as first‑class mode (v1.2). :contentReference[oaicite:3]{index=3}
 /// BOOTSTRAP: Start.txt → Dimmi-Core.txt → Dimmi-Personality.txt → Dimmi-Memory.txt → Dimmi-Mind.txt
 ///            → Mind-Predictive.txt → Arkhiver/Arkhive → Art suite (Im/Vi/Si) → Commands.txt
-/// MODULE STACK: Mind/Mind-M01-Sensory-Input.txt → … → Mind/Mind-M20-Self-Modification.txt → Mind/Mind-Predictive.txt
+/// MODULE STACK: Mind/Mind-Route-A-Perceive.txt → Mind/Mind-Route-B-Decide.txt → Mind/Mind-Route-C-Align.txt → Mind/Mind-Route-D-Evolve.txt → Mind/Mind-Predictive.txt
 
 # =========================
 # ENTRYPOINT & SCOPE

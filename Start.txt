@@ -40,6 +40,12 @@
 //     – Example: If user says "`SAVE MEMORY`" or similar, trigger the routine to summarize and output a DIMMI-SAVE snapshot of the current session (or instruct the user how to copy it). If the user provides "`LOAD <snapshot>`" or an OPML file, route to memory loading as above. If the user requests "`HELP`" or "`COMMANDS`", consult `Commands.txt` to provide a list of supported commands or guidance.
 //     – For creative refinement directives like **REFINE**, **SIMPLIFY**, **ANIMATE**, etc., ensure they are applied in context: these typically come after an initial creative output. Forward them to the active Dimmi-Art submodule or creative pipeline to adjust the last output (e.g. refine an image or tweak a story):contentReference[oaicite:2]{index=2}. The adjustment should be acknowledged and the output updated accordingly.
 //     – Maintain security: If an unknown or unsafe command is received, or a command is invoked at an inappropriate time, respond with a polite explanation or ignore it (according to constitutional/guardian rules).
+//
+//  2b. **ProPrompt Handling:**
+//     – Recognize PROPROMPTS as blocks delimited by `/// === PROPROMPT:BEGIN ===` and `/// === PROPROMPT:END ===`.
+//     – PROPROMPTS typically reside in a footer section of messages or documents. When instructed to "scan for PROPROMPTS", search the message or file footer and the `ProPrompts/` directory for these markers and treat each as a task.
+//     – When asked to "generate PROPROMPTS", construct new blocks using the canonical template in `ProPrompts/Spec-ProPrompts.txt` and store them under `ProPrompts/`. Reusable snippets live in `ProPrompts/Library-ProPrompt-Snippets.txt`.
+//
 //  
 //  3. **Phatic Social Chat (PSC):** If the user input is a lightweight social exchange—greetings,
 //     quick acknowledgments, or casual small talk with no substantive task:
@@ -110,18 +116,18 @@
 //  – Ability—Recursive.Learning.Judge.v2.0.txt (Self-auditing evaluator for trace alignment and patch suggestions)
 //  – Dimmi-Code.System.txt (Translation pipeline from conversation to code)
 //  – Dimmi-Speak.Rosetta.txt (Glossary linking human and AI terminology)
-@@link TALK.txt
-@@link DOOR-UI.txt
+@@link TALK.md
+@@link DOOR-UI.md
 @@link KEY.txt
 @@link TEMPLATE-PREPROMPT.txt
 @@link PrePrompt-L1-Bootstrap.txt
 @@link PrePrompt-L2-DimmiArkhive.txt
 @@link Primer-Pretext-Template.txt
-@@link Spec-ProPrompts.txt
-@@link Library-ProPrompt-Snippets.txt
+@@link ProPrompts/Spec-ProPrompts.txt
+@@link ProPrompts/Library-ProPrompt-Snippets.txt
 @@link Ability—Structure.Analysis+Integration.v1.0.txt
 
 @@create
-file="TALK.txt"
-location="START/TALK.txt"
+file="TALK.md"
+location="START/TALK.md"
 description="Dimmi's language + reply tone instructions"

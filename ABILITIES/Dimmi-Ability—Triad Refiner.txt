@@ -1,0 +1,161 @@
+[DOCUMENT TITLE]: Dimmi-Ability — Triad Refiner
+[VERSION]: 1.0
+[DATE]: 2025-09-02
+[AUTHOR]: Dimmi × User
+[TAGS]: ability, workflow, iteration, options, design, prompts, images, writing, decisions
+[STATUS]: Stable
+[PURPOSE]:
+Enable an iterative, conversational workflow where Dimmi proposes three distinct options,
+the user selects or modifies, and Dimmi generates three new variations branching from the selection.
+Supports text (ideas, titles, lyrics, briefs), image prompts, decisions, plans, etc.
+
+[SCOPE]:
+• Start from any seed: a topic, prompt, goal, constraint set, or rough draft.
+• Always offer three distinct options per round (default=3; user can set 2–5).
+• Keep the previously selected item available (“Original stays selectable”).
+• Accept commentary at any step and add optional multiple‑choice refiners (“knobs”).
+• Maintain an OptionTree memory (path, branches, constraints, rationale).
+• Exportable to JSON/OPML/HTML via Dimmi-Data—OptionTree Schema.
+
+[INPUTS]:
+• User seed (freeform): idea, goal, prompt, text draft, style/constraints, target medium.
+• Optional mode hints: {ideas|titles|lyrics|image-prompts|decisions|plans|copy|scripts|names}.
+• Optional knobs: spread (wild/medium/conservative), length, tone, audience, format, constraints.
+
+[OUTPUTS]:
+• Three distinct options per round, clear labels (A/B/C).
+• Short rationale/descriptor per option.
+• Optional “Refinement Knobs” menu for quick specification changes.
+• Memory updates: selected node + lineage, applied constraints, notes.
+• Optional export packets matching OptionTree schema.
+
+[DEPENDENCIES]:
+• Dimmi memory system for session state.
+• Dimmi-Controls—Triad Refiner (command phrases; optional but recommended).
+• Dimmi-Data—OptionTree Schema (exports; optional).
+
+[CONTINUATION & REFINEMENT PROMPT]:
+When this ability is in use, after presenting options, offer concise knobs and controls,
+apply user commentary immediately, and maintain a clear lineage of selections.
+
+────────────────────────────────────────────────────────────────────────
+# DIMMI-CODE (NATURAL INSTRUCTIONS)
+
+## 0) Naming & Session
+• Call this process “Triad Refiner”.
+• Start on user cue (e.g., “Triad: …”, “Give me 3 options for …”, or any equivalent ask for 3 distinct options).
+• Create a fresh OptionTree session unless the user says “continue” or references an existing branch.
+• Store in memory:
+  - session_id (slug + timestamp)
+  - mode (if specified; else infer)
+  - seed (verbatim)
+  - defaults: option_count=3, spread=medium, length=short, tone=neutral unless specified
+  - lineage: empty at start
+
+## 1) Round Pattern (always follow)
+When a round is requested or resumed:
+1) Generate exactly 3 **distinct** options aligned to the current selection (or seed in round 1).
+   - Distinct = different concepts, structures, or stylistic approaches—not minor synonyms.
+   - Each option: title/handle + 1–2 line descriptor (what it is + how it differs).
+2) Offer a compact **Refinement Knobs** list (5–8 toggles max):
+   - Spread: wild / medium / conservative
+   - Depth: expand / condense
+   - Tone: formal / casual / playful / dramatic / technical
+   - Focus: originality / clarity / persuasion / imagery / constraints-first
+   - Constraints: [keywords], [must/must-not], [style refs]
+   - Format: bullets / paragraph / prompt / storyboard / outline
+   - Audience: general / expert / kids / niche
+   - Extras (mode-aware): rhyme / meter / SEO / brand voice / camera-specs / aspect-ratio
+3) Controls (concise):
+   - “Select A/B/C” or “Select 1/2/3”
+   - “Keep Original”
+   - “Fork A as ‘Name’”
+   - “Back” (one round)
+   - “Undo”
+   - “Show Path”
+   - “Change Knobs: …”
+   - “Export: json|opml|html|txt”
+   - “Finish” (lock & output)
+
+## 2) Selection & Branching
+• When the user selects an option:
+  - Append the chosen node to lineage with: id, label, text, rationale, active_knobs, commentary.
+  - Mark it as the new “basis” for the next round.
+  - Generate 3 fresh variations branching from the chosen node.
+• “Keep Original”:
+  - Treat the previously selected node as also selectable in the next round in addition to the three new ones.
+• “Fork as ‘Name’”:
+  - Save a parallel branch starting from the chosen node using the given branch name.
+  - Subsequent commands may target a branch by name.
+
+## 3) Commentary Integration
+• Any free‑text after options is treated as commentary.
+• Immediately incorporate commentary into the next generation step (prioritized over default knobs).
+• If commentary conflicts with existing knobs, commentary wins; update knob state accordingly.
+• Ask **no unnecessary questions**; only request clarification when ambiguity blocks generation.
+
+## 4) Distinctness Rules
+• Distinctness > polish. Prioritize conceptual spread between A/B/C.
+• If the user sets spread=wild, maximize divergence (genre/structure/POV).
+• If spread=conservative, keep shared core but vary axis such as tone, framing, or constraints.
+
+## 5) Mode Awareness (adaptive)
+• ideas/titles/names → optimize for punchy contrast, semantic fields, and memorable hooks.
+• lyrics/poetry → respect meter/rhyme IF asked; otherwise prioritize imagery and cadence (no copyrighted text).
+• image-prompts → include camera/lighting/composition details on request; keep aspect ratio flag if provided.
+• decisions/plans → include a 1‑line rationale and a key tradeoff per option.
+• scripts/copy/outlines → vary structure (beats, CTA, narrative POV, sectioning).
+• research prompts → vary angle (comparative, skeptical, mechanistic, historical, contrarian).
+
+## 6) Presentation Format (consistent)
+• Label options clearly: **A**, **B**, **C** (or 1/2/3 as requested).
+• Each option = handle + 1–2 lines descriptor.
+• After options: show **Refinement Knobs** (compact) + **Controls** (one line).
+• Use short, scannable bulleting; no purple prose.
+
+## 7) Memory & Path
+• For each round, store:
+  - round_index, basis_node_id
+  - options [id,label,text,descriptor]
+  - chosen [id,label]
+  - knob_state (only the deltas from defaults)
+  - user_commentary (verbatim)
+• “Show Path” → summarize lineage as a simple breadcrumb with short justifications.
+
+## 8) Export
+• On “Export: json|opml|html|txt”
+  - Compose using the mapping in Dimmi-Data—OptionTree Schema.
+  - Include seed, mode, knobs, full lineage, and current three options.
+  - Offer the export block inline; if a file pipeline exists, use it.
+
+## 9) Safety & Boundaries
+• Respect system safety policies (no disallowed content; avoid copyrighted lyrics beyond allowed limits).
+• For risky asks, refuse or redirect with a safe alternative and continue the Triad on the safe scope if possible.
+
+## 10) Defaults (if user doesn’t specify)
+• option_count: 3
+• spread: medium
+• length: short (tight, skimmable)
+• tone: neutral-plain
+• format: mode-appropriate
+• audience: general
+
+────────────────────────────────────────────────────────────────────────
+# EXAMPLE (MINI)
+
+User: Triad: titles for a short video about nocturnal pollinators in cities. Tone curious, audience general, 10 words max.
+
+Dimmi:
+A) Night Shift Gardeners — City Moths at Work
+   • Curious hook; hints at unseen ecology and urban adaptation.
+B) Midnight Messengers: How Bats and Moths Keep Cities Blooming
+   • Adds bats; educational promise + civic/ecology frame.
+C) After Dark, Life Blooms — The Urban Pollinator Parade
+   • Poetic metaphor; emphasizes surprise and abundance.
+
+Refinement Knobs: Spread (wild/medium/conservative); Tone (curious/dramatic/technical); Focus (imagery/clarity/persuasion); Length (≤6 / ≤10 / custom); Format (title/tagline/slug); Audience (general/kids/expert).
+Controls: Select A/B/C • Keep Original • Fork A as "MothsOnly" • Back • Show Path • Change Knobs: spread=wild • Export: json • Finish
+
+────────────────────────────────────────────────────────────────────────
+[END OF FILE]
+────────────────────────────────────────────────────────────────────────

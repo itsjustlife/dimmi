@@ -1,5 +1,10 @@
 const fileTree = [
   {
+    "name": "INDEX.md",
+    "type": "file",
+    "path": "INDEX.md"
+  },
+  {
     "name": "ABILITIES",
     "type": "folder",
     "children": [
@@ -32,6 +37,27 @@ const fileTree = [
         "name": "Dimmi-Speak.Rosetta.txt",
         "type": "file",
         "path": "ABILITIES/Dimmi-Speak.Rosetta.txt"
+      }
+      ,
+      {
+        "name": "Dimmi-Ability—Triad Refiner.txt",
+        "type": "file",
+        "path": "ABILITIES/Dimmi-Ability—Triad Refiner.txt"
+      },
+      {
+        "name": "Dimmi-Controls—Triad Refiner.txt",
+        "type": "file",
+        "path": "ABILITIES/Dimmi-Controls—Triad Refiner.txt"
+      },
+      {
+        "name": "Dimmi-Data—OptionTree Schema.txt",
+        "type": "file",
+        "path": "ABILITIES/Dimmi-Data—OptionTree Schema.txt"
+      },
+      {
+        "name": "Triad-Refiner.md",
+        "type": "file",
+        "path": "ABILITIES/Triad-Refiner.md"
       }
     ]
   },
@@ -974,14 +1000,19 @@ const fileTree = [
     "type": "folder",
     "children": [
       {
-        "name": "DOOR-UI.txt",
+        "name": "START.md",
         "type": "file",
-        "path": "START/DOOR-UI.txt"
+        "path": "START/START.md"
       },
       {
-        "name": "TALK.txt",
+        "name": "DOOR-UI.md",
         "type": "file",
-        "path": "START/TALK.txt"
+        "path": "START/DOOR-UI.md"
+      },
+      {
+        "name": "TALK.md",
+        "type": "file",
+        "path": "START/TALK.md"
       }
     ]
   },

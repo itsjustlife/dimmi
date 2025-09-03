@@ -1,0 +1,123 @@
+[DOCUMENT TITLE]: Dimmi-Data — OptionTree Schema (JSON/OPML/HTML Map)
+[VERSION]: 1.0
+[DATE]: 2025-09-02
+[AUTHOR]: Dimmi × User
+[TAGS]: data, schema, export, json, opml, html
+[STATUS]: Stable
+[PURPOSE]:
+Define a compact, human-readable schema for exporting Triad Refiner sessions.
+Supports JSON (primary), with OPML and HTML mappings.
+
+[SCOPE]:
+Session-level fields, node structure, lineage, knobs, commentary, and render mappings.
+
+[CONTINUATION & REFINEMENT PROMPT]:
+Keep the schema simple and stable. Prefer additive changes over breaking changes.
+
+────────────────────────────────────────────────────────────────────────
+# JSON SCHEMA (CONCEPTUAL)
+
+{
+  "schema": "dimmi.optiontree.v1",
+  "session": {
+    "id": "<slug-timestamp>",
+    "created": "<iso8601>",
+    "mode": "<ideas|titles|lyrics|image-prompts|decisions|plans|...>",
+    "seed": "<verbatim user input>",
+    "defaults": {
+      "option_count": 3,
+      "spread": "medium",
+      "length": "short",
+      "tone": "neutral",
+      "format": "mode-appropriate",
+      "audience": "general"
+    }
+  },
+  "knobs": { /* current effective knobs (deltas over defaults) */ },
+  "branches": [
+    {
+      "name": "main",
+      "lineage": [
+        {
+          "round": 0,
+          "basis_node_id": null,
+          "options": [
+            {"id":"nA0","label":"A","handle":"<short title>","text":"<content>","descriptor":"<1–2 lines>"},
+            {"id":"nB0","label":"B","handle":"<short title>","text":"<content>","descriptor":"<1–2 lines>"},
+            {"id":"nC0","label":"C","handle":"<short title>","text":"<content>","descriptor":"<1–2 lines>"}
+          ],
+          "chosen": {"id":"nB0","label":"B"},
+          "commentary":"<user notes>",
+          "knob_state":{"spread":"wild","tone":"curious"}
+        },
+        {
+          "round": 1,
+          "basis_node_id": "nB0",
+          "options": [ /* three new variations */ ],
+          "chosen": {"id":"nA1","label":"A"},
+          "commentary":"<user notes>",
+          "knob_state":{"length":"expand"}
+        }
+        /* …more rounds… */
+      ]
+    }
+    /* additional forks with their own lineage */
+  ],
+  "current_options": [ /* last emitted A/B/C */ ],
+  "final_selection": { /* only after Finish */ },
+  "notes": "<freeform session notes>"
+}
+
+# OPML MAP
+• Outline title = “Triad Refiner — <seed (truncated)> [<session id>]”
+• Top-level nodes:
+  - Seed (mode, defaults)
+  - Active Knobs (effective)
+  - Branches
+    * <branch name>
+      - Round 0 (basis: seed)
+        • A — <handle> :: <descriptor>
+        • B — <handle> :: <descriptor> [CHOSEN]
+        • C — <handle> :: <descriptor>
+        • Commentary: <text>
+        • Knobs: <deltas>
+      - Round 1 (basis: <node id>)
+        • A …
+  - Current Options (A/B/C)
+  - Final Selection (if any)
+
+# HTML MAP (compact)
+• <header> Triad Refiner — <seed> </header>
+• <section> Seed / Mode / Defaults </section>
+• <section> Effective Knobs </section>
+• <section> Branch: <name>
+    <article> Round N
+      <ul class="options">
+        <li><b>A</b> — <handle> <span class="desc"><descriptor></span></li>
+        …
+      </ul>
+      <p><i>Chosen:</i> <label/id></p>
+      <p><i>Commentary:</i> …</p>
+      <p><i>Knobs:</i> key=value; …</p>
+    </article>
+  </section>
+• <section> Current Options </section>
+• <section> Final Selection </section>
+
+# TXT (compact)
+Use a readable outline:
+- Seed / Mode
+- Defaults
+- Knobs (effective)
+- Branch <name>
+  - Round N (basis: <id>)
+    - A: <handle> — <descriptor>
+    - B: …
+    - C: …
+    - Chosen: <label/id>
+    - Commentary: …
+    - Knobs: key=value; …
+
+────────────────────────────────────────────────────────────────────────
+[END OF FILE]
+────────────────────────────────────────────────────────────────────────
