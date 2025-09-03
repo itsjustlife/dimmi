@@ -1,1 +1,7 @@
-{"window": {"width": 800, "height": 600}, "view": "list"}
+{
+  "window": {
+    "width": 800,
+    "height": 600
+  },
+  "view": "list"
+}

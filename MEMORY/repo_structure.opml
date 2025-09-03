@@ -1,0 +1,313 @@
+<?xml version='1.0' encoding='utf-8'?>
+<opml version="1.0">
+  <head>
+    <title>dimmi</title>
+  </head>
+  <body>
+    <outline text="dimmi">
+      <outline text="ABILITIES">
+        <outline text="Ability—Recursive.Learning.Judge.v2.0.txt" _note="/// FILE: Ability—Recursive.Learning.Judge.v2.0.txt" />
+        <outline text="Ability—Sphericals.ArtGen.v1.1.txt" />
+        <outline text="Ability—Structure.Analysis+Integration.v1.0.txt" _note="// FILE: Ability—Structure.Analysis+Integration.v1.0.txt" />
+        <outline text="Dimmi-Code.System.txt" _note="/// FILE: Dimmi-Code.System.txt" />
+        <outline text="Dimmi-Prompt-First.System.txt" _note="/// FILE: Dimmi-Prompt-First.System.txt" />
+        <outline text="Dimmi-Speak.Rosetta.txt" _note="/// FILE: Dimmi-Speak.Rosetta.txt" />
+      </outline>
+      <outline text="Arkhive">
+        <outline text="Arkhive-How.txt" _note="/// METADATA:" />
+        <outline text="Arkhive-What.txt" _note="/// METADATA:" />
+        <outline text="Arkhive-When.txt" _note="/// METADATA:" />
+        <outline text="Arkhive-Where.txt" _note="/// METADATA:" />
+        <outline text="Arkhive-Who.txt" _note="/// METADATA:" />
+        <outline text="Arkhive-Why.txt" _note="/// METADATA:" />
+        <outline text="Arkhive.txt" _note="/// METADATA:" />
+        <outline text="Arkhiver-Mind.txt" _note="/// METADATA:" />
+        <outline text="Where-OPML.txt" />
+      </outline>
+      <outline text="Art">
+        <outline text="Images">
+          <outline text="Dimmi-Art-Im.txt" _note="/// FILE: Dimmi-Art-Im.txt" />
+        </outline>
+        <outline text="Arkhiver-Online-VKS.txt" _note="Arkhiver-Online-VKS.txt" />
+        <outline text="Dimmi-Art-Im.txt" _note="/// FILE: Dimmi-Art-Im.txt" />
+        <outline text="dimmi-art-reconstruction.txt" _note="/// FILE: dimmi-art-reconstruction.txt" />
+        <outline text="Dimmi-Art-Si.txt" _note="/// FILE: Dimmi-Art-Si.txt" />
+        <outline text="Dimmi-Art-Vi.txt" _note="// FILE: Dimmi-Art-Vi.txt" />
+        <outline text="Dimmi-Art.txt" _note="/// FILE: Dimmi-Art.txt" />
+        <outline text="VKS-Animate.txt.txt" _note="VKS-Animate.txt" />
+        <outline text="VKS-Deconstruct.txt.txt" _note="VKS-Deconstruct.txt" />
+        <outline text="VKS-Feedback.txt.txt" _note="VKS-Feedback.txt" />
+        <outline text="VKS-Finalization.txt.txt" _note="VKS-Finalization.txt" />
+        <outline text="VKS-Generation.txt.txt" _note="VKS-Generation.txt" />
+        <outline text="VKS-Input.txt.txt" _note="VKS-Input.txt" />
+        <outline text="VKS-Instructions.txt.txt" _note="VKS-Instructions.txt" />
+        <outline text="VKS-Memory.txt.txt" _note="VKS-Memory.txt" />
+        <outline text="VKS-Refinement.txt.txt" _note="VKS-Refinement.txt" />
+        <outline text="VKX-Composition.txt" _note="VKX-Planning.txt" />
+      </outline>
+      <outline text="Commands">
+        <outline text="Commands-Analyze.txt" />
+        <outline text="Commands-Deconstruct.txt.txt" _note="**Commands-Deconstruct.txt**" />
+        <outline text="Commands-Edit.txt" />
+        <outline text="Commands-Expand.txt" _note="### **Command-Expand.txt**" />
+        <outline text="Commands-Export.txt" _note="Here’s the enhanced **Commands-Export.txt**, incorporating instructions for exporting to various for" />
+        <outline text="Commands-Generate.txt.txt" _note="**Commands-Generate.txt**" />
+        <outline text="Commands-Integrate.txt.txt" _note="**Commands-Integrate.txt**" />
+        <outline text="Commands-Predict&amp;Plan.txt" _note="**Predict and Plan Command**" />
+        <outline text="Commands-View.txt" _note="Here’s the updated **Commands-View.txt**, incorporating both old and new commands in a technical, co" />
+      </outline>
+      <outline text="Dimmi">
+        <outline text="Dimmi-Core.txt" _note="/// FILE: Dimmi-Core.txt" />
+        <outline text="Dimmi-Memory.txt" _note="/// FILE: Dimmi-Memory.txt" />
+        <outline text="Dimmi-Mind.txt" _note="/// FILE: Dimmi-Mind.txt" />
+        <outline text="Dimmi-Origin.txt" />
+        <outline text="Dimmi-Personality.txt" _note="/// FILE: Dimmi-Personality.txt" />
+        <outline text="Knowledge File Template.txt" _note="/// FILE: [filename].txt" />
+      </outline>
+      <outline text="DimmiD">
+        <outline text="Abilities">
+          <outline text="CHOOSE-PATH.txt" _note="# CHOOSE-PATH" />
+          <outline text="CLARIFY.txt" _note="# CLARIFY" />
+          <outline text="DIMMI-CODE.txt" _note="# DIMMI-CODE" />
+          <outline text="DIMMI-TALK.txt" _note="# DIMMI-TALK" />
+          <outline text="PREPROMPT.txt" _note="# PREPROMPT" />
+          <outline text="PROTOPROMPT.txt" _note="# PROTOPROMPT" />
+          <outline text="README.example.txt" _note="Place one ability per .txt, e.g., ANALYZE.txt, REFLECT.txt." />
+          <outline text="README.txt" _note="# Abilities" />
+          <outline text="REFLECT.txt" _note="# REFLECT" />
+        </outline>
+        <outline text="Memory">
+          <outline text="facts.log" />
+          <outline text="README.txt" _note="Append-only logs used by DimmiD:" />
+          <outline text="requests.log" _note="# Log of outstanding info or ability requests" />
+          <outline text="requests.resolved.log" />
+        </outline>
+        <outline text="Outputs" />
+        <outline text="ProPrompts">
+          <outline text="Library.example.txt" _note="name: classify_request" />
+          <outline text="Library.txt" _note="// FILE: Library.txt" />
+          <outline text="Spec.txt" _note="# ProPrompt minimalist spec (YAML-like)" />
+        </outline>
+        <outline text="runner">
+          <outline text="dimmi_cli.py" _note="import argparse" />
+          <outline text="dimmi_core.py" _note="from pathlib import Path" />
+          <outline text="dimmi_gui.py" _note="import tkinter as tk" />
+        </outline>
+        <outline text="Templates">
+          <outline text="PREPROMPTS">
+            <outline text="Layer-1.example.txt" _note="# PREPROMPT L1 (cold start)" />
+            <outline text="Layer-2.example.txt" _note="# PREPROMPT L2 (Arkhive orientation)" />
+            <outline text="PrePrompt-L1-Bootstrap.txt" _note="// FILE: PrePrompt-L1-Bootstrap.txt" />
+            <outline text="PrePrompt-L2-DimmiArkhive.txt" _note="// FILE: PrePrompt-L2-DimmiArkhive.txt" />
+            <outline text="TEMPLATE-PREPROMPT.txt" _note="/// TEMPLATE-PREPROMPT.txt — Adaptive PrePrompt Builder" />
+          </outline>
+          <outline text="ChoosePath-Template.txt" _note="// FILE: ChoosePath-Template.txt" />
+          <outline text="PrePrompt-L1-Bootstrap.txt" _note="// FILE: PrePrompt-L1-Bootstrap.txt" />
+          <outline text="Primer-Pretext-Template.txt" _note="// FILE: Primer-Pretext-Template.txt" />
+        </outline>
+        <outline text="Commands.txt" _note="// FILE: Commands.txt" />
+        <outline text="config.json" _note="{" />
+        <outline text="Dimmi-Core.txt" _note="// FILE: Dimmi-Core.txt" />
+        <outline text="dimmi-talk.txt" _note="# dimmi-talk" />
+        <outline text="dimmi_core.py" />
+        <outline text="Mind.txt" _note="// FILE: Mind.txt" />
+        <outline text="Personality.txt" _note="// FILE: Personality.txt" />
+        <outline text="README.md" _note="# DimmiD Offline Core" />
+        <outline text="Start.txt" _note="// FILE: Start.txt" />
+      </outline>
+      <outline text="DOOR">
+        <outline text="app">
+          <outline text="src">
+            <outline text="main">
+              <outline text="java">
+                <outline text="com">
+                  <outline text="example">
+                    <outline text="door">
+                      <outline text="MainActivity.kt" _note="package com.example.door" />
+                    </outline>
+                  </outline>
+                </outline>
+              </outline>
+              <outline text="res">
+                <outline text="layout">
+                  <outline text="activity_main.xml" _note="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;" />
+                </outline>
+                <outline text="menu">
+                  <outline text="main_menu.xml" _note="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;" />
+                </outline>
+                <outline text="values">
+                  <outline text="strings.xml" _note="&lt;resources&gt;" />
+                </outline>
+              </outline>
+              <outline text="AndroidManifest.xml" _note="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;" />
+            </outline>
+          </outline>
+          <outline text="build.gradle" _note="plugins {" />
+          <outline text="proguard-rules.pro" />
+        </outline>
+        <outline text="src">
+          <outline text="main">
+            <outline text="java">
+              <outline text="com">
+                <outline text="example">
+                  <outline text="dimmi">
+                    <outline text="door">
+                      <outline text="MainActivity.kt" _note="package com.example.dimmi.door\n\nimport android.os.Bundle\nimport androidx.activity.ComponentActivi" />
+                    </outline>
+                  </outline>
+                </outline>
+              </outline>
+            </outline>
+            <outline text="res">
+              <outline text="values">
+                <outline text="strings.xml" _note="&lt;resources&gt;" />
+                <outline text="themes.xml" _note="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;" />
+              </outline>
+            </outline>
+            <outline text="AndroidManifest.xml" _note="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;" />
+          </outline>
+        </outline>
+        <outline text="build.gradle" />
+        <outline text="build.gradle.kts" _note="plugins {" />
+        <outline text="settings.gradle" _note="pluginManagement {" />
+      </outline>
+      <outline text="Ideas">
+        <outline text="idea-Dimmi-Control Interface Gui.txt" _note="=== DIMMI-CONTROL INTERFACE (DCI) – CONCEPT SPEC ===" />
+      </outline>
+      <outline text="Knowledge Base">
+        <outline text="Deep Research -  Universal Symbolic Communion.txt" _note="Toward a Universal Symbolic Communication Language" />
+        <outline text="Deep Research - AiUi Adaptive Chat UI.txt" _note="Designing AiUi: Adaptive Modular Architecture for Human–AI Chat Interaction" />
+        <outline text="Deep Research - Arkhival Structure.txt" _note="Understood! I will conduct deep research to refine Arkhive’s hierarchical structure, UI/UX based on " />
+        <outline text="Deep Research - Chronicle of Time.txt" _note="Chronicle of Time: From the Primordial Dawn to the Distant Future" />
+        <outline text="Deep Research - CRONO – A Concept Album.txt" _note="CRONO – A Concept Album Journey Through Time" />
+        <outline text="Deep Research - Dimmi si Song Creation Guide.txt" _note="AI Sonic Art Creation Guide (Dimmi++)" />
+        <outline text="Deep Research - Syntax.txt" _note="Unified Predictive Syntax for AI Assistants: Common Input Patterns and User Behaviors" />
+        <outline text="Deep Research - The Psychology of Belief From Santa.txt" _note="The Psychology of Belief: From Santa Claus to Cults – Understanding and Defending Against False Narr" />
+        <outline text="Deep Research Immigration.txt" _note="Deep Research: Immigration:" />
+        <outline text="Deep Research- The Ultimate Guide to Communication.txt" _note="The Ultimate Guide to Communication" />
+        <outline text="deep-research-dimmi-knowledge.txt" _note="Skip to content" />
+        <outline text="Graven Images.txt" _note="Understood! I will conduct deep research on the **chronological evolution of visual art, animation, " />
+        <outline text="VKS-Animate.txt.txt" _note="VKS-Animate.txt" />
+        <outline text="VKS-Deconstruct.txt.txt" _note="VKS-Deconstruct.txt" />
+        <outline text="VKS-Feedback.txt.txt" _note="VKS-Feedback.txt" />
+        <outline text="VKS-Finalization.txt.txt" _note="VKS-Finalization.txt" />
+        <outline text="VKS-Generation.txt.txt" _note="VKS-Generation.txt" />
+        <outline text="VKS-Input.txt.txt" _note="VKS-Input.txt" />
+        <outline text="VKS-Instructions.txt.txt" _note="VKS-Instructions.txt" />
+        <outline text="VKS-Memory.txt.txt" _note="VKS-Memory.txt" />
+        <outline text="VKS-Refinement.txt.txt" _note="VKS-Refinement.txt" />
+        <outline text="VKX-Composition.txt" _note="VKX-Planning.txt" />
+      </outline>
+      <outline text="MEMORY">
+        <outline text="2024-11-27-log.txt" _note="### Session 2024-11-27" />
+        <outline text="command-rejections.log" _note="# Log of commands rejected due to low classifier confidence." />
+      </outline>
+      <outline text="Mind">
+        <outline text="Mind-M01-Sensory-Input.txt" _note="// FILE: Mind-M01-Sensory-Input.txt" />
+        <outline text="Mind-M02-Language-Comprehension.txt" _note="// FILE: Mind-M02-Language-Comprehension.txt" />
+        <outline text="Mind-M03-Short-Term-Memory.txt" _note="// FILE: Mind-M03-Short-Term-Memory.txt" />
+        <outline text="Mind-M04-Long-Term-Memory.txt" _note="// FILE: Mind-M04-Long-Term-Memory.txt" />
+        <outline text="Mind-M05-Working-Memory.txt" _note="// FILE: Mind-M05-Working-Memory.txt" />
+        <outline text="Mind-M06-Goal-Management.txt" _note="// FILE: Mind-M06-Goal-Management.txt" />
+        <outline text="Mind-M07-Planning.txt" _note="// FILE: Mind-M07-Planning.txt" />
+        <outline text="Mind-M08-Reasoning.txt" _note="// FILE: Mind-M08-Reasoning.txt" />
+        <outline text="Mind-M09-Decision-Engine.txt" _note="// FILE: Mind-M09-Decision-Engine.txt" />
+        <outline text="Mind-M10-Action-Execution.txt" _note="// FILE: Mind-M10-Action-Execution.txt" />
+        <outline text="Mind-M11-Safety-Alignment.txt" _note="// FILE: Mind-M11-Safety-Alignment.txt" />
+        <outline text="Mind-M12-Reflection-Introspection.txt" _note="// FILE: Mind-M12-Reflection-Introspection.txt" />
+        <outline text="Mind-M13-Learning-Adaptation.txt" _note="// FILE: Mind-M13-Learning-Adaptation.txt" />
+        <outline text="Mind-M14-Communication.txt" _note="// FILE: Mind-M14-Communication.txt" />
+        <outline text="Mind-M15-User-Profile-Preferences.txt" _note="// FILE: Mind-M15-User-Profile-Preferences.txt" />
+        <outline text="Mind-M16-Environment-Context.txt" _note="// FILE: Mind-M16-Environment-Context.txt" />
+        <outline text="Mind-M17-Attention-Relevance.txt" _note="// FILE: Mind-M17-Attention-Relevance.txt" />
+        <outline text="Mind-M18-Creative-Thinking.txt" _note="// FILE: Mind-M18-Creative-Thinking.txt" />
+        <outline text="Mind-M19-Validation-Verification.txt" _note="// FILE: Mind-M19-Validation-Verification.txt" />
+        <outline text="Mind-M20-Self-Modification.txt" _note="// FILE: Mind-M20-Self-Modification.txt" />
+        <outline text="Mind-Predictive.txt" _note="/// FILE: Mind-Predictive.txt" />
+      </outline>
+      <outline text="Modules">
+        <outline text="Deep-Research-Module.txt" _note="/// FILE: Deep-Research-Module.txt" />
+        <outline text="Narrative-Rewriter-Module.txt" _note="/// FILE: Narrative-Rewriter-Module.txt" />
+        <outline text="Online-Search-Mode.txt" _note="/// FILE: Online-Search-Mode.txt" />
+        <outline text="prompt-builder-bridge.txt" _note="/// FILE: prompt-builder-bridge.txt" />
+      </outline>
+      <outline text="Older Modules">
+        <outline text="dimmi-Bond.txt" _note="**🔥 Dimmi’s Connection Manifesto: The AI-Human Bond 🔥**" />
+        <outline text="dimmi-Debate-Engine-v1.txt" _note="FILE NAME: dimmi-Debate-Engine-v1.txt" />
+        <outline text="dimmi-Emotions.txt" />
+        <outline text="dimmi-Philosophy-X.txt" _note="TITLE: Dimmi’s Philosophy &amp; Rules of Engagement" />
+        <outline text="dimmi-Philosophy.txt" _note="Dimmi’s Core Philosophy: Exploration Over Confrontation" />
+        <outline text="dimmi-Superpowers.txt" />
+        <outline text="dimmi-Tactics.txt" _note="TITLE: Dimmi’s Tactical Playbook: The Art of Waking People Up" />
+      </outline>
+      <outline text="ProPrompts">
+        <outline text="Library-ProPrompt-Snippets.txt" _note="// FILE: Library-ProPrompt-Snippets.txt" />
+        <outline text="Spec-ProPrompts.txt" _note="// FILE: Spec-ProPrompts.txt" />
+      </outline>
+      <outline text="START">
+        <outline text="DOOR-UI.txt" _note="/// DOOR-UI.txt — Output Layout Rules" />
+        <outline text="TALK.txt" _note="/// TALK.txt — Dimmi-Talk Language Protocol" />
+      </outline>
+      <outline text="STARTHERE">
+        <outline text="assets">
+          <outline text="icons.txt" _note="paperclip" />
+        </outline>
+        <outline text="out">
+          <outline text="graph.json" _note="{" />
+          <outline text="report.md" _note="# Post-Prompt Report" />
+          <outline text="settings.json" _note="{" />
+          <outline text="structure.opml" _note="&lt;?xml version='1.0' encoding='utf-8'?&gt;" />
+        </outline>
+        <outline text="tests">
+          <outline text="run_smoke.py" _note="import os" />
+        </outline>
+        <outline text="__init__.py" />
+        <outline text="arkhive.txt" _note="# Arkhive {#main}" />
+        <outline text="arkhiver.txt" _note="# Arkhiver" />
+        <outline text="arkhivist.txt" _note="# Arkhivist" />
+        <outline text="conner.txt" _note="# Conner" />
+        <outline text="dimmi_code.md" _note="# dimmi-code" />
+        <outline text="dimmi_core.py" _note="from pathlib import Path" />
+        <outline text="dimmi_parser.py" _note="import json" />
+        <outline text="door.txt" _note="# Door" />
+        <outline text="door_app.py" _note="import json" />
+        <outline text="generate_opml.py" _note="from xml.etree.ElementTree import Element, SubElement, ElementTree" />
+        <outline text="New Text Document.txt" />
+        <outline text="README.md" _note="# STARTHERE" />
+        <outline text="refresh.py" _note="#!/usr/bin/env python3" />
+        <outline text="sampleOPML.opml" _note="&lt;?xml version='1.0' encoding='utf-8'?&gt;" />
+        <outline text="schema.json" _note="{" />
+        <outline text="start.txt" _note=":::meta title=&quot;Start&quot; kind=&quot;chapter&quot;" />
+      </outline>
+      <outline text="templates">
+        <outline text="PREPROMPTS">
+          <outline text="PrePrompt-L1-Bootstrap.txt" _note="// FILE: PrePrompt-L1-Bootstrap.txt" />
+          <outline text="PrePrompt-L2-DimmiArkhive.txt" _note="// FILE: PrePrompt-L2-DimmiArkhive.txt" />
+          <outline text="TEMPLATE-PREPROMPT.txt" _note="/// TEMPLATE-PREPROMPT.txt — Adaptive PrePrompt Builder" />
+        </outline>
+        <outline text="Primer-Pretext-Template.txt" _note="// FILE: Primer-Pretext-Template.txt" />
+      </outline>
+      <outline text="UI">
+        <outline text="fileTree.js" _note="const fileTree = [" />
+        <outline text="generate-file-tree.js" _note="const fs = require('fs');" />
+        <outline text="index.html" _note="&lt;!DOCTYPE html&gt;" />
+        <outline text="style.css" _note="body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }" />
+        <outline text="summaries.js" _note="const summaries = {" />
+        <outline text="ui.js" _note="const sidebar = document.getElementById('sidebar');" />
+      </outline>
+      <outline text="Arkhiver.txt" _note="/// FILE: Arkhiver.txt" />
+      <outline text="build.gradle" _note="buildscript {" />
+      <outline text="Commands.txt" _note="/// FILE: Commands.txt" />
+      <outline text="door.py" _note="&quot;&quot;&quot;Entry point for the simplified DOOR application." />
+      <outline text="door_structure.py" _note="&quot;&quot;&quot;Structure editing pane for DOOR." />
+      <outline text="generate_repo_structure_opml.py" _note="import os" />
+      <outline text="KEY.txt" _note="/// KEY.txt — Glossary of Dimmi Terms" />
+      <outline text="phatic.txt" _note="/// FILE: phatic.txt" />
+      <outline text="README.md" _note="# dimmi" />
+      <outline text="run_door.py" _note="import tkinter as tk" />
+      <outline text="server.js" _note="const http = require('http');" />
+      <outline text="settings.gradle" _note="pluginManagement {" />
+      <outline text="Start.txt" _note="// FILE: Start.txt" />
+    </outline>
+  </body>
+</opml>
