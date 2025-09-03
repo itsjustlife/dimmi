@@ -1,1 +1,4 @@
-WHAT: Buddhism; WHEN: ~5th c. BCE; WHERE: India; WHY: Enlightenment
+WHAT: Buddhism
+WHEN: ~5th c. BCE
+WHERE: India
+WHY: Enlightenment

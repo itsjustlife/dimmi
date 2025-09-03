@@ -1,1 +1,3 @@
-WHAT: iPhone; WHEN: Founded 1976; WHERE: USA
+WHAT: iPhone
+WHEN: Founded 1976
+WHERE: USA

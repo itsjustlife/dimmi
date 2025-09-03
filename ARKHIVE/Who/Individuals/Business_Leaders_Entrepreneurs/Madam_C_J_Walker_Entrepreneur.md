@@ -1,1 +1,3 @@
-WHAT: Haircare Empire; WHEN: Early 1900s; WHERE: USA
+WHAT: Haircare Empire
+WHEN: Early 1900s
+WHERE: USA

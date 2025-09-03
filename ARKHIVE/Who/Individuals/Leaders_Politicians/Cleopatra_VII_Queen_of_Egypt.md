@@ -1,1 +1,3 @@
-WHEN: 1st c. BCE; WHERE: Egypt; WHAT: Ptolemaic Dynasty
+WHAT: Ptolemaic Dynasty
+WHEN: 1st c. BCE
+WHERE: Egypt
