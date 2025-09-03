@@ -1,0 +1,7 @@
+name: extend_dictionary
+begin: |
+  Add new categories and cross-links to the DICTIONARY using Arkhiver-style hierarchy.
+  Each new category should include definitions and references to related words.
+end: |
+  Stop when at least five additional categories exist with fifty words each.
+result: markdown
