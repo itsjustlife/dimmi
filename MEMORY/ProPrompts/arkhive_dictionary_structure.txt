@@ -1,0 +1,8 @@
+name: arkhive_dictionary_structure
+begin: |
+  Build out the Arkhive Universal Dictionary using the four-pillar architecture.
+  Place each new word file under Words/<Letter>/ and link its senses to the appropriate Form, Meaning, Origin, and Use categories.
+  Update the category index files with backlinks to each word sense.
+end: |
+  Stop when every pillar category contains at least twenty well-linked word senses.
+result: markdown
