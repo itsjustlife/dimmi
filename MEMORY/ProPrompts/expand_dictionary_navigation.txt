@@ -1,0 +1,7 @@
+name: expand_dictionary_navigation
+begin: |
+  When adding new categories or words to the DICTIONARY, create a new <word>.md file for each term.
+  Every file must link back to its category index and to dictionary.md so navigation stays consistent.
+end: |
+  Stop when all categories have at least twenty well-linked words.
+result: markdown
