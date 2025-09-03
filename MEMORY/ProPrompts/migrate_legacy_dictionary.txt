@@ -1,0 +1,11 @@
+Title: Migrate Legacy Dictionary Entries
+
+Goal: Move existing word files from old directories (EMOTIONS, VERBS, ETYMOLOGY, NEW_WORDS, etc.) into the new _WORDS system and update index links accordingly.
+
+Steps:
+1. For each word file in legacy folders, create a single lemma file under /MEMORY/DICTIONARY/_WORDS/ using the standard template.
+2. Populate YAML frontmatter and senses with anchors.
+3. Update relevant indexes in 1_Form, 2_Meaning, 3_Origin, and 4_Use with alphabetized links.
+4. Remove legacy folders once all entries are migrated.
+
+Notes: Maintain root-absolute links and ensure Navigation & Cross-Links tables are filled. This process can be done gradually.
