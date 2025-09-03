@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 # Import authentication blueprint and helper
 from auth import auth_bp, token_required
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="UI", static_url_path="/UI")
 # Register authentication routes so login is available
 app.register_blueprint(auth_bp)
 
@@ -84,6 +84,11 @@ def save_file():
     except PermissionError:
         logging.error("Permission denied: %s", path)
         return jsonify({"error": "permission denied"}), 403
+
+@app.get('/')
+def root():
+    """Serve the WebEditor UI."""
+    return app.send_static_file('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
