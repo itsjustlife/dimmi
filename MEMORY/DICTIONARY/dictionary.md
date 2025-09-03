@@ -1,11 +1,9 @@
-# Dictionary
+# Arkhive Universal Dictionary
 
-Structured word groups inspired by the Arkhiver hierarchy. Navigate by category:
+Central index for navigating the dictionary's four pillars.
 
-- [Verbs](VERBS/Verbs.md)
-- [Emotions](EMOTIONS/Emotions.md)
-- [New Words](NEW_WORDS/New_Words.md)
-- [Etymology](ETYMOLOGY/Etymology.md)
-
-Each category links to individual word pages. Click any word to see its
-definition and helpful references.
+- [Form](Form/Form.md)
+- [Meaning](Meaning/Meaning.md)
+- [Origin](Origin/Origin.md)
+- [Use](Use/Use.md)
+- [Words](Words/)
