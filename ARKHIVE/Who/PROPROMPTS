@@ -1,0 +1,3 @@
+- Add more global individuals and organizations with cross-links to WHAT/WHEN/WHERE/WHY.
+- Implement duplicate-name check to prevent redundant WHO entries.
+- Explore automated menu integration so future Python apps can navigate these directories.
