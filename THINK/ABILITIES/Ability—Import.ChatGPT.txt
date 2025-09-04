@@ -1,0 +1,117 @@
+/// FILE: Ability—Import.ChatGPT.HTML.to.Structure+OPML.v1.txt
+/// SCOPE: Arkhiver / Arkhivist (offline)
+/// PURPOSE: Parse a browser-saved ChatGPT conversation (.html + _files) and emit:
+///          (1) <stem>.structure.json   (navigable "Structure file")
+///          (2) <stem>.opml            (SimpleMind/Arkhive structure)
+///          (3) ./assets/*             (rebased local images)
+///
+/// COMMAND
+///   import_chatgpt_html <path_to_html> [--out <out_dir>] [--minify] [--placeholder-on-empty]
+///
+/// INPUT
+///   - path_to_html: Path to "Webpage, Complete" save of a specific chat page (NOT the homepage)
+///   - --out: Optional output dir (default: ./arkhive/exports/<stem>/)
+///   - --minify: If set, trims whitespace in notes and collapses runs of blank lines
+///   - --placeholder-on-empty: If set, writes a single OPML node explaining why it’s empty
+///
+/// OUTPUT
+///   - <out>/<stem>.structure.json
+///   - <out>/<stem>.opml
+///   - <out>/assets/*
+///   - <out>/<stem>.import.log.txt (summary + anomalies)
+///
+/// DETECTION & PARSING RULES
+///   1) VALIDATION
+///      - Fail fast if HTML can’t be read.
+///      - Detect “app shell / landing page” (no repeated message blocks; many <link rel="alternate">; no "You/Assistant" labels).
+///        → In that case: write empty or placeholder OPML (if requested), log "no messages found", exit 0.
+///   2) MESSAGE BLOCK DISCOVERY
+///      - Primary: find repeated wrappers containing standalone labels “You”, “Assistant”, “System”.
+///      - Fallbacks: aria-label roles; common wrapper classes (article/section/div with “markdown|prose|message”).
+///   3) CONTENT EXTRACTION (per message, in order)
+///      - TEXT: inner text (markdown allowed). Normalize whitespace (respect lists/tables).
+///      - CODE: collect <pre><code> blocks; detect language from class "language-xyz".
+///      - IMAGES: collect <img src>; if relative path → copy into ./assets and rewrite.
+///      - TIMESTAMP: if present in DOM/meta, include; else null.
+///   4) STRUCTURE JSON SHAPE
+///      {
+///        "doc_type": "chat_thread",
+///        "title": "<page <title> or filename>",
+///        "source_file": "<html filename>",
+///        "created": "<ISO8601>",
+///        "items": [
+///          {
+///            "role": "user|assistant|system",
+///            "idx": <1..N>,
+///            "timestamp": "<ISO8601|null>",
+///            "content": [
+///              {"type":"text","text":"..."},
+///              {"type":"code","lang":"python","text":"..."}
+///            ],
+///            "attachments": [ {"type":"image","path":"assets/sha10_name.png"} ]
+///          }
+///        ],
+///        "notes": ["Imported from saved HTML; assets rebased into ./assets"]
+///      }
+///   5) OPML MAPPING
+///      - <head><title> = structure.title
+///      - One <outline> per item
+///        * text="NN • role"
+///        * _role="<role>", _timestamp="<ts?>" (if any)
+///        * <_note><![CDATA[
+///             ### Role
+///             <markdown text>
+///             ```lang
+///             code...
+///             ```
+///             <img src="assets/..."/>
+///           ]]></_note>
+///
+/// FAILURE MODES (and behavior)
+///   - HTML is homepage/app-shell → exit 0 with empty/placeholder OPML and log reason.
+///   - Zero messages after parsing → same as above.
+///   - Missing assets → leave original path; log warning; continue.
+///   - Malformed <pre>/<code> → include as text inside code fence; log warning.
+///   - Non-UTF8 chars → normalize to UTF-8; log replacements count.
+///
+/// LOG FORMAT (<stem>.import.log.txt)
+///   - Title, source path
+///   - Messages found, code blocks, images (counts)
+///   - Assets copied (count), unresolved paths (list if small)
+///   - Warnings (one per line)
+///   - Timing (ms)
+///
+/// PSEUDOCODE (reference)
+///   1) load(html)
+///   2) if landing_page(html): write_empty_outputs(); return
+///   3) messages = find_message_wrappers(html)
+///   4) for each m in messages:
+///        role = detect_role(m)
+///        parts = extract_text_code_images(m)
+///        items.push( { role, idx, timestamp?, content[], attachments[] } )
+///   5) copy_local_images_to("./assets") and rewrite paths
+///   6) write structure.json
+///   7) write opml (wrap notes in CDATA; keep markdown and code fences intact)
+///   8) write import.log
+///
+/// QA / SELF-TESTS
+///   - T01: Real thread with text+code+images → expect N items; code fences preserved; images rebased.
+///   - T02: Homepage save → expect 0 items; empty/placeholder OPML; log mentions "no messages found".
+///   - T03: Data-URI images → not copied; paths unchanged; render inline.
+///   - T04: Mixed HTML (tables/lists) → retained in _note (markdown or inline HTML).
+///
+/// USAGE NOTES
+///   - Save pages as **Webpage, Complete** after scrolling to load all messages.
+///   - Edge is often more reliable than Chrome for capturing fully hydrated DOM.
+///   - PDF fallback works (text+code) but images/structure fidelity is lower.
+///
+/// PIPELINE HOOK (Arkhivist UI)
+///   UNI-MENU → IMPORT → “ChatGPT HTML”
+///     ⟶ file picker → run `import_chatgpt_html <file>`
+///     ⟶ preview: original (left) vs OPML outline (right)
+///     ⟶ SAVE → open in Structure viewer / SimpleMind
+///
+/// VERSION
+///   v1.0 (offline, deterministic). Future: optional “enrichment pass” via local LLM to add tags/tasks.
+///
+/// END FILE
