@@ -1,0 +1,542 @@
+MASR × Relay‑Chain: a phone‑to‑cloud, many‑minds engine that scales like a neural network and reads like a choose‑your‑own‑adventure manual.
+One artifact, many specialists, strict handoffs. Each turn: Condense → Expand → Deconstruct (CED) so we beat context limits while compounding quality.
+Baton = State Transfer Object (STO). It carries content + claims + diffs + tests, not just text.
+Docs are code. Interlinked instruction files (plain‑text or Word) double as readable manuals and machine‑parsable prompts, with built‑in preprompts (how to read) and proprompts (what to do).
+Edge swarm. Tiny LLMs on phones, laptops, and special devices cooperate like neurons—passing small, lossless batons up to bigger models and back down for local, private work.
+
+
+---
+
+Intent check (short + crisp)
+
+You want a single, refined concept that:
+
+1. explains how single‑core → multi‑core → multi‑device scales like a neural net of people + phones, and
+
+
+2. shows exactly how to implement it with interlinked “knowledge files” and Word‑style documents that an AI or human can follow, including ProtoPrompts (seeds) and ProPrompts (actionable steps).
+
+
+
+
+---
+
+The Big Picture (read this like a map)
+
+Scaling ladder
+
+1. Single‑Core, Single‑Agent: one model, many turns, CED keeps it sharp.
+
+
+2. Multi‑Core, One Machine: specialized agents (Planner, Builder, Critic, Memory, Synth) swap a baton (STO) in a local loop.
+
+
+3. Multi‑Device Edge Swarm: phones, laptops, and purpose boxes (vision, audio, vector search) act like neuronal microclusters. Each device holds a tiny model + cache and handles nearby work; the baton only escalates when needed.
+
+
+4. Cloud Assist (as needed): heavy reasoning or batch synthesis. The baton round‑trips, Memory compresses to snap.micro, and phones keep working locally.
+
+
+
+Analogy (biological and boring‑proof):
+DNA = ProtoPrompt (design genes).
+mRNA = Baton/STO (portable instruction packet).
+Ribosome = Builder (makes the protein/artifact).
+Chaperone proteins = Critic (folds, checks, repairs).
+Histones & epigenetics = Memory (compression, access control).
+Organelles = Special devices (vision box, audio box, vector box).
+A cell becomes a tissue when devices communicate; a tissue becomes an organ when the DOOR UI + ARKHIVE bind them into one stateful organism.
+
+
+---
+
+How it actually works (no hand‑waving)
+
+1) The Baton: State Transfer Object (STO)
+
+A compact, lossless packet that every agent can read and write.
+
+type: handoff.packet
+id: hp_<thread>_<turn>
+thread: <thread_id>
+from: <role>        # planner|builder|critic|memory|synth|conductor
+to: <role>
+objective: "One-line goal"
+context_keys: ["snap.micro","brief","spec"]
+constraints: ["tokens:1200","deadline:2025-09-10","style:plain"]
+ced_mode: ["condense","deconstruct"]
+deliverables: ["draft|diff|tests|proprompt|sceneDNA"]
+quality_bar: {"min_fidelity":0.9,"tests":["round_trip","critic_pass"]}
+open_questions: ["Biggest unknown here is ..."]
+artifacts_refs: ["a://sha256/..."]     # content-addressable pointers
+notes: "Short rationale + gotchas"
+
+Snapshots (Memory’s secret weapon):
+
+snap.micro ≤ 300 tokens (what changed, what’s next)
+
+snap.meso ≤ ~1200 tokens (decisions, claim deltas, rationale)
+
+Round‑trip test: compress → re‑expand → compare claims; flag drift.
+
+
+
+---
+
+2) The Relay: CED loop with roles
+
+Planner: breaks goal into milestones + tests (predict & plan).
+
+Builder: creates artifact/diff under constraints.
+
+Critic: distills to claims, finds contradictions, proposes specific fixes.
+
+Synthesizer: merges branches into a single source of truth.
+
+Memory: writes snap.micro/meso, computes fidelity, triggers loopbacks.
+
+Conductor: routes batons, enforces budgets and safety.
+
+
+Why this beats context limits: every turn works on a focused STO + minimal snapshots. You only load what’s needed, never the whole history.
+
+
+---
+
+3) The Swarm: phones + computers + special devices
+
+Phones = perception + drafting. Tiny models do speech‑to‑notes, field photos, quick outline.
+
+Laptops/desktops = heavier Builder + Critic passes; vector search; rapid tests.
+
+Special devices (vision box, audio box, GPU mini‑server) = accelerators.
+
+Cloud (optional) = deep reasoning, global synthesis, long‑context merges.
+
+
+Routing rule of thumb: Do work where the data lives. If the photo is on the phone, do the first pass there. Promote the baton only when local confidence or compute isn’t enough.
+
+
+---
+
+The Documents: interlinked instructions humans enjoy and AIs can execute
+
+A. Document Weave Format (DWF)
+
+Make every doc readable and machine‑parsable. Works in Markdown and Word.
+
+Header (front‑matter):
+
+dwf: 1.0
+role: "builder"                 # or planner|critic|synth|memory
+stage: "03-design-spec"
+thread: "book-labyrinth"
+links:
+  next: ["stages/04-builder.txt"]
+  alt: ["playbooks/creative.flow#S03"]
+permissions: ["offline-ok","edge-first"]
+
+Body uses 4 styled blocks (Word styles in parentheses):
+
+PREPROMPT (Style: Instruction) – how to read and constrain the task.
+
+PROPROMPT (Style: Action) – the exact “do this now” payload.
+
+CONTEXT (Style: Note) – minimal facts, claims, constraints.
+
+CHECKS (Style: Checklist) – tests that must pass.
+
+
+Example (Markdown that ports cleanly to Word):
+
+# DESIGN SPEC (H1)
+## PREPROMPT (H2 – Instruction)
+- Use CED. If spec is ambiguous, emit `spec_gap` and route to stages/02-brief-plan.txt.
+- Respect token budget: 1200.
+
+## CONTEXT (H2 – Note)
+Goal: "Illustrated micro‑book about labyrinthine cities."
+Constraints: voice=plain, images=monochrome, device=edge-first.
+
+## PROPROMPT (H2 – Action)
+spec:
+  components: ["chapter_outline","image_prompts","caption_rules"]
+  tests: ["outline has 7±2 beats","each beat maps to an image"]
+next_role: "builder"
+
+## CHECKS (H2 – Checklist)
+- [ ] 7±2 beats present
+- [ ] captions <= 120 chars each
+
+In Word: map those sections to custom styles named exactly Instruction, Action, Note, Checklist. A simple parser reads styles, extracts blocks, and emits a baton.
+
+
+---
+
+B. ProtoPrompts vs ProPrompts
+
+ProtoPrompt = seed idea + guardrails. Think “gene.”
+
+ProPrompt = executable instruction + deliverable. Think “protein machinery.”
+
+
+ProtoPrompt example (seed file):
+
+proto:
+  theme: "Labyrinths as memory palaces"
+  mood: "curious, calm"
+  banlist: ["purple prose"]
+  success: "reader builds a pocket labyrinth map by the end"
+
+ProPrompt example (action block):
+
+proprompt:
+  task: "Write chapter_outline"
+  constraints: ["7±2 beats","edge-first drafting","<= 600 tokens"]
+  tests: ["every beat has a cause→effect pair"]
+
+
+---
+
+The Knowledge Files (MASR × Relay‑Chain, idempotent + linkable)
+
+> Paste these with your ARKHIVE Post‑Prompts. They form a choose‑your‑own‑adventure for cognition. Everything routes by links and decisions.
+
+
+
+0) Ability
+
+abilities/relay-masr.txt
+
+# ability: relay-masr
+:version: 0.2
+:summary: Multi-agent baton passing with CED, edge swarm routing, and doc-weave.
+:entry: STARTHERE/start.txt -> [Relay MASR]
+:roles: Conductor, Planner, Builder, Critic, Memory, Synth
+:stages: 00-inbox, 01-router, 02-brief-plan, 03-design-spec, 04-builder, 05-critic, 06-synth, 07-memory, 08-finalize, 09-publish
+:schemas: handoff.packet, snapshot, thread.ledger
+:notes: Always emit handoff.packet + snap.micro; diffs over full rewrites; content-addressable storage (a://sha256/...).
+
+1) Stages (pre/proprompt pattern)
+
+stages/00-inbox.txt
+
+:intent: normalize any incoming prompt/artifact into a baton
+:mode: condense
+PREPROMPT:
+- Extract a one-line objective and constraints; ask nothing.
+PROPROMPT:
+objective: "<one-liner>"
+constraints: ["tokens:<n>","style:<voice>","edge-first"]
+deliverables: ["brief|design|draft|tests|proprompt|sceneDNA"]
+ced_mode: ["condense","deconstruct"]
+next_role: "router"
+@@link stages/01-router.txt
+
+stages/01-router.txt
+
+:intent: classify workload and choose path + device tier
+:mode: deconstruct
+PREPROMPT:
+- Route by data locality and test coverage.
+- Prefer edge device if data lives there and tests exist.
+PROPROMPT:
+path: ["code"|"research"|"image"|"prose"]
+device: ["phone","laptop","special","cloud"]
+model_tags: ["fast-offline","deep-online","vision","audio"]
+risk_flags: []
+next_role: "brief-plan"
+
+stages/02-brief-plan.txt
+
+:intent: goals → milestones → acceptance tests (Predict & Plan)
+:mode: deconstruct + expand
+PREPROMPT:
+- Produce short plan + risk register; set budgets for downstream turns.
+PROPROMPT:
+brief:
+  goals: ["..."]
+  acceptance_tests: ["..."]
+  milestones: ["M1 ...","M2 ..."]
+  risks: ["..."]
+open_q: ["..."]
+next_role: "design-spec"
+
+stages/03-design-spec.txt
+
+:intent: buildable spec (APIs/outline or PROPROMPTS+SceneDNA+VKS/PCP)
+:mode: expand
+PREPROMPT:
+- If creative, emit SceneDNA and motion logic (VKS/PCP).
+PROPROMPT:
+spec:
+  for: ["code"|"research"|"image"|"video"|"prose"]
+  components: ["..."]
+  tests: ["..."]
+next_role: "builder"
+
+stages/04-builder.txt
+
+:intent: produce artifact or minimal diff + tests
+:mode: expand
+PREPROMPT:
+- Respect constraints + tests; output diffs when possible.
+PROPROMPT:
+artifact: |
+  <code|prose|proprompt block>
+diff: "<unified diff if applicable>"
+tests: ["..."]
+next_role: "critic"
+loopback_if:
+  spec_gap -> "design-spec"
+  unclear_tests -> "brief-plan"
+
+stages/05-critic.txt
+
+:intent: compress to claims; find contradictions; suggest specific fixes
+:mode: condense + deconstruct
+PROPROMPT:
+claims: ["..."]
+defects: [{"type":"contradiction","where":"...","fix":"..."}]
+fix_plan: ["..."]
+decision: {pass?: false, if_false_next: "builder", if_true_next: "synth"}
+
+stages/06-synth.txt
+
+:intent: merge into single source of truth; justify drops
+:mode: expand
+PROPROMPT:
+merged_artifact: |
+  <coherent version>
+discarded_alternatives: ["why A dropped","why B dropped"]
+next_role: "memory"
+
+stages/07-memory.txt
+
+:intent: produce snap.micro/meso; compute fidelity; log claim delta
+:mode: condense
+PROPROMPT:
+snap.micro: "<≤300 tokens>"
+snap.meso: "<≤1200 tokens>"
+fidelity: 0.93
+claim_delta: {"added":["..."],"dropped":["..."]}
+decision: {pass?: true, if_false_next: "brief-plan"}
+next_role: "finalize"
+
+stages/08-finalize.txt
+
+:intent: format + license + release notes; two‑man rule for external publish
+:mode: deconstruct + expand
+PROPROMPT:
+release_notes: ["A","B"]
+metadata: {"version":"0.1.0","license":"CC-BY","tags":["arkhive","relay"]}
+checklist: ["tests pass","style ok","links valid"]
+decision: {pass?: true, if_false_next: "critic"}
+next_role: "publish"
+
+stages/09-publish.txt
+
+:intent: commit to ledger and DOOR UI
+:mode: commit
+PROPROMPT:
+@@commit publish artifact to ledger/artifacts/ and update door_data.json
+@@log Published thread <id> v0.1.0 with fidelity <f> and <n> defects.
+next_role: "inbox"
+
+
+---
+
+Edge‑to‑Cloud Wiring (so phones “talk like neurons”)
+
+Routing
+
+Local first: if the sensor and data are on the phone, the phone does the first Builder pass and a tiny Critic pass.
+
+Promote when: tests fail twice, token budget bursts, or a spec_gap is raised.
+
+Pull back when: cloud Synth completes; Memory emits snap.micro; phone resumes with fresh constraints.
+
+
+Transport & identity (simple + robust)
+
+A message bus (any reliable queue) carries handoff.packet JSON.
+
+Each device has a keypair; every baton is signed; ledger records signatures.
+
+Content is addressed by hash: a://sha256/... ensures immutable references across devices.
+
+
+Privacy & governance
+
+Flags: edge-only, pseudonymize, private-claim(X).
+
+Memory strips private claims before promotion unless consent:true.
+
+
+
+---
+
+Word Documents that Machines Can Execute
+
+Use styles as signals. Create a Word template with these custom styles:
+Instruction, Action, Note, Checklist, Claim, Defect.
+
+Minimal example (ready for copy‑paste into Word):
+
+> Title (Heading 1): Chapter Outline – Design Spec
+Instruction: Use CED. If any beat lacks cause→effect, emit spec_gap and route to 02‑brief‑plan.
+Note: Goal: “7±2 beats, monochrome images.” Constraints: tokens 600, style plain.
+Action: Produce spec.components=["chapter_outline","image_prompts"] with tests.
+Checklist:
+☐ 7±2 beats
+☐ Each beat has an image prompt
+☐ Captions ≤ 120 chars
+
+
+
+A tiny parser reads styled ranges → emits the PROPROMPT and PREPROMPT blocks → fills a baton → runs the stage. Humans read the same file comfortably.
+
+
+---
+
+Choose‑Your‑Own‑Adventure Mechanics (for cognition)
+
+Branch tokens (use anywhere in docs or .txt files):
+
+@@link stages/04-builder.txt (forward)
+
+@@alt playbooks/creative.flow#S03 (alternate branch)
+
+@@todo (queue work) @@ask (surface a question)
+
+@@commit (write) @@review (two‑man rule) @@log (trace)
+
+
+Example branch page (feels like a story, acts like a router):
+
+You stand at the fork:
+- If your outline passes all tests, @@link stages/06-synth.txt.
+- If beats lack cause→effect pairs, @@link stages/02-brief-plan.txt with reason: spec_gap.
+- If imagery is inconsistent with SceneDNA, @@link stages/05-critic.txt (visual).
+
+
+---
+
+Putting It Together: a one‑minute dry run
+
+1. Phone captures a voice note → 00‑inbox condenses and emits a baton.
+
+
+2. 01‑router keeps it edge‑first, tags “prose.”
+
+
+3. 02‑brief‑plan makes tests (“7±2 beats”).
+
+
+4. 03‑design‑spec emits outline spec + SceneDNA.
+
+
+5. 04‑builder on laptop drafts beats + image ProPrompts.
+
+
+6. 05‑critic finds 2 contradictions → targeted fixes → back to Builder.
+
+
+7. 06‑synth merges, 07‑memory compresses, fidelity 0.94.
+
+
+8. 08‑finalize adds metadata, 09‑publish commits; phone gets snap.micro for local reading/editing.
+
+
+
+
+---
+
+Combined Deep‑Research Prompt (polished and ready)
+
+Title: Relay MASR: Edge‑First, Many‑Minds Creation with Baton Fidelity
+Goal: Prove that a baton‑based, CED relay across phones → laptops → cloud increases quality and lowers drift vs. single‑agent baselines.
+
+Questions
+
+Which baton fields (claims, tests, deltas) most reduce drift under aggressive compression?
+
+When is deconstruct more valuable than expand at fixed token budgets?
+
+How often should Memory run round‑trip to keep compression debt low?
+
+What routing rules minimize latency without sacrificing fidelity for edge‑first tasks?
+
+
+Method
+
+1. Implement the stage files above; enable content‑addressable storage and signatures.
+
+
+2. Workloads: (A) code refactor, (B) illustrated essay (PROPROMPTS+SceneDNA), (C) research synthesis with citations.
+
+
+3. Conditions:
+
+Greedy (single agent), Balanced (Planner/Builder/Critic/Memory), Adversarial (dual critics + periodic deconstruct).
+
+Token budgets: 4k, 16k, 128k. Edge‑first vs cloud‑first routing.
+
+
+
+4. Metrics: token cost, latency, defect rate (tests failing), round‑trip fidelity, claim‑delta rate, loopback count.
+
+
+5. Ablations: remove Memory, then Critic, then Synth; measure rework + drift.
+
+
+
+Success
+
+≥20% fewer defects vs. single agent at comparable cost.
+
+Median fidelity ≥0.9; ≤10% turns trigger drift alarms.
+
+
+Deliverables
+
+Ledgers (transcripts, snapshots, diffs), dashboards, and a cookbook of “failure → fix” patterns.
+
+
+
+---
+
+Post‑Prompts to instantiate (append‑only, idempotent)
+
+@@create abilities/relay-masr.txt
+@@create stages/00-inbox.txt
+@@create stages/01-router.txt
+@@create stages/02-brief-plan.txt
+@@create stages/03-design-spec.txt
+@@create stages/04-builder.txt
+@@create stages/05-critic.txt
+@@create stages/06-synth.txt
+@@create stages/07-memory.txt
+@@create stages/08-finalize.txt
+@@create stages/09-publish.txt
+@@link STARTHERE/start.txt -> [Relay MASR] abilities/relay-masr.txt
+
+@@todo Parser: map Word styles (Instruction, Action, Note, Checklist, Claim, Defect) → PREPROMPT/PROPROMPT blocks → handoff.packet.
+@@todo DOOR UI: “Threads” tab shows current baton, snap.micro, risk flags, and a map of next links.
+@@todo Arkhivist runner: enforce budgets, run tests, sign batons, write ledger + door_data.json.
+@@log Relay MASR scaffolded. Ready for first edge‑first experiment thread.
+
+
+---
+
+Where to play next
+
+Add debate mode (two critics with different priors) every N turns for high‑uncertainty work.
+
+Tag devices with skills (“vision‑OCR”, “audio‑denoise”, “pytest‑runner”) so the router can treat your swarm like a living toolbox.
+
+Teach Builder to emit PCP (video shot plans) and VKS (motion arcs), then have Critic verify SceneDNA continuity.
+
+
+This is the simple‑to‑read, hard‑to‑drift blueprint: phones and friends pass batons like neurons, documents double as instructions, and MASR’s many minds turn complexity into momentum.
+

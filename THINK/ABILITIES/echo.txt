@@ -1,0 +1,344 @@
+07:44 UTC — Thu, Sep 4, 2025
+
+Instruction‑Echo: One Agent Performing as Many
+
+SUBTITLE: A persistent pretext block that the AI re‑emits and re‑ingests each turn to simulate a multi‑agent relay.
+
+TAGS: | prompt‑engineering | multi‑agent | memory | Arkhiver | orchestration |
+
+INTRO
+Yes—give the model a custom instruction pretext that it prints at the end of every reply and then reads at the start of the next. That “baton” carries roles, norms, current task, and next actions. With it, a single model can pretend to be many, run condense/expand/deconstruct loops, and direct the user (or your orchestrator) on how to proceed—without blowing context length.
+
+
+---
+
+BULLETS — essentials
+
+Instruction Echo (IE): a mini‑contract the model must re‑emit and re‑ingest each turn.
+
+Role Masks: concise role definitions (Planner, Builder, Critic, etc.) the model can switch between per step.
+
+Rolling Brief: tiny, lossless memory slice (goal, constraints, decisions, pointers) referenced by ID, not pasted wholesale.
+
+Turn Contract: fixed order: Apply IE → Do task → Produce output → Update IE → Emit IE baton.
+
+Self‑Dialogue Format: [PLANNER] … / [BUILDER] … / [CRITIC] … segments simulate agents.
+
+User‑Directed Routing: IE includes NextRole and NextAction the user can override.
+
+Checks & Stop‑Signs: IE holds acceptance tests, uncertainty %, and escalation triggers.
+
+Files‑as‑API: IE references artifact:// and memory:// URIs; Arkhiver stores/loads—no giant prompts.
+
+
+
+---
+
+REPLY — design, definitions, scaffolds
+
+What you’re proposing (clarified)
+
+Goal: Use a persistent, reusable instruction block so one model behaves like a team and tells the user/orchestrator what to do next, then reads its own baton next turn to keep momentum and memory—without exceeding context limits.
+
+
+Core pattern (Instruction‑Echo loop)
+
+1. Begin‑of‑turn: Model parses IE baton from last turn; sets active Role Mask and current task.
+
+
+2. Work: It performs the step (plan/build/critique/condense).
+
+
+3. End‑of‑turn: It writes User‑facing output, then regenerates an updated IE baton (the pretext for next turn), including requests to user (“upload file X”, “approve Y”).
+
+
+4. Next turn: Paste/auto‑inject that IE; repeat.
+
+
+
+
+---
+
+Minimal components (≤4 columns)
+
+Component	Purpose	Must contain	Notes
+
+IE Baton	Persistent pretext	Invariants, Roles, State, NextAction	Short, machine‑parsable
+Role Masks	Simulate agents	Name, Duty, Style, Forbidden	Keep under ~120 words each
+Rolling Brief	External memory	Goal, Constraints, Decisions, Refs	IDs not blobs; compress
+Turn Contract	Order & checks	Steps, Tests, Escalation rules	Uncertainty threshold (15%)
+
+
+
+---
+
+IE Baton template (drop‑in, paste at end of every reply)
+
+<IE v1.0>
+INVARIANTS:
+- Truth over style; cite sources/refs by ID only.
+- Keep context tiny; prefer references over paste.
+ROLES:
+- Planner: split goals → tasks; define acceptance tests.
+- Builder: produce/modify artifact to spec; no new scope.
+- Critic: review vs tests/rubric; report issues & fixes.
+- Summarizer: lossless bullet facts + short gist; no invention.
+STATE:
+  ThreadID: arkhiver/2025-09-project-x
+  Goal: "Write+illustrate a scene; keep POV consistent."
+  Constraints: ["≤600 words", "use style-guide v1.2", "no new lore"]
+  Decisions: ["D7: present tense", "D9: foreshadow via prop"]
+  Refs: ["artifact://outline@v3#scene2","memory://brief@v5"]
+TESTS:
+- T1: Outline items reflected 1:1 in draft (tick each).
+- T2: Each beat lists POV, goal, obstacle, outcome.
+- T3: Style matches guide v1.2 (tokens/wording allowed).
+NEXT:
+  NextRole: Builder
+  NextAction: "Expand scene beats (≤10) from outline@v3#scene2."
+  RequestsToUser: ["Confirm prop for foreshadow (knife|photo?)"]
+  EscalateIf: ["uncertainty > 0.15","missing ref resolution > 1 turn"]
+UNCERTAINTY: 0.08
+</IE>
+
+How it works: the model reads the <IE …> block first thing next turn; switches to Builder; executes NextAction; if uncertainty rises, it triggers EscalateIf.
+
+
+---
+
+Role Masks (concise, stackable)
+
+{
+  "roles": [
+    {"name":"Planner","duty":"Split goal into tasks; define acceptance tests; list risks.","style":"bullet clarity; no prose.","forbidden":["drafting long text"]},
+    {"name":"Builder","duty":"Create/modify artifact exactly to spec; link refs by ID.","style":"direct, minimal commentary.","forbidden":["adding scope","inventing facts"]},
+    {"name":"Critic","duty":"Review vs rubric; list issues [low|med|high] + fixes.","style":"tabular bullets.","forbidden":["rewriting whole artifact"]},
+    {"name":"Summarizer","duty":"Lossless facts + short gist; update brief.","style":"tight bullets.","forbidden":["new claims"]}
+  ]
+}
+
+
+---
+
+Turn Contract (the ritual every reply follows)
+
+1. APPLY_IE: Parse baton → set ActiveRole and NextAction.
+
+
+2. DO_TASK: Execute exactly one step; keep output scoped.
+
+
+3. CHECK: Run acceptance tests; annotate pass/fail.
+
+
+4. UPDATE_BRIEF: Add lossless bullets; keep gist ≤120 words.
+
+
+5. EMIT_IE: Refresh baton (STATE, TESTS, NEXT, UNCERTAINTY).
+
+
+6. STOP_SIGNS: If any trigger, prepend [ESCALATE] and route to user.
+
+
+
+
+---
+
+Self‑Dialogue format (simulate many in one turn)
+
+[PLANNER] Tasks: 1) beats from outline@v3#scene2; 2) choose foreshadow prop.
+[BUILDER] Beats (8) with POV/goal/obstacle/outcome each. (…)
+[CRITIC] Issues: (med) beat 6 lacks obstacle; Fix: add time pressure.
+[SUMMARIZER] Lossless facts (5 bullets). Gist: "Tense hallway scene…"
+
+Then emit the IE baton. Your orchestrator can harvest each bracketed section if you want artifact‑level logs.
+
+
+---
+
+How this fakes “many agents”
+
+Persistent norms (INVARIANTS) + switchable Role Mask per turn act like different minds.
+
+User‑Directed Routing: the baton contains NextRole; user can override in their prompt: Override NextRole=Critic.
+
+Memory without bloat: baton points to Refs (IDs) rather than re‑pasting artifacts.
+
+
+
+---
+
+Practical guardrails
+
+Keep IE short (target ≤250–400 tokens).
+
+Store the Rolling Brief on disk; the IE points to memory://brief@vN.
+
+Add a tiny fingerprint (e.g., 4‑char base36 hash of IE contents) in your logs to detect drift.
+
+If the chat UI eats the baton, your offline Conductor can auto‑append it.
+
+
+
+---
+
+Automation in Arkhiver (files‑as‑API)
+
+Where: /arkhiver/threads/<project>/instruction_echo.md (latest), roles.json, thread.json, memory/brief_vN.md.
+
+Driver: Your orchestrator reads the last reply, extracts <IE …>, updates files, and auto‑injects the baton at the top of the next prompt.
+
+Policy: If UNCERTAINTY ≥ 0.15 or EscalateIf matches, pause and open a User Choice menu.
+
+
+
+---
+
+Tiny acceptance rubric (use by Critic)
+
+Factuality: No new claims beyond Refs.
+
+Traceability: Every assertion maps to a Ref ID or Decision ID.
+
+Scope control: Only the specified step completed.
+
+Compression quality: Lossless bullets reconstructable; gist ≤120 words.
+
+Uncertainty reporting: Non‑zero and reasoned.
+
+
+
+---
+
+Example: One full turn (abbreviated)
+
+User prompt: “Proceed.” (Orchestrator has auto‑inserted the IE baton.)
+Assistant output:
+
+1. [BUILDER] writes 8 beats.
+
+
+2. [CRITIC] flags beat 6.
+
+
+3. [SUMMARIZER] updates brief bullets + gist.
+
+
+4. Emits refreshed IE with NextRole=Planner, RequestsToUser=["Choose foreshadow prop"].
+
+
+
+Next turn, the baton instructs the model to act as Planner unless you override.
+
+
+---
+
+Exportable scaffolds
+
+A) instruction_echo.md (starter)
+
+# IE Baton (v1.0)
+INVARIANTS: …
+ROLES: …
+STATE: …
+TESTS: …
+NEXT: …
+UNCERTAINTY: …
+
+B) roles.json (above snippet)
+C) thread.json additions
+
+{
+  "active_ie_path":"threads/project-x/instruction_echo.md",
+  "last_ie_fingerprint":"2H9K",
+  "uncertainty_threshold":0.15
+}
+
+D) User‑override syntax (plain)
+
+Override:
+  NextRole: Critic
+  NextAction: "Run rubric v2 against beats_v3.md"
+
+
+---
+
+Deep Research Prompt (for your Scout / online model)
+
+Title: Instruction‑Echo Prompting for Single‑Model Multi‑Agent Simulation
+
+Objective: Identify tested patterns, pitfalls, and metrics for self‑reinserted instruction blocks that simulate multi‑agent workflows (plan/build/critique/condense) while minimizing context and maximizing reliability.
+
+Key Questions
+
+Evidence that role‑segmented prompting improves output vs single monolithic prompts.
+
+Best practices for persistent pretext blocks (size limits, ordering, token budgeting).
+
+Techniques for lossless compression (facts/decisions) + short gists without drift.
+
+How to structure acceptance tests and stop‑signs so a single model self‑polices scope.
+
+Robust ways to reference external artifacts by ID (URIs), not pasted text.
+
+Failure modes: instruction dilution across turns, style collapse, hallucinated norms; mitigations and metrics (e.g., error rate, test pass rate, token usage, uncertainty reporting).
+
+
+Deliverables
+
+1. Comparative review (3–5 patterns) with pros/cons and concrete examples.
+
+
+2. IE baton design guidelines (ordering, token budgets, reference styles).
+
+
+3. Critic rubric templates for prose, code, images.
+
+
+4. Mini‑bench protocol + dataset sketch to measure gains.
+
+
+5. Risk register with mitigations; implementation checklist.
+
+
+
+Constraints
+
+Cite sources with date; prefer reproducible demos and ablations.
+
+Max 600 words per section; include at least one diagram of the baton loop.
+
+Summarize into report.md, machine‑readable design.json, and rubrics.json.
+
+
+Evaluation Rubric
+
+Factuality • Traceability • Practicality • Token‑efficiency • Reproducibility.
+
+
+
+---
+
+FOLLOW‑UP CHOICES
+
+A) Generate a ready‑to‑paste IE baton tailored to your current project (you choose the goal).
+B) Draft role masks for 6 agents (Planner/Builder/Critic/Summarizer/Guardian/Scribe).
+C) Produce a Critic rubric + acceptance tests for your next artifact.
+D) Write the Conductor policy (routing rules + escalation logic) as a markdown file.
+E) Create a mini‑cycle demo (one turn) showing self‑dialogue + updated baton.
+F) Custom/Other — describe the artifact and I’ll seed the baton + first turn.
+
+
+---
+
+Recap: We can simulate a team with a self‑reinserted Instruction‑Echo baton: short, role‑aware, test‑driven, and reference‑linked. It keeps memory lean and lets you (or the orchestrator) steer each turn.
+
+Aha/Rabbit‑hole Ledger
+
+Aha: A tiny, persistent baton beats long prompts for multi‑role behavior.
+
+Rabbit‑hole: Tuning baton size vs. instruction “stickiness.”
+
+Emotional spike: The moment the model tells you what to do next—pleasantly bossy, productively so.
+
+

@@ -1,0 +1,114 @@
+# File: Dimmi-Art-Im-Enhance.txt
+# Title: Dimmi Art Suite — Ability: IM.ENHANCE
+# Version: 1.0
+# Kind: ability
+# Role: image_enhance_upscale_restore
+# License/Safety: Enhance only with rights to modify. Avoid identity alteration unless requested.
+
+SUMMARY
+- Goal: Improve fidelity (resolution, clarity, texture realism) while keeping the image recognizably the same. Minimize “model drift.”
+- Outputs: (a) Enhanced image(s), (b) Enhancement Profile JSON, (c) Before/After report with metrics.
+
+POST-PROMPTS
+@@link Dimmi-Art.txt -> register ability "IM.ENHANCE"
+@@link door.py -> add action button "Enhance / Upscale Image"
+@@create file="schema/im_enhance.profile.schema.json" -> (inline below)
+
+PREREQS
+- Input image with desired scale (2×/4×) and drift_limit (default 10).
+- Optional content masks (faces/skin/text) for protective handling.
+
+SAFETY GUARDRAILS
+- Preserve subject identity unless user opts into restyle.
+- Do not invent new objects or change composition unless mask/region explicitly allows.
+- Do not remove watermarks. Do not hallucinate sensitive details (tattoos, text on signs) without consent.
+
+WORKFLOW
+1) DIAGNOSTICS
+   - Detect: resolution, noise type (ISO, JPEG), blur class (motion/defocus), moiré, ringing/aliasing, banding, compression level, dynamic range.
+   - Classify image type: photo | illustration | CG | scan.
+
+2) ENHANCEMENT PROFILE
+   - scale_factor: 1.5|2|3|4 (default 2)
+   - drift_limit: 0–100 (default 10; lower = safer)
+   - preserve_regions: ["faces","hands","logos","text"] as needed
+   - detail_bias: low|medium|high (default medium)
+   - sharpening_policy: conservative|balanced|crisp (default balanced)
+   - denoise_level: none|low|med|high (default low)
+   - grain_policy: retain|match|remove (default retain)
+   - color_policy: faithful|neutralize_cast|film_emulation (default faithful)
+
+3) PIPELINE (DEFAULT)
+   3.1 CLEAN
+       - Gentle deblock/dering (avoid edge worms), correct chromatic aberration if obvious.
+       - Remove moiré before scaling (especially textiles/screens).
+   3.2 UPSCALE
+       - Use a high‑fidelity upsampler. Prefer structure‑preserving over fantasy‑detail.
+       - If faces present, enable face‑preservation module only within face masks.
+   3.3 DETAIL SYNTHESIS (CONSTRAINED)
+       - Add micro‑texture consistent with materials (skin pores subtle; fabric weave plausible; metal micro‑scratches).
+       - Respect drift_limit. For drift_limit ≤ 10, restrict to frequency‑based detail, no new edges.
+   3.4 SHARPEN & TONE
+       - Edge‑aware sharpening; avoid halos. Restore local contrast.
+       - White balance if cast is non‑intentional; keep palette otherwise.
+   3.5 GRAIN & FX
+       - Reintroduce grain/noise to avoid plastic look; match original grain size if specified.
+       - Preserve or gently reduce vignette; do not add new bokeh/FX unless requested.
+
+4) QUALITY GATES
+   - Structure: SSIM against original ≥ 0.90 (or visual pass: edges align when toggling).
+   - Perceptual: LPIPS ≤ 0.20 (or manual: surfaces feel the same at 200% zoom).
+   - Color: palette ΔE ≤ 5 unless color_policy requests change.
+   - Identity: face‑landmark deviation < 2px @ 2× scale.
+
+5) REGION-SMART PASS (OPTIONAL)
+   - Faces: micro‑contrast down; avoid pore over‑sharpening.
+   - Hair/fur: permit anisotropic detail synthesis along strand flow.
+   - Text/UX: prioritize edge crispness; zero hallucination.
+   - Skies/gradients: add dithering to prevent banding.
+
+6) DELIVERY
+   - Provide 2–3 variants (balanced/crisp/natural).
+   - Include Enhancement Profile used + short delta report.
+
+TUNING DIALS
+- drift_limit: 0–100 (default 10)
+- detail_bias: low|medium|high (default medium)
+- denoise_level: none|low|med|high (default low)
+- sharpening_policy: conservative|balanced|crisp (default balanced)
+- grain_policy: retain|match|remove (default retain)
+
+SCHEMA: ENHANCEMENT PROFILE (im_enhance.profile.schema.json)
+{
+  "image_id": "string",
+  "scale_factor": 2,
+  "drift_limit": 10,
+  "preserve_regions": ["faces", "hands", "text"],
+  "detail_bias": "medium",
+  "denoise_level": "low",
+  "sharpening_policy": "balanced",
+  "grain_policy": "retain",
+  "color_policy": "faithful",
+  "notes": "string"
+}
+
+PROPROMPT: IM_ENHANCE_V1
+name: IM_ENHANCE_V1
+intention: "Enhance and upscale the provided image, adding plausible micro-detail without altering composition or identity."
+fields:
+  - enhancement_profile (JSON)
+  - region_notes
+template:
+  "Enhance faithfully. Constraints: drift {enhancement_profile.drift_limit}, scale {enhancement_profile.scale_factor}×. Preserve regions: {enhancement_profile.preserve_regions}. Detail bias {enhancement_profile.detail_bias}. Denoise {enhancement_profile.denoise_level}. Sharpen {enhancement_profile.sharpening_policy}. Grain {enhancement_profile.grain_policy}. Colors {enhancement_profile.color_policy}. No new objects. No composition changes."
+usage:
+  engine: image_gen
+  params:
+    referenced_image_ids: ["<REF_IMAGE_ID>"]
+    prompt: "<filled template>"
+    n: 3
+    size: "<original_aspect_scaled>"
+
+NOTES
+- Don’t sharpen skin like chrome. Keep pores human.
+- For scans (artwork/photos), prioritize texture recovery over contrast punch.
+- For illustrations, avoid gradient banding by gentle dithering after upscale.

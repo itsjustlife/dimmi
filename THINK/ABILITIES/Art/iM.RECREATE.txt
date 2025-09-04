@@ -1,0 +1,153 @@
+# File: Dimmi-Art-Im-Recreate.txt
+# Title: Dimmi Art Suite — Ability: IM.RECREATE
+# Version: 1.0
+# Kind: ability
+# Role: image_remake_near_match
+# License/Safety: Use only on images you own or have rights to. Do not remove watermarks or duplicate third‑party works without permission.
+
+SUMMARY
+- Goal: Recreate a provided reference image as closely as reasonable *without* verbatim duplication of others’ IP. Supports stylistic fidelity, composition matching, and lighting/material parity.
+- Outputs: (a) Near‑match render(s), (b) Analysis JSON, (c) Recreate Plan, (d) Audit log with similarity metrics and seeds.
+
+POST-PROMPTS
+@@link Dimmi-Art.txt -> register ability "IM.RECREATE"
+@@link door.py -> add action button "Recreate from Image"
+@@create file="schema/im_recreate.analysis.schema.json" -> (inline below)
+@@create file="schema/im_recreate.plan.schema.json" -> (inline below)
+
+PREREQS
+- Reference image provided by user (owned/licensed).
+- Image ID or path available to the agent.
+- Image generation engine available (e.g., `image_gen` that accepts prompt + referenced_image_ids).
+- Optional metrics engine (SSIM, LPIPS, CLIP-I) — if unavailable, fall back to visual checks.
+
+SAFETY GUARDRAILS
+- RIGHTS CHECK: Confirm user has rights to reproduce. If not, stop with @@ask.
+- WATERMARK ETHICS: Never remove or obfuscate watermarks. If present, stop with @@ask.
+- SIMILARITY THRESHOLD: Default target for public/unknown rights is “high similarity without one‑to‑one duplication.” If user owns the image, threshold may be higher.
+- PRIVACY: Strip faces/identifiers if user requests anonymization.
+
+WORKFLOW
+1) INTAKE
+   - Collect: reference_image_id, usage_rights, intended output size/aspect, allowed drift (0–100; default 20), attempts (default 6).
+   - Record to log.
+
+2) MULTI-PASS ANALYSIS (Top→Down, then Details)
+   2.1 GLOBAL READ
+       - Aspect ratio & crop behavior (centered, letterboxed, edge-anchored).
+       - Composition grid: rule-of-thirds, golden, symmetry, horizon height.
+       - Camera geometry: POV (eye/bird/low), tilt/roll, focal-length feel (ultra‑wide/wide/normal/tele/macro), depth of field & bokeh character.
+       - Motion cues: long exposure, motion blur, pan direction (if any).
+   2.2 SUBJECT & STRUCTURE
+       - Primary subject(s), bounding boxes, pose/gesture lines (VKS: arrows/curves).
+       - Foreground/midground/background segmentation; occlusions; silhouettes.
+   2.3 LIGHTING & MATERIALS
+       - Light direction (azimuth/elevation), hardness/softness, number of sources, rim/bounce, color temperature.
+       - Material families: skin, fabric, metal, glass, foliage, fluids; specular/roughness traits.
+   2.4 COLOR & TONE
+       - Palette extraction: 6–10 swatches (dominant/accent/neutral).
+       - Tonal curve: low‑key/high‑key/normal; contrast level; black/white points.
+       - Color cast, film emulation (if any), saturation bias by range (skin/greens/blues).
+   2.5 STYLE FINGERPRINT
+       - Line quality/brushwork/grain/noise/halation/vignette/chromatic aberration.
+       - Compression artifacts (ringing, blocking), texture scale, pattern repetition.
+   2.6 POST FX
+       - LUT feel, glow/bloom, film grain size, sharpening halo, vignetting radius/intensity.
+
+3) ARTICULATE THE RECREATE PLAN
+   - Draft a structured plan with: composition spec, subject spec, camera & lens spec, lighting rig, color/tone targets, style fingerprint, post‑FX, and guardrails.
+   - Convert to a PROPROMPT (see below) and set drift_limit, preserve_pose, preserve_palette flags.
+
+4) GENERATION (ITERATIVE)
+   - Pass 1: Use `image_gen` with referenced_image_ids + PROPROMPT baseline at native aspect.
+   - Pass 2: N‑shot variation sweep across seeds; keep temperature low; lock pose/palette tokens.
+   - Optional: Inpaint targeted mismatches (hands, text, specular highlights) guided by masks.
+   - Maintain audit: prompt, seeds, steps.
+
+5) MATCHING & REFINEMENT
+   - Compute similarities (if tools available): SSIM (structure), LPIPS (perceptual), CLIP‑I (semantic).
+   - Heuristics if no metrics: diff overlay (soft‑light), histogram delta, edge‑map XOR, palette distance (ΔE).
+   - Adjust: tweak lighting adjectives, material adjectives, color qualifiers before composition terms. Avoid over‑tightening nouns (causes collapse).
+
+6) DELIVERY
+   - Provide top 3 candidates with scores, prompts, seeds, and a short delta report (what differs).
+
+CHECKLIST (HUMAN+AGENT)
+- [ ] Rights verified
+- [ ] Aspect & composition matched
+- [ ] Pose/gesture matched
+- [ ] Palette within tolerance
+- [ ] Light direction & softness matched
+- [ ] Material/specular realism matched
+- [ ] Grain/FX matched
+- [ ] Similarity within threshold; no watermark tampering
+
+TUNING DIALS
+- drift_limit: 0–100 (default 20)
+- pose_lock: true/false (default true)
+- palette_lock: true/false (default true)
+- texture_bias: subtle/medium/strong (default subtle)
+- grain_profile: none/fine/medium/coarse (default fine)
+
+SCHEMA: ANALYSIS (im_recreate.analysis.schema.json)
+{
+  "image_id": "string",
+  "rights": "owned|licensed|unknown",
+  "aspect_ratio": "number",
+  "composition": {"grid":"thirds|golden|symmetry","horizon":"low|mid|high","anchors":[...]},
+  "camera": {"pov":"low|eye|high","fov":"ultrawide|wide|normal|tele|macro","dof":"shallow|medium|deep","bokeh":"circles|catseye|swirl|none"},
+  "subjects": [{"name":"string","bbox":[x,y,w,h],"pose":"string","vks_arcs":["↗","∩","—"]}],
+  "lighting": {"direction":[az,el],"hardness":"soft|hard|mixed","temperature":"warm|neutral|cool","count":1},
+  "palette": {"swatches":["#.."],"dominant":"#..","accents":["#.."],"neutrals":["#.."]},
+  "tone": {"key":"low|normal|high","contrast":"low|med|high","curve":"S|linear"},
+  "materials": ["skin","fabric","metal","glass","foliage", "..."],
+  "style_fx": {"grain":"none|fine|med|coarse","vignette":0–1,"halation":0–1,"ca":"none|mild|strong"},
+  "post_fx": {"lut":"string","glow":0–1,"sharpen":0–1},
+  "notes":"string"
+}
+
+SCHEMA: PLAN (im_recreate.plan.schema.json)
+{
+  "drift_limit": 0,
+  "pose_lock": true,
+  "palette_lock": true,
+  "composition_spec": "...",
+  "subject_spec": "...",
+  "camera_spec": "...",
+  "lighting_spec": "...",
+  "color_tone_spec": "...",
+  "style_fingerprint": "...",
+  "post_fx_spec": "...",
+  "safety": {"watermark_ok": false, "rights_ok": true}
+}
+
+PROPROMPT: IM_RECREATE_V1
+name: IM_RECREATE_V1
+intention: "Generate a near‑match of the provided image while preserving pose, palette, and lighting."
+fields:
+  - subject_spec
+  - composition_spec
+  - camera_spec
+  - lighting_spec
+  - color_tone_spec
+  - material_spec
+  - style_fingerprint
+  - post_fx_spec
+  - drift_limit (0–100)
+template:
+  "Recreate: {subject_spec}. Composition: {composition_spec}. Camera: {camera_spec}. Lighting: {lighting_spec}. Color/Tone: {color_tone_spec}. Materials: {material_spec}. Style: {style_fingerprint}. Post‑FX: {post_fx_spec}. Drift limit {drift_limit}. Keep pose and palette faithful."
+usage:
+  engine: image_gen
+  params:
+    referenced_image_ids: ["<REF_IMAGE_ID>"]
+    prompt: "<filled template>"
+    size: "<match aspect>"
+    n: 4
+
+QUALITY METRICS (targets; adapt if tools absent)
+- SSIM ≥ 0.75, LPIPS ≤ 0.25, palette ΔE ≤ 10, CLIP‑I ≥ 0.95 (owned images may aim higher).
+
+NOTES
+- For people: bias toward preserving bone landmarks; fix hands/eyes last via inpaint.
+- For typography/logos: prefer neutral placeholders unless explicitly allowed by rights check.
+- For painterly works: rely on brushwork adjectives, not artist names.
