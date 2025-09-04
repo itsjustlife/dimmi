@@ -3,8 +3,8 @@ session_start();
 
 $USER = 'admin';
 $PASS = 'admin';
-$ROOT = realpath('/home/arkhivist/itsjustlife.cloud/dimmi');
-$TITLE = 'Dimmi WebEditor (itsjustlife.cloud)';
+$ROOT = realpath(__DIR__ . '/..');
+$TITLE = 'DIMMI CLOUD';
 
 function json_response($data, $code=200) {
     http_response_code($code);
@@ -153,16 +153,19 @@ body{font-family:sans-serif;margin:0;display:flex;flex-direction:column;height:1
 #panels{flex:1;display:flex;overflow:hidden;}
 #folders,#files{width:20%;border-right:1px solid #ccc;overflow:auto;}
 #editor{flex:1;display:flex;flex-direction:column;}
-#editor textarea{flex:1;width:100%;}
 #links{border-top:1px solid #ccc;padding:4px;}
 ul{list-style:none;margin:0;padding:0;}
-li{padding:2px 4px;cursor:pointer;}
+li{padding:2px 4px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+li span{flex:1;}
 li:hover{background:#def;}
+li button{margin-left:4px;}
 #actions button{margin-right:4px;}
+#content{flex:1;width:100%;height:60vh;overflow:auto;}
 </style>
 </head>
 <body>
 <div id="topbar">
+<button onclick="openDir('')">Root</button>
 <div id="breadcrumb"></div>
 <input id="pathjump" placeholder="Jump to path"/>
 <button onclick="jumpPath()">Go</button>
@@ -177,6 +180,8 @@ li:hover{background:#def;}
 <button onclick="deleteEntry()">Delete</button>
 <button onclick="formatContent()">Format</button>
 <button onclick="minifyContent()">Minify</button>
+<button onclick="scrollHome()">Home</button>
+<button onclick="scrollEnd()">End</button>
 </div>
 <textarea id="content"></textarea>
 </div>
@@ -210,16 +215,28 @@ function openDir(path){
         }
         data.items.filter(i=>i.type==='dir').sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
             let li=document.createElement('li');
-            li.textContent=item.name;
-            li.onclick=()=>openDir(item.rel);
+            let span=document.createElement('span');
+            span.textContent=item.name;
+            span.onclick=()=>openDir(item.rel);
+            li.appendChild(span);
+            let btn=document.createElement('button');
+            btn.textContent='✖';
+            btn.onclick=(e)=>{e.stopPropagation();deletePath(item.rel);};
+            li.appendChild(btn);
             ulF.appendChild(li);
         });
         f.appendChild(ulF);
         let ulFile=document.createElement('ul');
         data.items.filter(i=>i.type==='file').sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
             let li=document.createElement('li');
-            li.textContent=item.name;
-            li.onclick=()=>loadFile(item.rel);
+            let span=document.createElement('span');
+            span.textContent=item.name;
+            span.onclick=()=>loadFile(item.rel);
+            li.appendChild(span);
+            let btn=document.createElement('button');
+            btn.textContent='✖';
+            btn.onclick=(e)=>{e.stopPropagation();deletePath(item.rel);};
+            li.appendChild(btn);
             ulFile.appendChild(li);
         });
         fi.appendChild(ulFile);
@@ -262,14 +279,19 @@ function saveFile(){
         body:JSON.stringify({content:document.getElementById('content').value})
     }).then(()=>openDir(currentDir));
 }
+function deletePath(rel){
+    if(!confirm('Delete '+rel+'?')) return;
+    api('index.php?api=delete&path='+encodeURIComponent(rel),{method:'POST'}).then(()=>{
+        if(currentFile===rel){
+            document.getElementById('content').value='';
+            currentFile='';
+        }
+        openDir(currentDir);
+    }).catch(()=>alert('Delete failed'));
+}
 function deleteEntry(){
     if(!currentFile){alert('No file');return;}
-    if(!confirm('Delete '+currentFile+'?')) return;
-    api('index.php?api=delete&path='+encodeURIComponent(currentFile),{method:'POST'}).then(()=>{
-        document.getElementById('content').value='';
-        currentFile='';
-        openDir(currentDir);
-    });
+    deletePath(currentFile);
 }
 function renameFile(){
     if(!currentFile){alert('No file');return;}
@@ -306,6 +328,13 @@ function minifyContent(){
     }else{
         alert('No minifier for this file');
     }
+}
+function scrollHome(){
+    document.getElementById('content').scrollTop=0;
+}
+function scrollEnd(){
+    let c=document.getElementById('content');
+    c.scrollTop=c.scrollHeight;
 }
 function loadLinks(){
     api('index.php?api=read&path='+encodeURIComponent(currentLinksFile)).then(data=>{
