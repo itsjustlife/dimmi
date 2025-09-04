@@ -184,7 +184,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-ap
 .grid{display:grid;grid-template-columns:260px 320px 1fr;gap:8px;height:calc(100% - 56px);padding:8px}
 .panel{background:#121218;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0}
 .head{padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
-.body{padding:8px;overflow:auto}
+.body{padding:8px;overflow:auto;flex:1}
 ul{list-style:none;margin:0;padding:0}
 li{padding:6px;border-radius:8px;cursor:pointer}
 li:hover{background:#181822}
@@ -197,11 +197,15 @@ textarea{width:100%;height:100%;resize:none;background:#0e0e14;color:#e5e5e5;bor
 footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 .crumb a{color:#aee;text-decoration:none;margin-right:6px}
 .crumb a:hover{text-decoration:underline}
+.ctx{position:absolute;background:#1e1e26;border:1px solid var(--line);border-radius:8px;display:none;flex-direction:column;z-index:1000}
+.ctx button{background:none;border:0;padding:6px 12px;text-align:left;color:#ddd;cursor:pointer}
+.ctx button:hover{background:#262631}
 </style>
 
 <div class="top">
   <div class="path" id="rootNote">root: …</div>
   <div class="crumb" id="crumb"></div>
+  <button class="btn" onclick="openDir('')">Home</button>
   <div class="kv" style="margin-left:auto">
     <input id="pathInput" class="input" placeholder="jump to path (rel)">
     <button class="btn" onclick="jump()">Open</button>
@@ -232,17 +236,21 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <button class="btn" onclick="save()" id="saveBtn" disabled>Save</button>
       <button class="btn" onclick="del()"  id="delBtn"  disabled>Delete</button>
     </div>
-    <div class="body" style="padding:0;display:flex;flex-direction:column">
-      <textarea id="ta" placeholder="Open a text file…" disabled></textarea>
+    <div class="body" style="padding:0;display:flex;flex-direction:column;flex:1">
+      <textarea id="ta" placeholder="Open a text file…" disabled style="flex:1"></textarea>
     </div>
   </div>
 </div>
 
+<div id="ctxMenu" class="ctx"><button onclick="ctxRename()">Rename</button><button onclick="ctxDelete()">Delete</button></div>
 <footer><?=$TITLE?></footer>
 <script>
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api = (act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
+const ctxMenu=document.getElementById('ctxMenu');
+let ctxInfo=null;
+document.addEventListener('click',()=>ctxMenu.style.display='none');
 
 function setCrumb(rel){
   const c=document.getElementById('crumb'); c.innerHTML='';
@@ -262,10 +270,17 @@ async function init(){
   openDir('');
 }
 
+function addCtxListeners(li,rel,isDir,name){
+  li.oncontextmenu=e=>showCtx(e,rel,isDir,name);
+  let t; li.onpointerdown=e=>{t=setTimeout(()=>showCtx(e,rel,isDir,name),600);};
+  li.onpointerup=li.onpointerleave=()=>clearTimeout(t);
+}
+
 function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
   li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}</div><small>${isDir?'':fmtSize(size)}</small></div>`;
   li.onclick=()=> isDir? openDir(rel) : openFile(rel,name,size,mtime);
+  addCtxListeners(li,rel,isDir,name);
   return li;
 }
 
@@ -347,6 +362,35 @@ async function uploadFile(inp){
   const fd = new FormData(); fd.append('file', inp.files[0]);
   const r = await (await fetch(`?api=upload&`+new URLSearchParams({path:currentDir}), {method:'POST', headers:{'X-CSRF':CSRF}, body: fd})).json();
   if (!r.ok){ alert(r.error||'upload failed'); return; }
+  openDir(currentDir);
+}
+
+function showCtx(e,rel,isDir,name){
+  e.preventDefault();
+  ctxInfo={rel,isDir,name};
+  ctxMenu.style.display='flex';
+  ctxMenu.style.left=e.pageX+'px';
+  ctxMenu.style.top=e.pageY+'px';
+}
+
+async function ctxRename(){
+  if(!ctxInfo) return;
+  const base = ctxInfo.rel.split('/').slice(0,-1).join('/');
+  const newName = prompt('Rename to:', ctxInfo.name);
+  if(!newName) return;
+  const to = (base?base+'/':'')+newName;
+  const r = await (await fetch(`?api=rename&`+new URLSearchParams({path:ctxInfo.rel}), {method:'POST', headers:{'X-CSRF':CSRF}, body: JSON.stringify({to})})).json();
+  if(!r.ok){ alert(r.error||'rename failed'); return; }
+  if(currentFile===ctxInfo.rel){ currentFile=to; }
+  openDir(currentDir);
+}
+
+async function ctxDelete(){
+  if(!ctxInfo) return;
+  if(!confirm('Delete '+ctxInfo.name+'?')) return;
+  const r = await (await fetch(`?api=delete&`+new URLSearchParams({path:ctxInfo.rel}), {method:'POST', headers:{'X-CSRF':CSRF}})).json();
+  if(!r.ok){ alert(r.error||'delete failed'); return; }
+  if(currentFile===ctxInfo.rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); }
   openDir(currentDir);
 }
 
