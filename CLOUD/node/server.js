@@ -10,7 +10,14 @@ const xml2js = require('xml2js');
 const USER = process.env.WEBEDITOR_USER || 'admin';
 const PASS = process.env.WEBEDITOR_PASS || 'admin';
 const TITLE = 'Dimmi WebEditor (Node)';
-const ROOT = path.resolve(__dirname, '..', '..');
+const ROOT = (() => {
+  if (process.env.WEBEDITOR_ROOT) {
+    return path.resolve(process.env.WEBEDITOR_ROOT);
+  }
+  const sibling = path.resolve(__dirname, '..', '..', 'dimmi');
+  if (fs.existsSync(sibling) && fs.statSync(sibling).isDirectory()) return sibling;
+  return path.resolve(__dirname, '..', '..');
+})();
 const MAX_EDIT = 5 * 1024 * 1024;
 const EDIT_EXTS = ['txt','md','markdown','json','yaml','yml','xml','opml','csv','tsv','ini','conf','py','js','ts','css','html','htm','php'];
 
