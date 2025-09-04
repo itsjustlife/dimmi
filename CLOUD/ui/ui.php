@@ -622,9 +622,6 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 }
 </style>
 
-<?php if($USER==='admin' && $PASS==='admin'): ?>
-<div style="background:#ff0;color:#000;padding:8px;text-align:center;">Warning: default admin credentials</div>
-<?php endif; ?>
 <div class="top">
   <div class="path" id="rootNote">root: …</div>
   <div class="crumb" id="crumb"></div>
