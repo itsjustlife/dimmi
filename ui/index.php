@@ -246,7 +246,7 @@ let currentDir='', currentFile='';
 
 function setCrumb(rel){
   const c=document.getElementById('crumb'); c.innerHTML='';
-  const parts = rel? rel.split('/') : [];
+  const parts = rel? rel.split('/'): [];
   let acc = '';
   const rootA = document.createElement('a'); rootA.textContent='/'; rootA.href='#'; rootA.onclick=(e)=>{e.preventDefault(); openDir('');}; c.appendChild(rootA);
   parts.forEach((p,i)=>{
@@ -359,4 +359,3 @@ async function formatDoc(){
 }
 init();
 </script>
-
