@@ -27,6 +27,18 @@ function is_text($path) {
     return in_array($ext, $whitelist);
 }
 
+function delete_recursive($path) {
+    if (is_dir($path)) {
+        foreach (scandir($path) as $name) {
+            if ($name === '.' || $name === '..') continue;
+            delete_recursive($path . '/' . $name);
+        }
+        rmdir($path);
+    } else {
+        unlink($path);
+    }
+}
+
 function handle_api() {
     global $ROOT;
     if (!isset($_GET['api'])) return;
@@ -82,12 +94,7 @@ function handle_api() {
         case 'delete':
             $abs = safe_abs($path);
             if ($abs===false) json_response(['error'=>'bad path'],400);
-            if (is_dir($abs)) {
-                if (count(scandir($abs))>2) json_response(['error'=>'dir not empty'],400);
-                rmdir($abs);
-            } else {
-                unlink($abs);
-            }
+            delete_recursive($abs);
             json_response(['ok'=>true]);
         case 'rename':
             $abs = safe_abs($path);

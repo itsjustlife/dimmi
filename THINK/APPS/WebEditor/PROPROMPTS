@@ -1,5 +1,5 @@
 - Add proper YAML formatting and minify support using an inline parser.
 - Embed link references directly in OPML notes instead of using sidecar files.
 - Move credentials into a separate config to support multiple users.
-- Allow recursive deletion of directories with a confirmation step.
+- Explore a trash/undo mechanism for deletions now that directories can be removed recursively.
 - Investigate porting DIMMI CLOUD to a Python-based modular GUI shared with other apps.
