@@ -1,30 +1,14 @@
 # WebEditor
 
-A simple Flask-based file browser and editor. Authentication is handled via a small token system in `auth.py`.
+A single-file PHP WebEditor for browsing and editing files inside the repo.
 
-## Quick start
+## Features
+- Session-based login (defaults admin/admin; edit credentials at top of `ui/index.php`)
+- Path jail that prevents escaping the repository root
+- Breadcrumb navigation with a quick-jump path input
+- Rename confirmation that allows moving files by entering a new path
+- Formatting helpers for JSON and OPML (YAML support still pending)
+- Links pane that saves cross-document links in `.links.json` files
 
-1. Install the Python packages:
-   ```bash
-   pip install flask gunicorn
-   ```
-2. Run the server:
-   ```bash
-   ./run_server.sh
-   ```
-   This uses `gunicorn` to serve `server:app` on port 8000.
-
-## Running on itsjustlife.cloud
-
-To run this app on the cloud server:
-
-1. SSH into the machine:
-   ```bash
-   ssh <your-user>@itsjustlife.cloud
-   ```
-2. Navigate to the project folder and start the server:
-   ```bash
-   cd /path/to/dimmi/THINK/APPS/WebEditor
-   ./run_server.sh
-   ```
-   The app will listen on `http://localhost:8000`. Use a reverse proxy like Nginx if you need a public URL.
+## Usage
+Place `ui/index.php` on a PHP-enabled host and set the `$ROOT` variable to your repository path. No extra dependencies are required.
