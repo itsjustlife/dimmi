@@ -8,7 +8,11 @@
 /* ====== CONFIG ====== */
 $CONFIG = [
   'title' => 'Dimmi WebEditor',
-  'root'  => '/home/arkhivist/itsjustlife.cloud/dimmi',
+  'root'  => (function () {
+    $try = realpath(__DIR__ . '/..');
+    if ($try && is_dir($try)) return $try;
+    return realpath('/home/arkhivist/itsjustlife.cloud/dimmi');
+  })(),
   'editable_exts' => ['txt','md','markdown','json','yaml','yml','xml','opml','csv','tsv','ini','conf','py','js','ts','css','html','htm','php'],
   'ignore_dirs' => ['.git','node_modules','.history','.cache'],
   'max_edit' => 5*1024*1024,
@@ -491,7 +495,7 @@ if (isset($_GET['api'])) {
 
 /* ====== HTML (UI) ====== */
 if (!$authed): ?>
-<!doctype html><meta charset="utf-8"><title><?=$TITLE?> — Login</title>
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?=$TITLE?> — Login</title>
 <style>
 body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:#0f0f12;color:#e5e5e5;display:grid;place-items:center;height:100dvh;margin:0}
 .card{background:#141418;border:1px solid #2e2e36;padding:24px;border-radius:16px;min-width:280px}
@@ -512,7 +516,7 @@ button{width:100%;padding:10px 12px;background:#1e1e26;border:1px solid #3a3a46;
   </form>
 </div>
 <?php exit; endif; ?>
-<!doctype html><meta charset="utf-8"><title><?=$TITLE?></title>
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?=$TITLE?></title>
 <style>
 /* ---------- Design tokens (unified) ---------- */
 :root{
