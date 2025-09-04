@@ -8,11 +8,8 @@
 /* ====== CONFIG ====== */
 $CONFIG = [
   'title' => 'Dimmi WebEditor',
-  'root' => (function () {
-    $try = realpath(dirname(__DIR__, 2));
-    if ($try && is_dir($try)) return $try;
-    return realpath('/home/arkhivist/itsjustlife.cloud/dimmi');
-  })(),
+  // Fixed root path so the server always opens the right directory
+  'root' => '/home/arkhivist/itsjustlife.cloud/dimmi',
   'editable_exts' => ['txt','md','markdown','json','yaml','yml','xml','opml','csv','tsv','ini','conf','py','js','ts','css','html','htm','php'],
   'ignore_dirs' => ['.git','node_modules','.history','.cache'],
   'max_edit' => 5*1024*1024,
