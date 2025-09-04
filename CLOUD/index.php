@@ -117,8 +117,9 @@ if (isset($_GET['api'])) {
   }
 
   if ($action==='rename' && $method==='POST') {
+    // [PATCH] accept {to} or {name}; both are used in front-ends
     $data=json_decode(file_get_contents('php://input'),true);
-    $to=trim(($data['to']??''),'/'); if($to==='') bad('Missing target');
+    $to=trim(($data['to'] ?? $data['name'] ?? ''),'/'); if($to==='') bad('Missing target');
     $dst=safe_abs($to); if($dst===false) bad('Invalid target');
     $ok = @rename($abs,$dst); audit('rename',$path,$ok,"-> ".rel_of($dst)); j(['ok'=>$ok]);
   }
@@ -149,6 +150,32 @@ if (isset($_GET['api'])) {
       j(['ok'=>true,'content'=>$dom->saveXML()]);
     }
     bad('Unsupported for format',400);
+  }
+
+  // [PATCH] OPML → JSON tree for STRUCTURE panel
+  if ($action==='opml_tree') {
+    $file = $_GET['file'] ?? $_POST['file'] ?? '';
+    $fileAbs = safe_abs($file);
+    if ($fileAbs===false || !is_file($fileAbs)) bad('Bad file');
+    $ext = strtolower(pathinfo($fileAbs, PATHINFO_EXTENSION));
+    if (!in_array($ext, ['opml','xml'])) bad('Not OPML/XML',415);
+    $xml = @file_get_contents($fileAbs); if ($xml===false) bad('Read error',500);
+    if (!class_exists('DOMDocument')) bad('DOM extension missing',500);
+    libxml_use_internal_errors(true);
+    $dom=new DOMDocument('1.0','UTF-8'); $dom->preserveWhiteSpace=false;
+    if (!$dom->loadXML($xml, LIBXML_NONET)) bad('Invalid OPML/XML',422);
+    $body = $dom->getElementsByTagName('body')->item(0);
+    $walk = function($node) use (&$walk){
+      $out=[]; foreach($node->childNodes as $c){
+        if ($c->nodeType!==XML_ELEMENT_NODE || strtolower($c->nodeName)!=='outline') continue;
+        $t = $c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
+        $item = ['t'=>$t, 'children'=>[]];
+        if ($c->hasChildNodes()) $item['children']=$walk($c);
+        $out[]=$item;
+      } return $out;
+    };
+    $tree = $body? $walk($body) : [];
+    j(['ok'=>true,'tree'=>$tree]);
   }
 
   bad('Unknown action',404);
@@ -220,10 +247,19 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
     <div class="body"><ul id="folderList"></ul></div>
   </div>
   <div class="panel">
-    <div class="head"><strong>STRUCTURE</strong><button class="btn" onclick="newFilePrompt()">+ File</button>
+    <div class="head"><strong>STRUCTURE</strong>
+      <button class="btn" onclick="newFilePrompt()">+ File</button>
       <label class="btn" style="position:relative;overflow:hidden">Upload<input type="file" style="position:absolute;inset:0;opacity:0" onchange="uploadFile(this)"></label>
+      <!-- [PATCH] List / Tree toggle -->
+      <span style="margin-left:auto; display:flex; gap:6px">
+        <button class="btn small" id="structListBtn" type="button">List</button>
+        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
+      </span>
     </div>
-    <div class="body"><ul id="fileList"></ul></div>
+    <div class="body" style="position:relative">
+      <ul id="fileList"></ul>
+      <div id="opmlTreeWrap" style="display:none; position:absolute; inset:8px; overflow:auto"></div>
+    </div>
   </div>
   <div class="panel">
     <div class="editorbar">
@@ -232,7 +268,6 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <span class="tag mono" id="fileSize"></span>
       <span class="tag" id="fileWhen"></span>
       <div style="margin-left:auto"></div>
-      <button class="btn" onclick="formatDoc()" id="fmtBtn" disabled>Format</button>
       <button class="btn" onclick="save()" id="saveBtn" disabled>Save</button>
       <button class="btn" onclick="del()" id="delBtn" disabled>Delete</button>
     </div>
@@ -247,6 +282,14 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
+const listBtn=document.getElementById('structListBtn');
+const treeBtn=document.getElementById('structTreeBtn');
+const treeWrap=document.getElementById('opmlTreeWrap');
+const fileList=document.getElementById('fileList');
+if(listBtn && treeBtn){
+  listBtn.onclick=()=>hideTree();
+  treeBtn.onclick=()=>showTree();
+}
 
 function crumb(rel){
   const c=document.getElementById('crumb'); c.innerHTML='';
@@ -283,7 +326,10 @@ async function openFile(rel,name,size,mtime){
   const r=await (await api('read',{path:rel})).json(); const ta=document.getElementById('ta');
   if(!r.ok){ alert(r.error||'Cannot open'); ta.value=''; ta.disabled=true; btns(false); return; }
   ta.value=r.content; ta.disabled=false; btns(true);
-  const ext=name.toLowerCase().split('.').pop(); document.getElementById('fmtBtn').disabled=!['json','xml','opml'].includes(ext);
+  // [PATCH] enable Tree toggle if an OPML is open
+  const ext=name.toLowerCase().split('.').pop();
+  document.getElementById('structTreeBtn').disabled = !['opml','xml'].includes(ext);
+  hideTree(); // default to list on open
 }
 function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; }
 async function save(){
@@ -329,7 +375,12 @@ async function uploadFolder(inp){
 async function renameItem(ev,rel){
   ev.stopPropagation();
   const name=prompt('Rename to:'); if(!name) return;
-  const r=await (await fetch(`?api=rename&`+new URLSearchParams({path:rel}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
+  // [PATCH] send {to: newRel}
+  const dir = rel.split('/').slice(0,-1).join('/');
+  const target = (dir? dir+'/' : '') + name.replace(/^\/+/,'');
+  const r=await (await fetch(`?api=rename&`+new URLSearchParams({path:rel}),{
+    method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:target})
+  })).json();
   if(!r.ok){alert(r.error||'rename failed');return;} openDir(currentDir);
 }
 
@@ -341,10 +392,41 @@ async function deleteItem(ev,rel){
   if(currentFile===rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); currentFile=''; }
   openDir(currentDir);
 }
-async function formatDoc(){
-  if(!currentFile) return; const body=JSON.stringify({content:document.getElementById('ta').value});
-  const r=await (await fetch(`?api=format&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF},body})).json();
-  if(!r.ok){alert(r.error||'format failed');return;} document.getElementById('ta').value=r.content;
+// [PATCH] STRUCTURE Tree: render + toggle
+function hideTree(){ if(treeWrap) treeWrap.style.display='none'; if(fileList) fileList.style.visibility='visible'; }
+function showTree(){
+  if(treeBtn && treeBtn.disabled) return;
+  if(treeWrap) treeWrap.style.display='block';
+  if(fileList) fileList.style.visibility='hidden';
+  loadTree();
+}
+function renderTree(nodes){
+  const wrap=document.createElement('div'); wrap.style.lineHeight='1.35'; wrap.style.fontSize='14px';
+  const ul=(arr)=>{
+    const u=document.createElement('ul'); u.style.listStyle='none'; u.style.paddingLeft='14px'; u.style.margin='6px 0';
+    for(const n of arr){
+      const li=document.createElement('li');
+      const row=document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem';
+      const has=n.children && n.children.length;
+      const caret=document.createElement('span'); caret.textContent=has?'▸':'•'; caret.style.cursor=has?'pointer':'default';
+      const title=document.createElement('span'); title.textContent=n.t;
+      row.appendChild(caret); row.appendChild(title); li.appendChild(row);
+      if(has){ const child=ul(n.children); child.style.display='none'; li.appendChild(child);
+        row.onclick=()=>{ child.style.display=child.style.display==='none'?'block':'none'; caret.textContent=child.style.display==='none'?'▸':'▾'; };
+      }
+      u.appendChild(li);
+    }
+    return u;
+  };
+  wrap.appendChild(ul(nodes));
+  if(treeWrap) treeWrap.replaceChildren(wrap);
+}
+async function loadTree(){
+  try{
+    const r=await (await api('opml_tree',{ file: currentFile })).json();
+    if(!r.ok){ if(treeWrap) treeWrap.textContent=r.error||'OPML parse error.'; return; }
+    renderTree(r.tree||[]);
+  }catch(e){ if(treeWrap) treeWrap.textContent='OPML load error.'; }
 }
 init();
 </script>

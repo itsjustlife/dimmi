@@ -116,7 +116,7 @@ if (isset($_GET['api'])) {
   if ($action==='rename' && $method==='POST') {
     $data=json_decode(file_get_contents('php://input'),true);
     $src = trim(($data['old'] ?? $data['from'] ?? $path),'/');
-    $to  = trim(($data['new'] ?? $data['to'] ?? $data['target'] ?? ''),'/');
+    $to  = trim(($data['new'] ?? $data['to'] ?? $data['name'] ?? $data['target'] ?? ''),'/');
     if ($src==='' || $to==='') bad('Missing old/new');
     $srcAbs = safe_abs($src); $dst = safe_abs($to); if($srcAbs===false || $dst===false) bad('Invalid target');
     $ok = @rename($srcAbs,$dst); audit('rename',$src,$ok,"-> ".rel_of($dst)); j(['ok'=>$ok]);
@@ -211,6 +211,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-ap
 .kv{display:flex;gap:8px;align-items:center}
 .input{padding:6px 8px;background:#0e0e14;border:1px solid var(--line);color:#fff;border-radius:8px}
 .btn{padding:6px 10px;border:1px solid var(--line);background:#181822;border-radius:8px;color:#ddd;cursor:pointer}
+.btn.small{padding:2px 4px;font-size:12px}
 .grid{display:grid;grid-template-columns:260px 320px 1fr;gap:8px;height:calc(100% - 56px);padding:8px}
 .panel{background:#121218;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0}
 .head{padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
@@ -251,14 +252,15 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 
   <div class="panel">
     <div class="head"><strong>STRUCTURE</strong>
-      <span style="font-weight:400;margin-left:.5rem">
-        <button class="btn" id="structListBtn" type="button">List</button>
-        <button class="btn" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
-      </span>
       <button class="btn" onclick="newFilePrompt()">+ File</button>
       <label class="btn" style="position:relative;overflow:hidden">Upload<input type="file" style="position:absolute;inset:0;opacity:0" onchange="uploadFile(this)"></label>
+      <!-- [PATCH] List / Tree toggle -->
+      <span style="margin-left:auto; display:flex; gap:6px">
+        <button class="btn small" id="structListBtn" type="button">List</button>
+        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
+      </span>
     </div>
-    <div class="body"><ul id="fileList"></ul><div id="opmlTreeWrap" style="display:none; padding:.5rem .75rem .75rem .5rem; max-height:calc(100% - 2.5rem); overflow:auto;"></div></div>
+    <div class="body" style="position:relative"><ul id="fileList"></ul><div id="opmlTreeWrap" style="display:none; position:absolute; inset:8px; overflow:auto"></div></div>
   </div>
 
   <div class="panel">
@@ -267,7 +269,6 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <span class="tag mono" id="fileSize"></span>
       <span class="tag" id="fileWhen"></span>
       <div style="margin-left:auto"></div>
-      <button class="btn" onclick="formatDoc()" id="fmtBtn" disabled>Format</button>
       <button class="btn" onclick="save()" id="saveBtn" disabled>Save</button>
       <button class="btn" onclick="del()"  id="delBtn"  disabled>Delete</button>
     </div>
@@ -287,10 +288,8 @@ const listBtn=document.getElementById('structListBtn');
 const treeBtn=document.getElementById('structTreeBtn');
 const treeWrap=document.getElementById('opmlTreeWrap');
 const fileList=document.getElementById('fileList');
-if(listBtn && treeBtn){
-  listBtn.onclick=()=>{ if(treeWrap) treeWrap.style.display='none'; if(fileList) fileList.style.display=''; };
-  treeBtn.onclick=()=>{ if(treeBtn.disabled) return; if(fileList) fileList.style.display='none'; if(treeWrap) { treeWrap.style.display='block'; loadTree(); } };
-}
+listBtn.onclick = ()=> hideTree();
+treeBtn.onclick = ()=> showTree();
 const ctxMenu=document.getElementById('ctxMenu');
 let ctxInfo=null;
 document.addEventListener('click',()=>ctxMenu.style.display='none');
@@ -361,16 +360,10 @@ async function openFile(rel,name,size,mtime){
   const ta = document.getElementById('ta');
   if (!r.ok){ alert(r.error||'Cannot open'); ta.value=''; ta.disabled=true; btns(false); return; }
   ta.value = r.content; ta.disabled = false; btns(true);
-  // enable Format for json/xml/opml
+  // [PATCH] enable Tree toggle if an OPML is open
   const ext = name.toLowerCase().split('.').pop();
-  document.getElementById('fmtBtn').disabled = !['json','xml','opml'].includes(ext);
-  if(treeBtn){
-    treeBtn.disabled = ext!=='opml';
-    if(treeBtn.disabled){
-      if(treeWrap) treeWrap.style.display='none';
-      if(fileList) fileList.style.display='';
-    }
-  }
+  document.getElementById('structTreeBtn').disabled = !['opml','xml'].includes(ext);
+  hideTree(); // default to list on open
 }
 
 function btns(on){
@@ -449,12 +442,13 @@ async function ctxDelete(){
   openDir(currentDir);
 }
 
-async function formatDoc(){
-  if (!currentFile) return;
-  const body = JSON.stringify({content: document.getElementById('ta').value});
-  const r = await (await fetch(`?api=format&`+new URLSearchParams({path:currentFile}), {method:'POST', headers:{'X-CSRF':CSRF}, body})).json();
-  if (!r.ok){ alert(r.error||'format failed'); return; }
-  document.getElementById('ta').value = r.content;
+// [PATCH] STRUCTURE Tree: render + toggle
+function hideTree(){ if(treeWrap) treeWrap.style.display='none'; if(fileList) fileList.style.visibility='visible'; }
+function showTree(){
+  if(treeBtn && treeBtn.disabled) return;
+  if(treeWrap) treeWrap.style.display='block';
+  if(fileList) fileList.style.visibility='hidden';
+  loadTree();
 }
 
 function renderTree(nodes){
