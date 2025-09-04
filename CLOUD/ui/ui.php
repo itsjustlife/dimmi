@@ -8,11 +8,8 @@
 /* ====== CONFIG ====== */
 $CONFIG = [
   'title' => 'Dimmi WebEditor',
-  'root'  => (function () {
-    // Adjusted for new location under CLOUD/ui
-    $try = realpath(__DIR__ . '/../../dimmi');
-    if ($try && is_dir($try)) return $try;
-    $try = realpath(__DIR__ . '/../../');
+  'root' => (function () {
+    $try = realpath(dirname(__DIR__, 2));
     if ($try && is_dir($try)) return $try;
     return realpath('/home/arkhivist/itsjustlife.cloud/dimmi');
   })(),
