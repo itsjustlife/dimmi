@@ -83,22 +83,22 @@ function normalize_rel($rel) {
 }
 function safe_abs($rel) {
   global $CONFIG;
-  $root = rtrim($CONFIG['root'],'/');
-  if (!is_dir($root)) return false;
+  $root    = rtrim($CONFIG['root'], '/');
+  $rootReal = realpath($root);
+  if ($rootReal === false || !is_dir($rootReal)) return false;
   $norm = normalize_rel($rel);
   if ($norm === false) return false;
-  $abs  = $root . ($norm !== '' ? '/'.$norm : '');
-  // For existing paths, rely on realpath; for non-existent, validate parent dir
+  $abs = $root . ($norm !== '' ? '/' . $norm : '');
+  // For existing paths, compare real paths against canonical root
   if (file_exists($abs)) {
     $real = realpath($abs);
-    return (strpos($real, $root) === 0) ? $real : false;
-  } else {
-    $dir  = dirname($abs);
-    $rdir = realpath($dir);
-    if ($rdir === false) return false;
-    if (strpos($rdir, $root) !== 0) return false;
-    return $rdir . '/' . basename($abs);
+    return (strpos($real, $rootReal) === 0) ? $real : false;
   }
+  // For non-existent paths, validate the parent directory
+  $dir  = dirname($abs);
+  $rdir = realpath($dir);
+  if ($rdir === false || strpos($rdir, $rootReal) !== 0) return false;
+  return $rdir . '/' . basename($abs);
 }
 function rel_of($abs){ global $CONFIG; return trim(str_replace(rtrim($CONFIG['root'],'/'), '', $abs), '/'); }
 function audit($action,$rel,$ok=true,$extra=''){         // append to .webeditor.log
@@ -123,7 +123,11 @@ if (isset($_GET['api'])) {
     if ($hdr !== ($_SESSION['csrf'] ?? '')) bad('CSRF',403);
   }
 
-  if ($action==='whereami') j(['ok'=>true,'root'=>$CONFIG['root']]);
+  if ($action==='whereami') {
+    $root = $CONFIG['root'];
+    $rootReal = realpath($root);
+    j(['ok'=>true,'root'=>$root,'root_real'=>$rootReal,'exists'=>($rootReal!==false)]);
+  }
 
   if ($action==='list') {
     if (!is_dir($abs)) bad('Not a directory');
@@ -889,7 +893,7 @@ function setCrumb(rel){
 
 async function init(){
   const info = await (await api('whereami')).json();
-  rootNote.textContent = 'root: ' + (info.root || '(unset)');
+  rootNote.textContent = 'root: ' + (info.root_real || info.root || '(unset)');
   openDir('');
   if(localStorage.getItem('sessionExpired')){
     toast('Session expired','err');
@@ -916,7 +920,7 @@ async function openDir(rel){
   // left: folders
   const FL=document.getElementById('folderList'); FL.innerHTML='';
   const r = await (await api('list',{path:currentDir})).json();
-  if (!r.ok){ alert(r.error||'list failed'); return; }
+  if (!r.ok){ toast(r.error||'list failed','err'); return; }
   if (currentDir){
     const up = currentDir.split('/').slice(0,-1).join('/');
     const li = document.createElement('li'); li.textContent='⬆️ ..'; li.onclick=()=>openDir(up); FL.appendChild(li);
