@@ -404,6 +404,18 @@ button{width:100%;padding:10px 12px;background:#1e1e26;border:1px solid #3a3a46;
   --gap:10px; --radius:12px; --focus:#7cc9ff66; --top-h:52px; --tabs-h:58px;
   --tabs-space:0px; /* filled on mobile via media query */
 }
+/* [UX PATCH] Light theme overrides */
+:root[data-theme="light"]{
+  --bg:#f6f7fb; --panel:#ffffff; --line:#dfe3ea; --text:#16181d;
+  --muted:#5c6b7c; --accent:#146ca8; --danger:#d81d2b; --ok:#118a3a;
+}
+/* Prefer system when auto */
+@media (prefers-color-scheme: light){
+  :root[data-theme="auto"]{
+    --bg:#f6f7fb; --panel:#ffffff; --line:#dfe3ea; --text:#16181d;
+    --muted:#5c6b7c; --accent:#146ca8; --danger:#d81d2b; --ok:#118a3a;
+  }
+}
 *{box-sizing:border-box} html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif; padding-bottom:var(--tabs-space);}
 .top{position:sticky;top:0;z-index:5;display:flex;gap:12px;align-items:center;padding:10px;height:var(--top-h);border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(18,18,24,.95),rgba(18,18,24,.85))}
@@ -428,11 +440,23 @@ small{opacity:.6}
 .mono{font-family:ui-monospace,Consolas,monospace}
 textarea{width:100%;height:100%;flex:1;min-height:220px;resize:none;background:#0e0e14;color:#e5e5e5;border:0;padding:14px;font-family:ui-monospace,Consolas,monospace}
 footer{position:fixed;right:10px;bottom:8px;opacity:.5}
-.crumb a{color:#aee;text-decoration:none;margin-right:6px}
-.crumb a:hover{text-decoration:underline}
-.ctx{position:absolute;background:#1e1e26;border:1px solid var(--line);border-radius:8px;display:none;flex-direction:column;z-index:1000}
-.ctx button{background:none;border:0;padding:6px 12px;text-align:left;color:#ddd;cursor:pointer}
-.ctx button:hover{background:#262631}
+.crumb a{color:#aee;text-decoration:none;margin-right:6px}.crumb a:hover{text-decoration:underline}
+/* [UX PATCH] Toasts */
+#toasts{position:fixed; right:12px; bottom:12px; display:flex; flex-direction:column; gap:8px; z-index:20}
+.toast{min-width:220px; max-width:340px; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#1a1c28cc; color:var(--text); backdrop-filter:blur(8px);
+  animation: slideIn .18s ease-out}
+.toast.ok{border-color:rgba(125,227,154,.5)}
+.toast.err{border-color:rgba(216,29,43,.5)}
+.toast .tmsg{font-size:13px}
+.toast .tbar{display:flex; justify-content:space-between; gap:8px; align-items:center}
+.toast .tbtn{border:0;background:transparent;color:var(--muted);cursor:pointer}
+@keyframes slideIn{from{transform:translateY(6px);opacity:.0} to{transform:translateY(0);opacity:1}}
+/* [UX PATCH] Context menu */
+#ctx{position:fixed; z-index:30; display:none; min-width:160px; background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#ctx button{display:block; width:100%; text-align:left; padding:10px 12px; border:0; background:transparent; color:var(--text); cursor:pointer}
+#ctx button:hover{background:#181822}
+/* [UX PATCH] Pull hint */
+.pullHint{position:absolute; top:-34px; left:0; right:0; height:24px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:12px}
 /* ---------- Mobile layout ---------- */
 @media (max-width: 900px){
   :root{ --tabs-space: calc(var(--tabs-h) + env(safe-area-inset-bottom)); }
@@ -459,6 +483,12 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
   <div class="kv" style="margin-left:auto">
     <input id="pathInput" class="input" placeholder="jump to path (rel)">
     <button class="btn" onclick="jump()">Open</button>
+    <!-- [UX PATCH] Theme switcher -->
+    <select id="themeSel" class="input" style="width:120px">
+      <option value="dark">Dark</option>
+      <option value="auto">Auto</option>
+      <option value="light">Light</option>
+    </select>
     <a class="btn" href="?logout=1">Logout</a>
   </div>
 </div>
@@ -468,7 +498,10 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
     <div class="head"><strong>FIND</strong><button class="btn" onclick="mkdirPrompt()">+ Folder</button>
       <label class="btn only-desktop" style="position:relative;overflow:hidden">Upload Folder<input type="file" webkitdirectory multiple style="position:absolute;inset:0;opacity:0" onchange="uploadFolder(this)"></label>
     </div>
-    <div class="body"><ul id="folderList"></ul></div>
+    <div class="body" style="position:relative">
+      <div class="pullHint">↓ Pull to refresh</div>
+      <ul id="folderList"></ul>
+    </div>
   </div>
 
   <div class="panel" id="paneStruct">
@@ -482,6 +515,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       </span>
     </div>
     <div class="body" style="position:relative">
+      <div class="pullHint">↓ Pull to refresh</div>
       <ul id="fileList"></ul>
       <div id="opmlTreeWrap" style="display:none; position:absolute; inset:8px; overflow:auto"></div>
       <div id="treeTools" class="row" style="display:none; gap:6px; margin-top:6px">
@@ -540,8 +574,13 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
     <svg viewBox="0 0 24 24" fill="none"><path d="M5 5h14v14H5z" stroke="currentColor" stroke-width="2"/><path d="M8 9h8M8 13h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Content
   </button>
 </nav>
-
-<div id="ctxMenu" class="ctx"><button onclick="ctxRename()">Rename</button><button onclick="ctxDelete()">Delete</button></div>
+<!-- [UX PATCH] Toast stack & context menu -->
+<div id="toasts"></div>
+<div id="ctx" role="menu">
+  <button data-act="open">Open</button>
+  <button data-act="rename">Rename</button>
+  <button data-act="delete">Delete</button>
+</div>
 <footer><?=$TITLE?></footer>
 <script>
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
@@ -561,6 +600,89 @@ window.addEventListener('resize', ()=>{ isMobile = window.matchMedia('(max-width
 tabFind.onclick   = ()=> setPane('Find');
 tabStruct.onclick = ()=> setPane('Struct');
 tabContent.onclick= ()=> setPane('Content');
+
+/* ==================== UX PATCH: toasts, theme, shortcuts, pull, context ==================== */
+// Toasts
+function toast(msg, kind='info', secs=2.6){
+  const box=document.getElementById('toasts');
+  const t=document.createElement('div'); t.className='toast ' + (kind==='ok'?'ok':kind==='err'?'err':'');
+  t.innerHTML=`<div class="tbar"><span class="tmsg">${escapeHtml(msg)}</span><button class="tbtn" aria-label="close">✕</button></div>`;
+  box.appendChild(t);
+  const close=()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),180); };
+  t.querySelector('.tbtn').onclick=close;
+  setTimeout(close, secs*1000);
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+// Make any legacy alert() show as toast
+window.alert = (m)=>toast(String(m));
+
+// Theme switcher
+const themeSel = document.getElementById('themeSel');
+function setTheme(v){ document.documentElement.setAttribute('data-theme', v); localStorage.setItem('theme', v); }
+themeSel.onchange = ()=> setTheme(themeSel.value);
+setTheme(localStorage.getItem('theme') || 'dark'); themeSel.value = localStorage.getItem('theme') || 'dark';
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e)=>{
+  const tag = (e.target.tagName||'').toLowerCase();
+  const inField = tag==='input' || tag==='textarea' || e.target.isContentEditable;
+  // Cmd/Ctrl+S: save
+  if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s') { e.preventDefault(); save(); }
+  // F: focus jump
+  if (!inField && e.key.toLowerCase()==='f') { e.preventDefault(); document.getElementById('pathInput').focus(); }
+  // 1/2/3: switch panes
+  if (!inField && ['1','2','3'].includes(e.key)) {
+    e.preventDefault();
+    if (e.key==='1') setPane('Find');
+    if (e.key==='2') setPane('Struct');
+    if (e.key==='3') setPane('Content');
+  }
+});
+
+// Pull-to-refresh (mobile lists)
+for (const body of document.querySelectorAll('.panel .body')){
+  let startY=0, pulling=false;
+  body.addEventListener('touchstart', (e)=>{ if(!isMobile) return; startY = e.touches[0].clientY; pulling=false; }, {passive:true});
+  body.addEventListener('touchmove', (e)=>{
+    if(!isMobile) return;
+    const dy = e.touches[0].clientY - startY;
+    if (body.scrollTop<=0 && dy>40){ body.querySelector('.pullHint')?.style.setProperty('color', 'var(--accent)'); pulling=true; }
+  }, {passive:true});
+  body.addEventListener('touchend', ()=>{
+    if(!isMobile) return;
+    body.querySelector('.pullHint')?.style.removeProperty('color');
+    if (pulling){
+      pulling=false;
+      if (body.contains(document.getElementById('folderList'))) openDir(currentDir);
+      else if (body.contains(document.getElementById('fileList'))) openDir(currentDir);
+      toast('Refreshed ✓','ok',1.4);
+    }
+  });
+}
+
+// Context menu (right-click / long press)
+const ctx = document.getElementById('ctx');
+let ctxTarget = null;
+function showCtx(x,y, target){ ctxTarget=target; ctx.style.display='block'; positionCtx(x,y); }
+function hideCtx(){ ctx.style.display='none'; ctxTarget=null; }
+function positionCtx(x,y){
+  const r=ctx.getBoundingClientRect(); const W=innerWidth, H=innerHeight;
+  ctx.style.left = Math.min(x, W - r.width - 8) + 'px';
+  ctx.style.top  = Math.min(y, H - r.height - 8) + 'px';
+}
+document.addEventListener('click', (e)=>{ if(e.target.closest('#ctx')) return; hideCtx(); });
+ctx.addEventListener('click', (e)=>{
+  const act = e.target.dataset.act; if(!act || !ctxTarget) return;
+  const {rel,isDir,name,size,mtime} = ctxTarget.dataset;
+  if (act==='open'){
+    if (isDir==='1') openDir(rel); else openFile(rel,name,Number(size)||0,Number(mtime)||0);
+  } else if (act==='rename'){
+    renameItem(new Event('noop'), rel);
+  } else if (act==='delete'){
+    deleteItem(new Event('noop'), rel);
+  }
+  hideCtx();
+});
 const structListBtn=document.getElementById('structListBtn');
 const structTreeBtn=document.getElementById('structTreeBtn');
 const treeWrap=document.getElementById('opmlTreeWrap');
@@ -581,9 +703,6 @@ const newLinkLabel=document.getElementById('newLinkLabel');
 const newLinkHref=document.getElementById('newLinkHref');
 const newLinkTags=document.getElementById('newLinkTags');
 const addLinkBtn=document.getElementById('addLinkBtn');
-const ctxMenu=document.getElementById('ctxMenu');
-let ctxInfo=null;
-document.addEventListener('click',()=>ctxMenu.style.display='none');
 
 function setCrumb(rel){
   const c=document.getElementById('crumb'); c.innerHTML='';
@@ -603,17 +722,16 @@ async function init(){
   openDir('');
 }
 
-function addCtxListeners(li,rel,isDir,name){
-  li.oncontextmenu=e=>showCtx(e,rel,isDir,name);
-  let t; li.onpointerdown=e=>{t=setTimeout(()=>showCtx(e,rel,isDir,name),600);};
-  li.onpointerup=li.onpointerleave=()=>clearTimeout(t);
-}
-
 function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
   li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}</div><small>${isDir?'':fmtSize(size)}</small></div>`;
   li.onclick=()=> isDir? openDir(rel) : openFile(rel,name,size,mtime);
-  addCtxListeners(li,rel,isDir,name);
+  const row = li.querySelector('.row') || li;
+  row.dataset.rel=rel; row.dataset.isDir=isDir? '1':'0'; row.dataset.name=name; row.dataset.size=size; row.dataset.mtime=mtime;
+  li.addEventListener('contextmenu', (e)=>{ e.preventDefault(); showCtx(e.clientX, e.clientY, row); });
+  let t=null;
+  li.addEventListener('touchstart', (e)=>{ if(!isMobile) return; t=setTimeout(()=>{ const touch=e.touches[0]; showCtx(touch.clientX, touch.clientY, row); }, 500); }, {passive:true});
+  li.addEventListener('touchend', ()=>{ if(t){ clearTimeout(t); t=null; } }, {passive:true});
   return li;
 }
 
@@ -663,93 +781,67 @@ async function save(){
   if (!currentFile) return;
   const body = JSON.stringify({content: document.getElementById('ta').value});
   const r = await (await fetch(`?api=write&`+new URLSearchParams({path:currentFile}), {method:'POST', headers:{'X-CSRF':CSRF}, body})).json();
-  if (!r.ok){ alert(r.error||'Save failed'); return; }
-  alert('Saved');
+  if (!r.ok){ toast(r.error||'Save failed','err'); return; }
+  toast('Saved ✓','ok');
 }
 
 async function del(){
-  if (!currentFile) return;
-  if (!confirm('Delete this file?')) return;
+  if(!currentFile) return; if(!confirm('Delete this file?')) return;
   const r = await (await fetch(`?api=delete&`+new URLSearchParams({path:currentFile}), {method:'POST', headers:{'X-CSRF':CSRF}})).json();
-  if (!r.ok){ alert(r.error||'Delete failed'); return; }
-  ta.value=''; ta.disabled=true; btns(false); openDir(currentDir);
+  if (!r.ok){ toast(r.error||'Delete failed','err'); return; }
+  ta.value=''; ta.disabled=true; btns(false); openDir(currentDir); toast('Deleted','ok');
 }
 
 async function mkdirPrompt(){
-  const name = prompt('New folder name:'); if(!name) return;
-  const r = await (await fetch(`?api=mkdir&`+new URLSearchParams({path:currentDir}), {method:'POST', headers:{'X-CSRF':CSRF}, body: JSON.stringify({name})})).json();
-  if (!r.ok){ alert(r.error||'mkdir failed'); return; }
-  openDir(currentDir);
+  const name=prompt('New folder name:'); if(!name) return;
+  const r=await (await fetch(`?api=mkdir&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
+  if(!r.ok){ toast(r.error||'mkdir failed','err'); return; } openDir(currentDir); toast('Folder created','ok');
 }
 
 async function newFilePrompt(){
-  let name = prompt('New file name:'); if(!name) return;
-  name = name.trim();
-  if(!name.includes('.')){
-    if(!confirm('No extension provided. Use .txt?')) return;
-    name += '.txt';
-  }
-  const r = await (await fetch(`?api=newfile&`+new URLSearchParams({path:currentDir}), {method:'POST', headers:{'X-CSRF':CSRF}, body: JSON.stringify({name})})).json();
-  if (!r.ok){ alert(r.error||'newfile failed'); return; }
-  openDir(currentDir);
+  const name=prompt('New file name:'); if(!name) return;
+  const r=await (await fetch(`?api=newfile&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
+  if(!r.ok){ toast(r.error||'newfile failed','err'); return; } openDir(currentDir); toast('File created','ok');
 }
 
 async function uploadFile(inp){
-  if (!inp.files.length) return;
-  const fd = new FormData(); fd.append('file', inp.files[0]);
-  const r = await (await fetch(`?api=upload&`+new URLSearchParams({path:currentDir}), {method:'POST', headers:{'X-CSRF':CSRF}, body: fd})).json();
-  if (!r.ok){ alert(r.error||'upload failed'); return; }
-  openDir(currentDir);
+  if(!inp.files.length) return; const fd=new FormData(); fd.append('file',inp.files[0]);
+  const r=await (await fetch(`?api=upload&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
+  if(!r.ok){ toast(r.error||'upload failed','err'); return; } openDir(currentDir); toast('Uploaded ✓','ok',1.6);
 }
 
 async function uploadFolder(inp){
-  if (!inp.files.length) return;
-  for (const f of inp.files){
-    const rel = f.webkitRelativePath || f.name;
-    const parts = rel.split('/');
-    const fileName = parts.pop();
-    let dir = currentDir;
-    for (const part of parts){
-      if(!part) continue;
-      const path = dir ? dir + '/' + part : part;
-      await fetch(`?api=mkdir&`+new URLSearchParams({path:dir}), {method:'POST', headers:{'X-CSRF':CSRF}, body: JSON.stringify({name:part})});
-      dir = path;
-    }
-    const fd = new FormData(); fd.append('file', f);
-    await fetch(`?api=upload&`+new URLSearchParams({path:dir}), {method:'POST', headers:{'X-CSRF':CSRF}, body: fd});
+  if(!inp.files.length) return;
+  for(const f of inp.files){
+    const fd=new FormData(); fd.append('file',f);
+    const relPath=f.webkitRelativePath||f.name;
+    const subdir=relPath.split('/').slice(0,-1).join('/');
+    const target=currentDir+(subdir?`/${subdir}`:'');
+    const r=await (await fetch(`?api=upload&`+new URLSearchParams({path:target}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
+    if(!r.ok){ toast(r.error||'upload failed','err'); return; }
   }
-  openDir(currentDir);
+  openDir(currentDir); toast('Folder uploaded ✓','ok',1.8);
 }
 
-function showCtx(e,rel,isDir,name){
-  e.preventDefault();
-  ctxInfo={rel,isDir,name};
-  ctxMenu.style.display='flex';
-  ctxMenu.style.left=e.pageX+'px';
-  ctxMenu.style.top=e.pageY+'px';
+async function deleteItem(ev,rel){
+  ev.stopPropagation();
+  if(!confirm('Delete?')) return;
+  const r=await (await fetch(`?api=delete&`+new URLSearchParams({path:rel}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
+  if(!r.ok){ toast(r.error||'delete failed','err'); return; }
+  if(currentFile===rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); }
+  openDir(currentDir); toast('Deleted','ok');
 }
 
-async function ctxRename(){
-  if(!ctxInfo) return;
-  const base = ctxInfo.rel.split('/').slice(0,-1).join('/');
-  const newName = prompt('Rename to:', ctxInfo.name);
-  if(!newName) return;
-  const to = (base?base+'/':'')+newName;
-  const r = await (await fetch(`?api=rename&`+new URLSearchParams({path:ctxInfo.rel}), {method:'POST', headers:{'X-CSRF':CSRF}, body: JSON.stringify({to})})).json();
-  if(!r.ok){ alert(r.error||'rename failed'); return; }
-  if(currentFile===ctxInfo.rel){ currentFile=to; }
-  openDir(currentDir);
+async function renameItem(ev,rel){
+  ev.stopPropagation();
+  const name=prompt('Rename to:'); if(!name) return;
+  const dir = rel.split('/').slice(0,-1).join('/');
+  const target = (dir? dir+'/' : '') + name.replace(/^\/+/,'');
+  const r=await (await fetch(`?api=rename&`+new URLSearchParams({path:rel}),{
+    method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:target})
+  })).json();
+  if(!r.ok){ toast(r.error||'rename failed','err'); return; } openDir(currentDir); toast('Renamed ✓','ok');
 }
-
-async function ctxDelete(){
-  if(!ctxInfo) return;
-  if(!confirm('Delete '+ctxInfo.name+'?')) return;
-  const r = await (await fetch(`?api=delete&`+new URLSearchParams({path:ctxInfo.rel}), {method:'POST', headers:{'X-CSRF':CSRF}})).json();
-  if(!r.ok){ alert(r.error||'delete failed'); return; }
-  if(currentFile===ctxInfo.rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); }
-  openDir(currentDir);
-}
-
 // ===== Tree selection & tools ====================================  // [NODE PATCH]
 let selectedId = null;
 
