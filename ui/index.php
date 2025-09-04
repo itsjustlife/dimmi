@@ -282,6 +282,22 @@ if (isset($_GET['api'])) {
         $sel = $cur;
       } break;
 
+      case 'move_to': { // [DRAG PATCH]
+        $cur = opml_node_by_id($dom,$id);
+        $destId = $data['dest'] ?? ''; $where = $data['where'] ?? 'after';
+        $dest = opml_node_by_id($dom,$destId);
+        // prevent drop into its own subtree
+        for($a=$dest; $a; $a=$a->parentNode){ if($a===$cur){ bad('Cannot move into descendant',400); } if(strtolower($a->nodeName)==='body') break; }
+        if ($where==='into'){
+          $dest->appendChild($cur);
+        } else {
+          $par = $dest->parentNode;
+          if ($where==='before'){ $par->insertBefore($cur,$dest); }
+          else { if($dest->nextSibling) $par->insertBefore($cur,$dest->nextSibling); else $par->appendChild($cur); }
+        }
+        $sel = $cur;
+      } break;
+
       default: bad('Unknown op',400);
     }
 
@@ -369,6 +385,35 @@ if (isset($_GET['api'])) {
     bad('Unsupported for format',400);
   }
 
+  // [SEARCH PATCH] recursive regex search (text files only)
+  if ($action==='search') {
+    $q = $_GET['q'] ?? ''; if($q==='') bad('Empty regex');
+    $path = $_GET['path'] ?? ''; $base = safe_abs($path); if($base===false || !is_dir($base)) bad('Bad path');
+    $exts = array_filter(array_map('strtolower', array_map('trim', explode(',', $_GET['exts'] ?? ''))));
+    $limit = max(1, min(500, (int)($_GET['limit'] ?? 200)));
+    $hits=[]; $cnt=0;
+    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($base, FilesystemIterator::SKIP_DOTS));
+    foreach ($it as $f){
+      if ($cnt >= $limit) break;
+      if (!$f->isFile()) continue;
+      $rel = rel_of($f->getPathname());
+      $ext = strtolower(pathinfo($rel, PATHINFO_EXTENSION));
+      if (!empty($exts) && !in_array($ext,$exts)) continue;
+      if (in_array($ext, ['png','jpg','jpeg','gif','webp','pdf','zip','gz','mp4','mp3','wav'])) continue;
+      $txt = @file_get_contents($f->getPathname());
+      if ($txt===false) continue;
+      $lines = preg_split('/\R/', $txt);
+      for ($i=0; $i<count($lines) && $cnt < $limit; $i++){
+        if (@preg_match('/'.$q.'/u', $lines[$i])){
+          $snip = mb_substr($lines[$i], 0, 220);
+          $hits[] = ['rel'=>$rel, 'name'=>basename($rel), 'line'=>$i+1, 'snip'=>$snip];
+          $cnt++;
+        }
+      }
+    }
+    j(['ok'=>true,'hits'=>$hits]);
+  }
+
   bad('Unknown action',404);
 }
 
@@ -443,13 +488,16 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 .crumb a{color:#aee;text-decoration:none;margin-right:6px}.crumb a:hover{text-decoration:underline}
 /* [UX PATCH] Toasts */
 #toasts{position:fixed; right:12px; bottom:12px; display:flex; flex-direction:column; gap:8px; z-index:20}
-.toast{min-width:220px; max-width:340px; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#1a1c28cc; color:var(--text); backdrop-filter:blur(8px);
+.toast{min-width:220px; max-width:360px; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#1a1c28cc; color:var(--text); backdrop-filter:blur(8px);
   animation: slideIn .18s ease-out}
 .toast.ok{border-color:rgba(125,227,154,.5)}
 .toast.err{border-color:rgba(216,29,43,.5)}
 .toast .tmsg{font-size:13px}
 .toast .tbar{display:flex; justify-content:space-between; gap:8px; align-items:center}
 .toast .tbtn{border:0;background:transparent;color:var(--muted);cursor:pointer}
+/* [UPLOAD PROG] bar */
+.toast .tprog{height:6px;border-radius:999px;background:#0002;border:1px solid #ffffff22;overflow:hidden;margin-top:6px}
+.toast .tprog > i{display:block;height:100%;width:0%;background:linear-gradient(90deg, var(--accent), #9cf)}
 @keyframes slideIn{from{transform:translateY(6px);opacity:.0} to{transform:translateY(0);opacity:1}}
 /* [UX PATCH] Context menu */
 #ctx{position:fixed; z-index:30; display:none; min-width:160px; background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
@@ -457,6 +505,20 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 #ctx button:hover{background:#181822}
 /* [UX PATCH] Pull hint */
 .pullHint{position:absolute; top:-34px; left:0; right:0; height:24px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:12px}
+/* [PALETTE] */
+#palette{position:fixed; inset:0; display:none; align-items:flex-start; justify-content:center; background:rgba(0,0,0,.4); z-index:40; padding-top:8vh}
+#palette .box{width:min(720px, 92vw); background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#palette .box .head{display:flex; align-items:center; gap:8px; padding:10px; border-bottom:1px solid var(--line)}
+#palette input{flex:1}
+#plist{max-height:min(60vh, 520px); overflow:auto}
+#plist .item{padding:10px 12px; border-bottom:1px solid #ffffff12; cursor:pointer}
+#plist .item[aria-selected="true"]{background:#1e2030}
+/* [SEARCH DRAWER] */
+#searchDrawer{position:fixed; right:12px; top:calc(var(--top-h) + 12px); width:min(520px, 92vw); background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,.4); display:none; z-index:35}
+#searchDrawer .head{display:flex; gap:8px; align-items:center; padding:10px; border-bottom:1px solid var(--line)}
+#searchResults{max-height:min(60vh, 520px); overflow:auto; padding:8px}
+#searchResults .hit{padding:8px; border-radius:8px; cursor:pointer}
+#searchResults .hit:hover{background:#181822}
 /* ---------- Mobile layout ---------- */
 @media (max-width: 900px){
   :root{ --tabs-space: calc(var(--tabs-h) + env(safe-area-inset-bottom)); }
@@ -483,6 +545,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
   <div class="kv" style="margin-left:auto">
     <input id="pathInput" class="input" placeholder="jump to path (rel)">
     <button class="btn" onclick="jump()">Open</button>
+    <button class="btn" id="searchBtn" title="Search (/)">Search</button>
     <!-- [UX PATCH] Theme switcher -->
     <select id="themeSel" class="input" style="width:120px">
       <option value="dark">Dark</option>
@@ -537,6 +600,8 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <span class="tag mono" id="fileSize"></span>
       <span class="tag" id="fileWhen"></span>
       <div style="margin-left:auto"></div>
+      <!-- [FORMAT2] -->
+      <button class="btn" onclick="formatDocV2()" id="fmt2Btn" disabled>Format</button>
       <button class="btn" onclick="save()" id="saveBtn" disabled>Save</button>
       <button class="btn" onclick="del()"  id="delBtn"  disabled>Delete</button>
     </div>
@@ -574,6 +639,25 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
     <svg viewBox="0 0 24 24" fill="none"><path d="M5 5h14v14H5z" stroke="currentColor" stroke-width="2"/><path d="M8 9h8M8 13h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Content
   </button>
 </nav>
+<!-- [PALETTE] -->
+<div id="palette" aria-modal="true" role="dialog">
+  <div class="box">
+    <div class="head">
+      <input id="palInput" class="input" placeholder="Type a command or file… (Esc to close)">
+    </div>
+    <div id="plist"></div>
+  </div>
+</div>
+<!-- [SEARCH PATCH] quick drawer -->
+<div id="searchDrawer">
+  <div class="head">
+    <input id="reInput" class="input" placeholder="regex (e.g. ^title|^text=)" />
+    <input id="extInput" class="input" placeholder="ext csv (e.g. opml,md,txt)" style="width:160px" />
+    <button class="btn" id="runSearchBtn">Run</button>
+    <button class="btn" id="closeSearchBtn">Close</button>
+  </div>
+  <div id="searchResults"></div>
+</div>
 <!-- [UX PATCH] Toast stack & context menu -->
 <div id="toasts"></div>
 <div id="ctx" role="menu">
@@ -587,6 +671,7 @@ const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api = (act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
 let isMobile = window.matchMedia('(max-width: 900px)').matches;
+const searchBtn = document.getElementById('searchBtn');
 function setPane(p){
   if(!isMobile) return;
   ['Find','Struct','Content'].forEach(k=>{
@@ -628,8 +713,12 @@ document.addEventListener('keydown', (e)=>{
   const inField = tag==='input' || tag==='textarea' || e.target.isContentEditable;
   // Cmd/Ctrl+S: save
   if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s') { e.preventDefault(); save(); }
+  // Cmd/Ctrl+K: palette
+  if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k') { e.preventDefault(); openPalette(); }
   // F: focus jump
   if (!inField && e.key.toLowerCase()==='f') { e.preventDefault(); document.getElementById('pathInput').focus(); }
+  // / : open search drawer
+  if (!inField && e.key==='/') { e.preventDefault(); toggleSearch(true); }
   // 1/2/3: switch panes
   if (!inField && ['1','2','3'].includes(e.key)) {
     e.preventDefault();
@@ -770,7 +859,11 @@ async function openFile(rel,name,size,mtime){
   const ta = document.getElementById('ta');
   if (!r.ok){ alert(r.error||'Cannot open'); ta.value=''; ta.disabled=true; btns(false); return; }
   ta.value = r.content; ta.disabled = false; btns(true);
+  const ext=name.toLowerCase().split('.').pop();
+  document.getElementById('structTreeBtn').disabled = !['opml','xml'].includes(ext);
   hideTree(); // default to list on open
+  autoPaneTo('Content');
+  document.getElementById('fmt2Btn').disabled = !['json','xml','opml','md','markdown'].includes(ext);
 }
 
 function btns(on){
@@ -812,13 +905,15 @@ async function uploadFile(inp){
 
 async function uploadFolder(inp){
   if(!inp.files.length) return;
+  const prog = makeProgToast(`Uploading ${inp.files.length} files…`, inp.files.length);
   for(const f of inp.files){
     const fd=new FormData(); fd.append('file',f);
     const relPath=f.webkitRelativePath||f.name;
     const subdir=relPath.split('/').slice(0,-1).join('/');
     const target=currentDir+(subdir?`/${subdir}`:'');
     const r=await (await fetch(`?api=upload&`+new URLSearchParams({path:target}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
-    if(!r.ok){ toast(r.error||'upload failed','err'); return; }
+    if(!r.ok){ prog.fail(r.error||'upload failed'); return; }
+    prog.step();
   }
   openDir(currentDir); toast('Folder uploaded ✓','ok',1.8);
 }
@@ -974,6 +1069,144 @@ addLinkBtn.onclick = async ()=>{
 // Tree/List buttons (assumes existing ids)
 structListBtn.onclick = ()=> hideTree();
 structTreeBtn.onclick = ()=> showTree();
+
+/* ================== [UPLOAD PROG] progress toasts ================== */
+const uploadQueue = [];
+function makeProgToast(label,total){
+  const box=document.getElementById('toasts');
+  const t=document.createElement('div'); t.className='toast';
+  t.innerHTML=`<div class="tbar"><span class="tmsg">${escapeHtml(label)}</span><span class="tmsg" id="pc">0%</span></div><div class="tprog"><i></i></div>`;
+  const bar=t.querySelector('i'); const pc=t.querySelector('#pc');
+  box.appendChild(t);
+  let done=0;
+  return {
+    step(){ done++; const p=Math.round(done/total*100); bar.style.width=p+'%'; pc.textContent=p+'%'; if(p>=100){ t.classList.add('ok'); setTimeout(()=>t.remove(),1200);} },
+    fail(msg){ t.classList.add('err'); t.querySelector('.tmsg').textContent = msg||'Error'; setTimeout(()=>t.remove(),2200); }
+  };
+}
+
+/* ================== [DRAG PATCH] Tree drag-and-drop ================== */
+let dragId=null;
+opmlTreeWrap.addEventListener('dragstart', e=>{
+  const row=e.target.closest('[data-id]'); if(!row) return;
+  dragId=row.dataset.id; e.dataTransfer.setData('text/plain', dragId);
+  e.dataTransfer.effectAllowed='move';
+});
+opmlTreeWrap.addEventListener('dragover', e=>{
+  if(!dragId) return; e.preventDefault();
+  const rect=opmlTreeWrap.getBoundingClientRect();
+  if(e.clientY<rect.top+40) opmlTreeWrap.scrollTop-=20;
+  if(e.clientY>rect.bottom-40) opmlTreeWrap.scrollTop+=20;
+});
+opmlTreeWrap.addEventListener('drop', async e=>{
+  if(!dragId) return;
+  const row=e.target.closest('[data-id]'); if(!row){ dragId=null; return; }
+  e.preventDefault();
+  const dest=row.dataset.id;
+  const y=row.getBoundingClientRect(); const relY=(e.clientY - y.top)/y.height;
+  const where = relY<0.33 ? 'before' : relY>0.67 ? 'after' : 'into';
+  if(dest===dragId) { dragId=null; return; }
+  await nodeOp('move_to',{id:dragId, dest, where});
+  dragId=null;
+});
+
+// make rows draggable in renderTree()
+const _renderTree = renderTree;
+renderTree = (nodes)=>{
+  _renderTree(nodes);
+  opmlTreeWrap.querySelectorAll('div[data-id]').forEach(el=>{ el.setAttribute('draggable','true'); });
+};
+
+/* ================== [PALETTE] Command palette ================== */
+const palette=document.getElementById('palette'), palInput=document.getElementById('palInput'), plist=document.getElementById('plist');
+function openPalette(){ palette.style.display='flex'; palInput.value=''; fillPalette(); palInput.focus(); }
+function closePalette(){ palette.style.display='none'; }
+palette.addEventListener('click', e=>{ if(e.target===palette) closePalette(); });
+document.addEventListener('keydown', e=>{ if(palette.style.display==='flex' && e.key==='Escape'){ e.preventDefault(); closePalette(); }});
+palInput.addEventListener('input', fillPalette);
+palInput.addEventListener('keydown', e=>{
+  const cur = plist.querySelector('.item[aria-selected="true"]') || plist.firstElementChild;
+  if(e.key==='ArrowDown'){ e.preventDefault(); (cur?.nextElementSibling||plist.firstElementChild)?.setAttribute('aria-selected','true'); cur?.removeAttribute('aria-selected'); }
+  if(e.key==='ArrowUp'){ e.preventDefault(); (cur?.previousElementSibling||plist.lastElementChild)?.setAttribute('aria-selected','true'); cur?.removeAttribute('aria-selected'); }
+  if(e.key==='Enter'){ e.preventDefault(); cur?.click(); }
+});
+function fillPalette(){
+  const q=(palInput.value||'').toLowerCase();
+  const cmds=[
+    {t:'Open path…', run:()=>document.getElementById('pathInput').focus()},
+    {t:'New file', run:()=>newFilePrompt()},
+    {t:'New folder', run:()=>mkdirPrompt()},
+    {t:'Save file', run:()=>save()},
+    {t:'Format document', run:()=>formatDocV2(), show:()=>!document.getElementById('fmt2Btn').disabled},
+    {t:'Toggle Tree/List', run:()=>document.getElementById('structTreeBtn').disabled?null:(opmlTreeWrap.style.display==='none'?showTree():hideTree())},
+    {t:'Switch → Find (1)', run:()=>setPane('Find')},
+    {t:'Switch → Structure (2)', run:()=>setPane('Struct')},
+    {t:'Switch → Content (3)', run:()=>setPane('Content')},
+    {t:'Search… (/)', run:()=>toggleSearch(true)}
+  ];
+  const files=[...document.querySelectorAll('#fileList .row')].map(r=>({t:'Open: '+r.dataset.name, run:()=>openFile(r.dataset.rel, r.dataset.name, Number(r.dataset.size)||0, Number(r.dataset.mtime)||0)}));
+  const all=[...cmds, ...files].filter(c=>!c.show || c.show());
+  const hits=all.filter(c=>c.t.toLowerCase().includes(q));
+  plist.innerHTML=''; hits.forEach((h,i)=>{ const d=document.createElement('div'); d.className='item'; d.textContent=h.t; if(i==0) d.setAttribute('aria-selected','true'); d.onclick=()=>{ closePalette(); h.run&&h.run(); }; plist.appendChild(d); });
+}
+
+/* ================== [FORMAT2] Inline prettify ================== */
+function formatDocV2(){
+  if(!currentFile) return;
+  const name = fileName.textContent||'';
+  const ext = name.toLowerCase().split('.').pop();
+  const ta=document.getElementById('ta');
+  if(['json','xml','opml'].includes(ext)){
+    return formatViaServer();
+  }
+  if(['md','markdown'].includes(ext)){
+    ta.value = prettyMarkdown(ta.value);
+    toast('Formatted Markdown ✓','ok');
+  }
+}
+async function formatViaServer(){
+  const body=JSON.stringify({content:document.getElementById('ta').value});
+  const r=await (await fetch(`?api=format&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF},body})).json();
+  if(!r.ok){ toast(r.error||'format failed','err');return;} document.getElementById('ta').value=r.content; toast('Formatted ✓','ok');
+}
+function prettyMarkdown(md){
+  const lines = md.replace(/\s+$/g,'').split(/\r?\n/);
+  const out=[]; for(let i=0;i<lines.length;i++){
+    let L=lines[i].replace(/[ \t]+$/,'');
+    if(/^\s*[*•]\s/.test(L)) L=L.replace(/^\s*[*•]\s/,'- ');
+    if(/^\s*#{1,6}\s+/.test(L) && out.length && out[out.length-1]!=='' ) out.push('');
+    if(/^\s*\d+\.\s+/.test(L) && out.length && out[out.length-1]==='' && i>0 && /^\s*\d+\.\s+/.test(lines[i-1])){}
+    out.push(L);
+  }
+  if(out[out.length-1]!=='') out.push('');
+  return out.join('\n');
+}
+
+/* ================== [SEARCH PATCH] Drawer + API client ================== */
+const searchDrawer=document.getElementById('searchDrawer');
+const reInput=document.getElementById('reInput'), extInput=document.getElementById('extInput');
+searchBtn.onclick = ()=> toggleSearch(true);
+document.getElementById('closeSearchBtn').onclick = ()=> toggleSearch(false);
+document.getElementById('runSearchBtn').onclick = runSearch;
+function toggleSearch(on){ searchDrawer.style.display = on?'block':'none'; if(on){ reInput.focus(); } }
+async function runSearch(){
+  const q=reInput.value.trim()||'.'; const exts=extInput.value.trim();
+  const r=await (await api('search',{path:currentDir, q, exts, limit:200})).json();
+  const box=document.getElementById('searchResults'); box.innerHTML='';
+  if(!r.ok){ box.textContent=r.error||'search failed'; return; }
+  for(const h of r.hits){
+    const d=document.createElement('div'); d.className='hit';
+    d.innerHTML=`<div class="mono" style="font-size:12px;opacity:.75">${h.rel}:${h.line}</div><div>${escapeHtml(h.snip)}</div>`;
+    d.onclick=async ()=>{
+      await openFile(h.rel, h.name || h.rel.split('/').pop(), h.size||0, 0);
+      const ta=document.getElementById('ta'); const lines=ta.value.split(/\n/); let pos=0;
+      for(let i=0;i<Math.min(h.line-1, lines.length);i++) pos+=lines[i].length+1;
+      ta.focus(); ta.setSelectionRange(pos,pos);
+      toggleSearch(false);
+    };
+    box.appendChild(d);
+  }
+}
 
 init();
 </script>
