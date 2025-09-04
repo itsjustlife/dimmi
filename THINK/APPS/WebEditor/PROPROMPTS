@@ -4,3 +4,4 @@
 - Implement token expiration and logout.
 - Set up a systemd service to run the WebEditor via run_server.sh on boot.
 - Add automated tests for login and token-based authorization.
+- Centralize user management so accounts can be shared across apps, supporting modular menu integration.
