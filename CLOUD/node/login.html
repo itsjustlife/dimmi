@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dimmi WebEditor Login</title>
+<style>
+body{background:#0f0f12;color:#e5e5e5;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;margin:0;display:flex;align-items:center;justify-content:center;height:100vh}
+form{background:#121218;padding:20px;border-radius:12px;display:flex;flex-direction:column;gap:10px;min-width:240px}
+input{padding:8px;border-radius:8px;border:1px solid #262631;background:#0e0e14;color:#fff}
+button{padding:8px;border-radius:8px;border:1px solid #262631;background:#181822;color:#ddd;cursor:pointer}
+.err{color:#f88}
+</style>
+<div>
+<form method="POST" action="/login">
+  <h3>Login</h3>
+  <input name="u" placeholder="user">
+  <input name="p" type="password" placeholder="pass">
+  <button type="submit">Login</button>
+</form>
+</div>
