@@ -14,6 +14,11 @@ A simple Flask-based file browser and editor. Authentication is handled via a sm
    ```
    This uses `gunicorn` to serve `server:app` on port 8000.
 
+3. Log in with the default credentials:
+   - **Username:** `Arkhivist`
+   - **Password:** `Arkhiver`
+   You can change these by editing `users.json` with hashed passwords.
+
 ## Running on itsjustlife.cloud
 
 To run this app on the cloud server:

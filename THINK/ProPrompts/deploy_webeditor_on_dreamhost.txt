@@ -1,0 +1,34 @@
+name: deploy_webeditor_on_dreamhost
+begin: |
+  1. SSH into the DreamHost account that hosts the app:
+
+     ssh username@server.dreamhost.com
+
+  2. In the DreamHost panel, make sure the domain is set to use
+     "Passenger (Ruby/Python/Node.js)". Passenger runs `passenger_wsgi.py` in
+     the web root.
+
+  3. Export PATH so the Python runtime and app scripts are found:
+
+     export PATH="$HOME/dimmi/THINK/APPS/WebEditor:$HOME/.local/bin:$PATH"
+
+  4. Launch the WebEditor for manual testing or rely on Passenger:
+
+     cd ~/dimmi/THINK/APPS/WebEditor
+     ./run_server.sh
+
+     # When Passenger serves the app it reads passenger_wsgi.py automatically.
+
+  5. If using Passenger, create or touch tmp/restart.txt whenever the code changes
+     so Passenger reloads the running app:
+
+     mkdir -p tmp
+     touch tmp/restart.txt
+
+  These steps mirror the GUI/menu conventions used across our apps. If Passenger
+  is unavailable, the `run_server.sh` script runs the app on port 8000 for
+  testing via SSH tunneling or a reverse proxy.
+end: |
+  WebEditor should now be running on port 8000; repeat the restart step
+  after any updates.
+result: markdown
