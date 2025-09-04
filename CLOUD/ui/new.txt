@@ -1,3 +1,0 @@
-I can add text to a new text but It should auto add the .txt or give options for other types. 
-
-I can edit on my phone now!
