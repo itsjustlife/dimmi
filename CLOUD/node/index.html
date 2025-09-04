@@ -31,7 +31,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
   <div style="margin-left:auto;display:flex;gap:8px">
     <input id="pathInput" class="input" placeholder="jump to path (rel)">
     <button class="btn" onclick="jump()">Open</button>
-    <a class="btn" href="/logout">Logout</a>
+    <a class="btn" href="logout">Logout</a>
   </div>
 </div>
 
@@ -76,7 +76,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 
 <script>
 const CSRF = '{{CSRF}}';
-const api=(act,params)=>fetch('/api/'+act+'?'+new URLSearchParams(params||{}));
+const api=(act,params)=>fetch('api/'+act+'?'+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
 const listBtn=document.getElementById('structListBtn');
 const treeBtn=document.getElementById('structTreeBtn');
@@ -130,27 +130,27 @@ function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; }
 async function save(){
   if(!currentFile) return;
   const body=JSON.stringify({content:document.getElementById('ta').value});
-  const r=await (await fetch('/api/write?'+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF},body})).json();
+  const r=await (await fetch('api/write?'+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF},body})).json();
   if(!r.ok){alert(r.error||'Save failed');return;} alert('Saved');
 }
 async function del(){
   if(!currentFile) return; if(!confirm('Delete this file?')) return;
-  const r=await (await fetch('/api/delete?'+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
+  const r=await (await fetch('api/delete?'+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
   if(!r.ok){alert(r.error||'Delete failed');return;} ta.value=''; ta.disabled=true; btns(false); openDir(currentDir);
 }
 async function mkdirPrompt(){
   const name=prompt('New folder name:'); if(!name) return;
-  const r=await (await fetch('/api/mkdir?'+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
+  const r=await (await fetch('api/mkdir?'+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
   if(!r.ok){alert(r.error||'mkdir failed');return;} openDir(currentDir);
 }
 async function newFilePrompt(){
   const name=prompt('New file name:'); if(!name) return;
-  const r=await (await fetch('/api/newfile?'+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
+  const r=await (await fetch('api/newfile?'+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
   if(!r.ok){alert(r.error||'newfile failed');return;} openDir(currentDir);
 }
 async function uploadFile(inp){
   if(!inp.files.length) return; const fd=new FormData(); fd.append('file',inp.files[0]);
-  const r=await (await fetch('/api/upload?'+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
+  const r=await (await fetch('api/upload?'+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
   if(!r.ok){alert(r.error||'upload failed');return;} openDir(currentDir);
 }
 
@@ -161,7 +161,7 @@ async function uploadFolder(inp){
     const relPath=f.webkitRelativePath||f.name;
     const subdir=relPath.split('/').slice(0,-1).join('/');
     const target=currentDir+(subdir?`/${subdir}`:'');
-    const r=await (await fetch('/api/upload?'+new URLSearchParams({path:target}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
+    const r=await (await fetch('api/upload?'+new URLSearchParams({path:target}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
     if(!r.ok){alert(r.error||'upload failed');return;}
   }
   openDir(currentDir);
@@ -172,7 +172,7 @@ async function renameItem(ev,rel){
   const name=prompt('Rename to:'); if(!name) return;
   const dir = rel.split('/').slice(0,-1).join('/');
   const target = (dir? dir+'/' : '') + name.replace(/^\/+/,'' );
-  const r=await (await fetch('/api/rename?'+new URLSearchParams({path:rel}),{
+  const r=await (await fetch('api/rename?'+new URLSearchParams({path:rel}),{
     method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:target})
   })).json();
   if(!r.ok){alert(r.error||'rename failed');return;} openDir(currentDir);
@@ -181,7 +181,7 @@ async function renameItem(ev,rel){
 async function deleteItem(ev,rel){
   ev.stopPropagation();
   if(!confirm('Delete this item?')) return;
-  const r=await (await fetch('/api/delete?'+new URLSearchParams({path:rel}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
+  const r=await (await fetch('api/delete?'+new URLSearchParams({path:rel}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
   if(!r.ok){alert(r.error||'delete failed');return;}
   if(currentFile===rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); currentFile=''; }
   openDir(currentDir);

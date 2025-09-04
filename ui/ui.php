@@ -9,6 +9,8 @@
 $CONFIG = [
   'title' => 'Dimmi WebEditor',
   'root'  => (function () {
+    $try = realpath(__DIR__ . '/../dimmi');
+    if ($try && is_dir($try)) return $try;
     $try = realpath(__DIR__ . '/..');
     if ($try && is_dir($try)) return $try;
     return realpath('/home/arkhivist/itsjustlife.cloud/dimmi');
