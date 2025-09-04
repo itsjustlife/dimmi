@@ -76,7 +76,7 @@ if (isset($_GET['api'])) {
   if ($action==='read') {
     if (!is_file($abs)) bad('Not a file');
     if (!is_text($abs)) bad('Not an editable text file');
-    if (filesize($abs) > $GLOBALS['MAX_EDIT']) bad('Refusing to open files > 5MB');
+    if (filesize($abs) > $GLOBALS['MAX_EDIT'] && !is_opml($abs)) bad('Refusing to open files > 5MB');
     j(['ok'=>true,'content'=>file_get_contents($abs)]);
   }
 
@@ -397,19 +397,27 @@ button{width:100%;padding:10px 12px;background:#1e1e26;border:1px solid #3a3a46;
 <?php exit; endif; ?>
 <!doctype html><meta charset="utf-8"><title><?=$TITLE?></title>
 <style>
-:root{--bg:#0f0f12;--panel:#121218;--line:#262631;--text:#e5e5e5;--muted:#9aa}
+/* ---------- Design tokens (unified) ---------- */
+:root{
+  --bg:#0f0f12; --panel:#121218; --line:#262631; --text:#e5e5e5;
+  --muted:#a5b2c2; --accent:#7cc9ff; --danger:#ff6b6b; --ok:#7de39a;
+  --gap:10px; --radius:12px; --focus:#7cc9ff66; --top-h:52px; --tabs-h:58px;
+  --tabs-space:0px; /* filled on mobile via media query */
+}
 *{box-sizing:border-box} html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif}
-.top{display:flex;gap:12px;align-items:center;padding:10px;border-bottom:1px solid var(--line)}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif; padding-bottom:var(--tabs-space);}
+.top{position:sticky;top:0;z-index:5;display:flex;gap:12px;align-items:center;padding:10px;height:var(--top-h);border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(18,18,24,.95),rgba(18,18,24,.85))}
 .path{opacity:.8}
 .kv{display:flex;gap:8px;align-items:center}
-.input{padding:6px 8px;background:#0e0e14;border:1px solid var(--line);color:#fff;border-radius:8px}
-.btn{padding:6px 10px;border:1px solid var(--line);background:#181822;border-radius:8px;color:#ddd;cursor:pointer}
-.btn.small{padding:2px 4px;font-size:12px}
-.grid{display:grid;grid-template-columns:260px 320px 1fr;gap:8px;height:calc(100% - 56px);padding:8px}
-.panel{background:#121218;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0}
-.head{padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
-.body{padding:8px;overflow:auto;flex:1}
+.input{padding:10px 12px;background:#0e0e14;border:1px solid var(--line);color:#fff;border-radius:10px;min-height:40px}
+.btn{padding:10px 12px;border:1px solid var(--line);background:#181822;border-radius:10px;color:#ddd;cursor:pointer;min-height:40px}
+.btn.small{padding:6px 10px;min-height:36px}
+.btn:focus,.input:focus{outline:2px solid var(--focus);outline-offset:2px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:280px 340px 1fr;gap:var(--gap);height:calc(100dvh - var(--top-h) - var(--tabs-space));padding:var(--gap)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;min-height:0}
+.head{position:sticky;top:0;background:var(--panel);padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;z-index:1}
+.body{padding:8px;overflow:auto;flex:1;min-height:0}
 ul{list-style:none;margin:0;padding:0}
 li{padding:6px;border-radius:8px;cursor:pointer}
 li:hover{background:#181822}
@@ -418,13 +426,30 @@ small{opacity:.6}
 .editorbar{padding:8px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
 .tag{background:#1e1e26;border:1px solid var(--line);padding:3px 6px;border-radius:6px;font-size:12px}
 .mono{font-family:ui-monospace,Consolas,monospace}
-textarea{width:100%;height:100%;resize:none;background:#0e0e14;color:#e5e5e5;border:0;padding:12px;font-family:ui-monospace,Consolas,monospace}
+textarea{width:100%;height:100%;flex:1;min-height:220px;resize:none;background:#0e0e14;color:#e5e5e5;border:0;padding:14px;font-family:ui-monospace,Consolas,monospace}
 footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 .crumb a{color:#aee;text-decoration:none;margin-right:6px}
 .crumb a:hover{text-decoration:underline}
 .ctx{position:absolute;background:#1e1e26;border:1px solid var(--line);border-radius:8px;display:none;flex-direction:column;z-index:1000}
 .ctx button{background:none;border:0;padding:6px 12px;text-align:left;color:#ddd;cursor:pointer}
 .ctx button:hover{background:#262631}
+/* ---------- Mobile layout ---------- */
+@media (max-width: 900px){
+  :root{ --tabs-space: calc(var(--tabs-h) + env(safe-area-inset-bottom)); }
+  .grid{grid-template-columns:1fr;grid-auto-rows:1fr;height:calc(100dvh - var(--top-h) - var(--tabs-space));}
+  .panel{display:none}
+  .panel.active{display:flex}
+  .only-desktop{display:none !important}
+}
+/* Bottom tabs */
+.mobileTabs{display:none}
+@media (max-width: 900px){
+ .mobileTabs{position:fixed;left:0;right:0;bottom:0;height:var(--tabs-h);padding:6px calc(6px + env(safe-area-inset-left)) 6px calc(6px + env(safe-area-inset-right));
+   background:var(--panel);border-top:1px solid var(--line);display:flex;gap:8px;justify-content:space-between;align-items:center;z-index:6}
+ .tab{flex:1;display:flex;gap:8px;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:#ddd;background:#171721}
+ .tab[aria-selected="true"]{background:#1e2030;border-color:#3a3a46}
+ .tab svg{width:18px;height:18px}
+}
 </style>
 
 <div class="top">
@@ -439,38 +464,41 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 </div>
 
 <div class="grid">
-  <div class="panel">
-    <div class="head"><strong>FIND</strong><button class="btn" onclick="mkdirPrompt()">+ Folder</button></div>
+  <div class="panel" id="paneFind">
+    <div class="head"><strong>FIND</strong><button class="btn" onclick="mkdirPrompt()">+ Folder</button>
+      <label class="btn only-desktop" style="position:relative;overflow:hidden">Upload Folder<input type="file" webkitdirectory multiple style="position:absolute;inset:0;opacity:0" onchange="uploadFolder(this)"></label>
+    </div>
     <div class="body"><ul id="folderList"></ul></div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="paneStruct">
     <div class="head"><strong>STRUCTURE</strong>
       <button class="btn" onclick="newFilePrompt()">+ File</button>
       <label class="btn" style="position:relative;overflow:hidden">Upload<input type="file" style="position:absolute;inset:0;opacity:0" onchange="uploadFile(this)"></label>
       <!-- [NODE PATCH] List / Tree toggle -->
       <span style="margin-left:auto; display:flex; gap:6px">
         <button class="btn small" id="structListBtn" type="button">List</button>
-        <button class="btn small" id="structTreeBtn" type="button" title="OPML tree" disabled>Tree</button>
+        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
       </span>
     </div>
     <div class="body" style="position:relative">
       <ul id="fileList"></ul>
       <div id="opmlTreeWrap" style="display:none; position:absolute; inset:8px; overflow:auto"></div>
-    </div>
-    <div id="treeTools" class="row" style="display:none; gap:6px; margin-top:6px">
-      <button class="btn small" id="addChildBtn">+ Child</button>
-      <button class="btn small" id="addSiblingBtn">+ Sibling</button>
-      <button class="btn small" id="delNodeBtn">Delete</button>
-      <button class="btn small" id="upBtn">↑</button>
-      <button class="btn small" id="downBtn">↓</button>
-      <button class="btn small" id="outBtn">⇤</button>
-      <button class="btn small" id="inBtn">⇥</button>
+      <div id="treeTools" class="row" style="display:none; gap:6px; margin-top:6px">
+        <button class="btn small" id="addChildBtn">+ Child</button>
+        <button class="btn small" id="addSiblingBtn">+ Sibling</button>
+        <button class="btn small" id="delNodeBtn">Delete</button>
+        <button class="btn small" id="upBtn">↑</button>
+        <button class="btn small" id="downBtn">↓</button>
+        <button class="btn small" id="outBtn">⇤</button>
+        <button class="btn small" id="inBtn">⇥</button>
+      </div>
     </div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="paneContent">
     <div class="editorbar">
+      <strong>CONTENT</strong>
       <span class="tag" id="fileName">—</span>
       <span class="tag mono" id="fileSize"></span>
       <span class="tag" id="fileWhen"></span>
@@ -478,7 +506,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <button class="btn" onclick="save()" id="saveBtn" disabled>Save</button>
       <button class="btn" onclick="del()"  id="delBtn"  disabled>Delete</button>
     </div>
-    <div class="body" style="padding:0;display:flex;flex-direction:column;flex:1">
+    <div class="body" style="padding:0;display:flex;flex-direction:column">
       <div id="nodeEditor" style="display:none; padding:8px; border-bottom:1px solid var(--line)">
         <div class="row" style="gap:8px; align-items:center">
           <label>Title:</label>
@@ -496,10 +524,22 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
           </div>
         </div>
       </div>
-      <textarea id="ta" placeholder="Open a text file…" disabled style="flex:1"></textarea>
+      <textarea id="ta" placeholder="Open a text file…" disabled></textarea>
     </div>
   </div>
 </div>
+<!-- Bottom tabs (mobile) -->
+<nav class="mobileTabs" aria-label="Primary">
+  <button class="tab" id="tabFind" aria-selected="false" title="Find">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M11 20a9 9 0 1 1 6.32-2.68L22 22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Find
+  </button>
+  <button class="tab" id="tabStruct" aria-selected="false" title="Structure">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Structure
+  </button>
+  <button class="tab" id="tabContent" aria-selected="true" title="Content">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M5 5h14v14H5z" stroke="currentColor" stroke-width="2"/><path d="M8 9h8M8 13h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Content
+  </button>
+</nav>
 
 <div id="ctxMenu" class="ctx"><button onclick="ctxRename()">Rename</button><button onclick="ctxDelete()">Delete</button></div>
 <footer><?=$TITLE?></footer>
@@ -507,9 +547,23 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api = (act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
+let isMobile = window.matchMedia('(max-width: 900px)').matches;
+function setPane(p){
+  if(!isMobile) return;
+  ['Find','Struct','Content'].forEach(k=>{
+    document.getElementById('pane'+k).classList.toggle('active', k===p);
+    document.getElementById('tab'+k).setAttribute('aria-selected', k===p ? 'true':'false');
+  });
+}
+function autoPaneTo(p){ if(isMobile) setPane(p); }
+window.addEventListener('resize', ()=>{ isMobile = window.matchMedia('(max-width: 900px)').matches; if(isMobile){ setPane('Content'); } else { ['paneFind','paneStruct','paneContent'].forEach(id=>document.getElementById(id).classList.add('active')); }});
+['paneFind','paneStruct','paneContent'].forEach(id=>document.getElementById(id).classList.add('active'));
+tabFind.onclick   = ()=> setPane('Find');
+tabStruct.onclick = ()=> setPane('Struct');
+tabContent.onclick= ()=> setPane('Content');
 const structListBtn=document.getElementById('structListBtn');
 const structTreeBtn=document.getElementById('structTreeBtn');
-const opmlTreeWrap=document.getElementById('opmlTreeWrap');
+const treeWrap=document.getElementById('opmlTreeWrap');
 const fileList=document.getElementById('fileList');
 const treeTools=document.getElementById('treeTools');
 const nodeEditor=document.getElementById('nodeEditor');
@@ -578,6 +632,7 @@ async function openDir(rel){
   // middle: files
   const FI=document.getElementById('fileList'); FI.innerHTML='';
   r.items.filter(i=>i.type==='file').sort((a,b)=>a.name.localeCompare(b.name)).forEach(f=>FI.appendChild(ent(f.name,f.rel,false,f.size,f.mtime)));
+  autoPaneTo('Find');
 }
 
 function jump(){
@@ -647,6 +702,25 @@ async function uploadFile(inp){
   openDir(currentDir);
 }
 
+async function uploadFolder(inp){
+  if (!inp.files.length) return;
+  for (const f of inp.files){
+    const rel = f.webkitRelativePath || f.name;
+    const parts = rel.split('/');
+    const fileName = parts.pop();
+    let dir = currentDir;
+    for (const part of parts){
+      if(!part) continue;
+      const path = dir ? dir + '/' + part : part;
+      await fetch(`?api=mkdir&`+new URLSearchParams({path:dir}), {method:'POST', headers:{'X-CSRF':CSRF}, body: JSON.stringify({name:part})});
+      dir = path;
+    }
+    const fd = new FormData(); fd.append('file', f);
+    await fetch(`?api=upload&`+new URLSearchParams({path:dir}), {method:'POST', headers:{'X-CSRF':CSRF}, body: fd});
+  }
+  openDir(currentDir);
+}
+
 function showCtx(e,rel,isDir,name){
   e.preventDefault();
   ctxInfo={rel,isDir,name};
@@ -679,11 +753,13 @@ async function ctxDelete(){
 // ===== Tree selection & tools ====================================  // [NODE PATCH]
 let selectedId = null;
 
-function hideTree(){ opmlTreeWrap.style.display='none'; fileList.style.visibility='visible'; treeTools.style.display='none'; nodeEditor.style.display='none'; }
+function hideTree(){ treeWrap.style.display='none'; fileList.style.visibility='visible'; treeTools.style.display='none'; nodeEditor.style.display='none'; }
 function showTree(){
   if(!currentFile) return;
-  opmlTreeWrap.style.display='block'; fileList.style.visibility='hidden'; treeTools.style.display='flex';
+  treeWrap.style.display='block'; fileList.style.visibility='hidden';
   loadTree();
+  treeTools.style.display='flex';
+  autoPaneTo('Struct');
 }
 
 function renderTree(nodes){
@@ -707,12 +783,12 @@ function renderTree(nodes){
     } return ul;
   };
   wrap.appendChild(mk(nodes));
-  opmlTreeWrap.replaceChildren(wrap);
+  treeWrap.replaceChildren(wrap);
 }
 
 async function loadTree(){
   const data = await (await api('opml_tree',{file:currentFile})).json();
-  if(!data.ok){ opmlTreeWrap.textContent = data.error||'OPML error'; return; }
+  if(!data.ok){ treeWrap.textContent = data.error||'OPML error'; return; }
   renderTree(data.tree||[]);
 }
 
@@ -756,6 +832,7 @@ openFile = async (rel,name,size,mtime)=>{
   await _openFile(rel,name,size,mtime);
   enableTreeIfOPML(name);
   nodeEditor.style.display='none'; selectedId=null;
+  autoPaneTo('Content');
 };
 
 // ===== Links CRUD ================================================
