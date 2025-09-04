@@ -4,14 +4,13 @@ Quick links to top-level folders in this repo.
 
 - [ARKHIVE](../ARKHIVE/Arkhive.md)
 - [Arkhive (legacy)](../Arkhive/Arkhive.txt)
-- [DOOR](../DOOR/README.md)
 - [DimmiD](../DimmiD/README.md)
 - [MEMORY](../MEMORY/KEY.txt)
 - [MIND](../MIND/Dimmi-Mind.txt)
 - [Mind Routes](../Mind/Mind-Predictive.txt)
-- [O Hub](../O/START.md)
 - [START module](../START/START.md)
 - [THINK](../THINK/)
+- [WebEditor](../ui/index.php)
 - [README](../README.md)
 
 [Back to START](../START.md)

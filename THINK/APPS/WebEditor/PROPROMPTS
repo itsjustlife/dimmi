@@ -1,7 +1,3 @@
-~Add user authentication before allowing file edits.~
-- Create automated tests for file operations and directory listing.
-- Add syntax highlighting for the editor.
-- Implement token expiration and logout.
-- Set up a systemd service to run the WebEditor via run_server.sh on boot.
-- Add automated tests for login and token-based authorization.
-- Centralize user management so accounts can be shared across apps, supporting modular menu integration.
+- Add proper YAML formatting and minify support using an inline parser.
+- Embed link references directly in OPML notes instead of using sidecar files.
+- Move credentials into a separate config to support multiple users.
