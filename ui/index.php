@@ -32,6 +32,7 @@ if ($authed && empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_byte
 function j($x,$code=200){ http_response_code($code); header('Content-Type: application/json'); echo json_encode($x); exit; }
 function bad($m,$code=400){ j(['ok'=>false,'error'=>$m],$code); }
 function is_text($path){ global $EDIT_EXTS; $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION)); return in_array($ext,$EDIT_EXTS); }
+function is_opml($path){ $lower=strtolower($path); return substr($lower,-5)==='.opml' || substr($lower,-9)==='.opml.xml'; }
 function safe_abs($rel){
   global $ROOT; if(!$ROOT) return false;
   $rel = ltrim($rel ?? '', '/');
@@ -100,6 +101,7 @@ if (isset($_GET['api'])) {
   if ($action==='newfile' && $method==='POST') {
     $data=json_decode(file_get_contents('php://input'),true); $name=trim(($data['name']??''),'/');
     if ($name==='') bad('Missing name');
+    if (strpos($name,'.')===false) $name.='.txt';
     $dst=safe_abs($path.'/'.$name); if($dst===false) bad('Invalid target');
     if (file_exists($dst)) bad('Exists already');
     $ok = file_put_contents($dst,"")!==false; audit('newfile',rel_of($dst),$ok); j(['ok'=>$ok]);
@@ -113,9 +115,11 @@ if (isset($_GET['api'])) {
 
   if ($action==='rename' && $method==='POST') {
     $data=json_decode(file_get_contents('php://input'),true);
-    $to = trim(($data['to']??''),'/'); if($to==='') bad('Missing target');
-    $dst=safe_abs($to); if($dst===false) bad('Invalid target');
-    $ok = @rename($abs,$dst); audit('rename',$path,$ok,"-> ".rel_of($dst)); j(['ok'=>$ok]);
+    $src = trim(($data['old'] ?? $data['from'] ?? $path),'/');
+    $to  = trim(($data['new'] ?? $data['to'] ?? $data['target'] ?? ''),'/');
+    if ($src==='' || $to==='') bad('Missing old/new');
+    $srcAbs = safe_abs($src); $dst = safe_abs($to); if($srcAbs===false || $dst===false) bad('Invalid target');
+    $ok = @rename($srcAbs,$dst); audit('rename',$src,$ok,"-> ".rel_of($dst)); j(['ok'=>$ok]);
   }
 
   if ($action==='upload' && $method==='POST') {
@@ -124,6 +128,32 @@ if (isset($_GET['api'])) {
     $tmp=$_FILES['file']['tmp_name']; $name=basename($_FILES['file']['name']);
     $dst=safe_abs($path.'/'.$name); if($dst===false) bad('Bad target');
     $ok=move_uploaded_file($tmp,$dst); audit('upload',rel_of($dst),$ok); j(['ok'=>$ok,'name'=>$name]);
+  }
+
+  if ($action==='opml_tree') {
+    $file = $_GET['file'] ?? $_POST['file'] ?? '';
+    $fileAbs = safe_abs($file);
+    if ($fileAbs===false || !is_file($fileAbs)) bad('Bad file');
+    if (!is_opml($fileAbs)) bad('Not OPML',415);
+    $xml = @file_get_contents($fileAbs); if ($xml===false) bad('Read error',500);
+    $dom = new DOMDocument('1.0','UTF-8');
+    $dom->preserveWhiteSpace=false;
+    libxml_use_internal_errors(true);
+    if(!$dom->loadXML($xml, LIBXML_NONET)) bad('Invalid OPML',422);
+    $outlines = $dom->getElementsByTagName('body')->item(0);
+    $toTree = function($node) use (&$toTree) {
+      $res = [];
+      foreach ($node->childNodes as $c) {
+        if ($c->nodeType !== XML_ELEMENT_NODE || strtolower($c->nodeName) !== 'outline') continue;
+        $title = $c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
+        $item = ['t'=>$title];
+        if ($c->hasChildNodes()) $item['children'] = $toTree($c);
+        $res[] = $item;
+      }
+      return $res;
+    };
+    $tree = $outlines ? $toTree($outlines) : [];
+    j(['ok'=>true,'tree'=>$tree]);
   }
 
   if ($action==='format' && $method==='POST') { // OPML/XML/JSON pretty-print
@@ -220,10 +250,15 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
   </div>
 
   <div class="panel">
-    <div class="head"><strong>STRUCTURE</strong><button class="btn" onclick="newFilePrompt()">+ File</button>
+    <div class="head"><strong>STRUCTURE</strong>
+      <span style="font-weight:400;margin-left:.5rem">
+        <button class="btn" id="structListBtn" type="button">List</button>
+        <button class="btn" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
+      </span>
+      <button class="btn" onclick="newFilePrompt()">+ File</button>
       <label class="btn" style="position:relative;overflow:hidden">Upload<input type="file" style="position:absolute;inset:0;opacity:0" onchange="uploadFile(this)"></label>
     </div>
-    <div class="body"><ul id="fileList"></ul></div>
+    <div class="body"><ul id="fileList"></ul><div id="opmlTreeWrap" style="display:none; padding:.5rem .75rem .75rem .5rem; max-height:calc(100% - 2.5rem); overflow:auto;"></div></div>
   </div>
 
   <div class="panel">
@@ -248,6 +283,14 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api = (act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
+const listBtn=document.getElementById('structListBtn');
+const treeBtn=document.getElementById('structTreeBtn');
+const treeWrap=document.getElementById('opmlTreeWrap');
+const fileList=document.getElementById('fileList');
+if(listBtn && treeBtn){
+  listBtn.onclick=()=>{ if(treeWrap) treeWrap.style.display='none'; if(fileList) fileList.style.display=''; };
+  treeBtn.onclick=()=>{ if(treeBtn.disabled) return; if(fileList) fileList.style.display='none'; if(treeWrap) { treeWrap.style.display='block'; loadTree(); } };
+}
 const ctxMenu=document.getElementById('ctxMenu');
 let ctxInfo=null;
 document.addEventListener('click',()=>ctxMenu.style.display='none');
@@ -321,6 +364,13 @@ async function openFile(rel,name,size,mtime){
   // enable Format for json/xml/opml
   const ext = name.toLowerCase().split('.').pop();
   document.getElementById('fmtBtn').disabled = !['json','xml','opml'].includes(ext);
+  if(treeBtn){
+    treeBtn.disabled = ext!=='opml';
+    if(treeBtn.disabled){
+      if(treeWrap) treeWrap.style.display='none';
+      if(fileList) fileList.style.display='';
+    }
+  }
 }
 
 function btns(on){
@@ -351,7 +401,12 @@ async function mkdirPrompt(){
 }
 
 async function newFilePrompt(){
-  const name = prompt('New file name:'); if(!name) return;
+  let name = prompt('New file name:'); if(!name) return;
+  name = name.trim();
+  if(!name.includes('.')){
+    if(!confirm('No extension provided. Use .txt?')) return;
+    name += '.txt';
+  }
   const r = await (await fetch(`?api=newfile&`+new URLSearchParams({path:currentDir}), {method:'POST', headers:{'X-CSRF':CSRF}, body: JSON.stringify({name})})).json();
   if (!r.ok){ alert(r.error||'newfile failed'); return; }
   openDir(currentDir);
@@ -400,6 +455,46 @@ async function formatDoc(){
   const r = await (await fetch(`?api=format&`+new URLSearchParams({path:currentFile}), {method:'POST', headers:{'X-CSRF':CSRF}, body})).json();
   if (!r.ok){ alert(r.error||'format failed'); return; }
   document.getElementById('ta').value = r.content;
+}
+
+function renderTree(nodes){
+  const el=document.createElement('div');
+  el.className='tree';
+  el.style.lineHeight='1.35';
+  el.style.fontSize='14px';
+  const mk=(arr)=>{
+    const ul=document.createElement('ul');
+    ul.style.listStyle='none'; ul.style.paddingLeft='14px'; ul.style.margin='4px 0';
+    for(const n of arr){
+      const li=document.createElement('li');
+      const row=document.createElement('div');
+      row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem';
+      const caret=document.createElement('span');
+      caret.textContent=n.children && n.children.length ? '▸' : '•';
+      caret.style.cursor=n.children && n.children.length ? 'pointer' : 'default';
+      const title=document.createElement('span'); title.textContent=n.t;
+      row.appendChild(caret); row.appendChild(title); li.appendChild(row);
+      if(n.children && n.children.length){
+        const child=mk(n.children); child.style.display='none';
+        li.appendChild(child);
+        row.onclick=()=>{ child.style.display=child.style.display==='none'?'block':'none'; caret.textContent=child.style.display==='none'?'▸':'▾'; };
+      }
+      ul.appendChild(li);
+    }
+    return ul;
+  };
+  el.appendChild(mk(nodes));
+  if(treeWrap) treeWrap.replaceChildren(el);
+}
+
+async function loadTree(){
+  try{
+    const res = await fetch(`?api=opml_tree&`+new URLSearchParams({file:currentFile}));
+    if(!res.ok) throw new Error('Failed to load tree');
+    const data = await res.json();
+    if(!data.ok) throw new Error('Invalid tree');
+    renderTree(data.tree||[]);
+  }catch(e){ if(treeWrap) treeWrap.textContent='OPML parse error.'; }
 }
 init();
 </script>
