@@ -1,364 +1,362 @@
 <?php
+/*  Dimmi WebEditor — DreamHost-friendly, single-file PHP editor
+    Panels: FIND (folders) | STRUCTURE (files) | CONTENT (editor)
+    Upgrades: env-based auth, CSRF, breadcrumb/path-bar, OPML/JSON formatter, audit log
+    Jail root: $ROOT (all ops constrained here)
+*/
+
+/* ====== CONFIG ====== */
+$USER = getenv('WEBEDITOR_USER') ?: 'admin';
+$PASS = getenv('WEBEDITOR_PASS') ?: 'admin';
+$ROOT = realpath('/home/arkhivist/itsjustlife.cloud/dimmi'); // change if repo root moves
+$TITLE = 'Dimmi WebEditor (itsjustlife.cloud)';
+$MAX_EDIT = 5 * 1024 * 1024; // 5MB inline edit cap
+$EDIT_EXTS = ['txt','md','markdown','json','yaml','yml','xml','opml','csv','tsv','ini','conf','py','js','ts','css','html','htm','php'];
+$LOG_FILE = $ROOT ? $ROOT.'/.webeditor.log' : null;
+
+/* ====== AUTH ====== */
 session_start();
-
-$USER = 'admin';
-$PASS = 'admin';
-$ROOT = realpath('/home/arkhivist/itsjustlife.cloud/dimmi');
-$TITLE = 'DIMMI CLOUD (itsjustlife.cloud)';
-
-function json_response($data, $code=200) {
-    http_response_code($code);
-    header('Content-Type: application/json');
-    echo json_encode($data);
-    exit;
-}
-
-function safe_abs($rel) {
-    global $ROOT;
-    $rel = trim($rel);
-    $path = realpath($ROOT . '/' . $rel);
-    if ($path === false || strpos($path, $ROOT) !== 0) return false;
-    return $path;
-}
-
-function is_text($path) {
-    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-    $whitelist = ['txt','md','json','yaml','yml','opml','xml','py','js','css','html','htm'];
-    return in_array($ext, $whitelist);
-}
-
-function handle_api() {
-    global $ROOT;
-    if (!isset($_GET['api'])) return;
-    if (!isset($_SESSION['auth'])) json_response(['error'=>'unauthorized'],401);
-    $api = $_GET['api'];
-    $path = $_GET['path'] ?? '';
-    switch($api) {
-        case 'list':
-            $abs = safe_abs($path);
-            if ($abs===false || !is_dir($abs)) json_response(['error'=>'bad path'],400);
-            $items=[];
-            foreach (scandir($abs) as $name) {
-                if ($name==='.' || $name==='..') continue;
-                $full = $abs . '/' . $name;
-                $items[]=[
-                    'name'=>$name,
-                    'rel'=>ltrim(str_replace($ROOT,'',$full),'/'),
-                    'type'=>is_dir($full)?'dir':'file',
-                    'size'=>is_dir($full)?0:filesize($full),
-                    'mtime'=>filemtime($full)
-                ];
-            }
-            json_response(['items'=>$items]);
-        case 'read':
-            $abs = safe_abs($path);
-            if ($abs===false || !is_file($abs) || !is_text($abs) || filesize($abs)>5*1024*1024) json_response(['error'=>'bad file'],400);
-            json_response(['content'=>file_get_contents($abs)]);
-        case 'write':
-            $abs = safe_abs($path);
-            if ($abs===false || !is_file($abs) || !is_text($abs)) json_response(['error'=>'bad file'],400);
-            $data=json_decode(file_get_contents('php://input'),true);
-            if (!isset($data['content'])) json_response(['error'=>'bad json'],400);
-            file_put_contents($abs,$data['content']);
-            json_response(['ok'=>true]);
-        case 'mkdir':
-            $abs = safe_abs($path);
-            if ($abs===false || !is_dir($abs)) json_response(['error'=>'bad path'],400);
-            $data=json_decode(file_get_contents('php://input'),true);
-            $name=$data['name']??'';
-            $target=safe_abs(trim($path,'/').'/'.$name);
-            if ($target===false) json_response(['error'=>'bad name'],400);
-            mkdir($target,0777,true);
-            json_response(['ok'=>true]);
-        case 'newfile':
-            $abs = safe_abs($path);
-            if ($abs===false || !is_dir($abs)) json_response(['error'=>'bad path'],400);
-            $data=json_decode(file_get_contents('php://input'),true);
-            $name=$data['name']??'';
-            $target=safe_abs(trim($path,'/').'/'.$name);
-            if ($target===false) json_response(['error'=>'bad name'],400);
-            touch($target);
-            json_response(['ok'=>true]);
-        case 'delete':
-            $abs = safe_abs($path);
-            if ($abs===false) json_response(['error'=>'bad path'],400);
-            if (is_dir($abs)) {
-                if (count(scandir($abs))>2) json_response(['error'=>'dir not empty'],400);
-                rmdir($abs);
-            } else {
-                unlink($abs);
-            }
-            json_response(['ok'=>true]);
-        case 'rename':
-            $abs = safe_abs($path);
-            $data=json_decode(file_get_contents('php://input'),true);
-            $to=$data['to']??'';
-            $target=safe_abs($to);
-            if ($abs===false || $target===false) json_response(['error'=>'bad path'],400);
-            rename($abs,$target);
-            json_response(['ok'=>true]);
-        case 'upload':
-            $abs = safe_abs($path);
-            if ($abs===false || !is_dir($abs)) json_response(['error'=>'bad path'],400);
-            if (!isset($_FILES['file'])) json_response(['error'=>'no file'],400);
-            $name=basename($_FILES['file']['name']);
-            $target=safe_abs(trim($path,'/').'/'.$name);
-            if ($target===false) json_response(['error'=>'bad name'],400);
-            move_uploaded_file($_FILES['file']['tmp_name'],$target);
-            json_response(['ok'=>true]);
-        case 'whereami':
-            json_response(['root'=>$ROOT]);
-        default:
-            json_response(['error'=>'unknown api'],400);
-    }
-}
-
-if (isset($_GET['api'])) handle_api();
-
 if (isset($_POST['do_login'])) {
-    if ($_POST['user']===$USER && $_POST['pass']===$PASS) {
-        $_SESSION['auth']=true;
-        header('Location: index.php');
-        exit;
-    }
-    $error='Invalid credentials';
+  if (hash_equals($USER, $_POST['u'] ?? '') && hash_equals($PASS, $_POST['p'] ?? '')) {
+    $_SESSION['auth'] = true;
+    $_SESSION['csrf'] = bin2hex(random_bytes(16));
+    header('Location: '.$_SERVER['PHP_SELF']); exit;
+  }
+  $err = 'Invalid credentials';
+}
+if (isset($_GET['logout'])) { session_destroy(); header('Location: '.$_SERVER['PHP_SELF']); exit; }
+$authed = !empty($_SESSION['auth']);
+if ($authed && empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(16));
+
+/* ====== HELPERS ====== */
+function j($x,$code=200){ http_response_code($code); header('Content-Type: application/json'); echo json_encode($x); exit; }
+function bad($m,$code=400){ j(['ok'=>false,'error'=>$m],$code); }
+function is_text($path){ global $EDIT_EXTS; $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION)); return in_array($ext,$EDIT_EXTS); }
+function safe_abs($rel){
+  global $ROOT; if(!$ROOT) return false;
+  $rel = ltrim($rel ?? '', '/');
+  $abs = realpath($ROOT.'/'.$rel);
+  if ($abs===false) $abs = $ROOT.'/'.$rel;               // allow new file targets
+  $abs = preg_replace('#/+#','/',$abs);
+  $root = rtrim($ROOT,'/');
+  if (strpos($abs, $root)!==0) return false;             // jail break attempt
+  return $abs;
+}
+function rel_of($abs){ global $ROOT; return trim(str_replace($ROOT,'',$abs),'/'); }
+function audit($action,$rel,$ok=true,$extra=''){         // append to .webeditor.log
+  global $LOG_FILE; if(!$LOG_FILE) return;
+  $ip = $_SERVER['REMOTE_ADDR'] ?? '-';
+  $ts = date('c');
+  @file_put_contents($LOG_FILE, "$ts\t$ip\t$action\t$rel\t".($ok?'ok':'fail')."\t$extra\n", FILE_APPEND);
 }
 
-if (!isset($_SESSION['auth'])) {
-?>
-<!doctype html>
-<html><head><meta charset="utf-8"><title><?php echo $TITLE; ?></title></head>
-<body>
-<h2><?php echo $TITLE; ?></h2>
-<?php if(isset($error)) echo '<p style="color:red">'.htmlspecialchars($error).'</p>'; ?>
-<form method="post">
-User: <input name="user"><br>
-Pass: <input name="pass" type="password"><br>
-<button name="do_login">Login</button>
-</form>
-</body></html>
-<?php
-    exit;
+/* ====== API ====== */
+if (isset($_GET['api'])) {
+  if (!$authed) bad('Unauthorized',401);
+  if (!$ROOT || !is_dir($ROOT)) bad('Invalid ROOT at top of file.',500);
+  $action = $_GET['api']; $path = $_GET['path'] ?? ''; $abs = safe_abs($path);
+  $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+  if ($method==='POST') { // CSRF check
+    $hdr = $_SERVER['HTTP_X_CSRF'] ?? '';
+    if ($hdr !== ($_SESSION['csrf'] ?? '')) bad('CSRF',403);
+  }
+
+  if ($action==='whereami') j(['ok'=>true,'root'=>$ROOT]);
+
+  if ($action==='list') {
+    if (!is_dir($abs)) bad('Not a directory');
+    $items=[]; foreach(scandir($abs) as $n){
+      if ($n==='.'||$n==='..') continue;
+      $p="$abs/$n"; $items[]=['name'=>$n,'rel'=>rel_of($p),'type'=>is_dir($p)?'dir':'file','size'=>is_file($p)?filesize($p):0,'mtime'=>filemtime($p)];
+    }
+    j(['ok'=>true,'items'=>$items]);
+  }
+
+  if ($action==='read') {
+    if (!is_file($abs)) bad('Not a file');
+    if (!is_text($abs)) bad('Not an editable text file');
+    if (filesize($abs) > $GLOBALS['MAX_EDIT']) bad('Refusing to open files > 5MB');
+    j(['ok'=>true,'content'=>file_get_contents($abs)]);
+  }
+
+  if ($action==='write' && $method==='POST') {
+    if (!is_file($abs)) bad('Not a file');
+    if (!is_writable($abs)) bad('Not writable');
+    if (!is_text($abs)) bad('Not an editable text file');
+    $data = json_decode(file_get_contents('php://input'),true);
+    if (!is_array($data) || !array_key_exists('content',$data)) bad('Bad JSON');
+    $ok = file_put_contents($abs,$data['content'])!==false; audit('write',$path,$ok);
+    j(['ok'=>$ok]);
+  }
+
+  if ($action==='mkdir' && $method==='POST') {
+    $data=json_decode(file_get_contents('php://input'),true); $name=trim(($data['name']??''),'/');
+    if ($name==='') bad('Missing name');
+    $dst=safe_abs($path.'/'.$name); if($dst===false) bad('Invalid target');
+    if (file_exists($dst)) bad('Exists already');
+    $ok=mkdir($dst,0775,true); audit('mkdir',rel_of($dst),$ok); j(['ok'=>$ok]);
+  }
+
+  if ($action==='newfile' && $method==='POST') {
+    $data=json_decode(file_get_contents('php://input'),true); $name=trim(($data['name']??''),'/');
+    if ($name==='') bad('Missing name');
+    $dst=safe_abs($path.'/'.$name); if($dst===false) bad('Invalid target');
+    if (file_exists($dst)) bad('Exists already');
+    $ok = file_put_contents($dst,"")!==false; audit('newfile',rel_of($dst),$ok); j(['ok'=>$ok]);
+  }
+
+  if ($action==='delete' && $method==='POST') {
+    if (!file_exists($abs)) bad('Not found');
+    $ok = is_dir($abs) ? @rmdir($abs) : @unlink($abs);
+    audit('delete',$path,$ok); j(['ok'=>$ok]);
+  }
+
+  if ($action==='rename' && $method==='POST') {
+    $data=json_decode(file_get_contents('php://input'),true);
+    $to = trim(($data['to']??''),'/'); if($to==='') bad('Missing target');
+    $dst=safe_abs($to); if($dst===false) bad('Invalid target');
+    $ok = @rename($abs,$dst); audit('rename',$path,$ok,"-> ".rel_of($dst)); j(['ok'=>$ok]);
+  }
+
+  if ($action==='upload' && $method==='POST') {
+    if (!is_dir($abs)) bad('Upload path is not a directory');
+    if (empty($_FILES['file'])) bad('No file');
+    $tmp=$_FILES['file']['tmp_name']; $name=basename($_FILES['file']['name']);
+    $dst=safe_abs($path.'/'.$name); if($dst===false) bad('Bad target');
+    $ok=move_uploaded_file($tmp,$dst); audit('upload',rel_of($dst),$ok); j(['ok'=>$ok,'name'=>$name]);
+  }
+
+  if ($action==='format' && $method==='POST') { // OPML/XML/JSON pretty-print
+    if (!is_file($abs)) bad('Not a file');
+    $data=json_decode(file_get_contents('php://input'),true);
+    $content = $data['content'] ?? '';
+    $ext = strtolower(pathinfo($abs, PATHINFO_EXTENSION));
+    if ($ext==='json') {
+      $decoded = json_decode($content,true);
+      if ($decoded===null) bad('Invalid JSON',400);
+      j(['ok'=>true,'content'=>json_encode($decoded, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)]);
+    }
+    if ($ext==='xml' || $ext==='opml') {
+      libxml_use_internal_errors(true);
+      $dom=new DOMDocument('1.0','UTF-8'); $dom->preserveWhiteSpace=false; $dom->formatOutput=true;
+      if(!$dom->loadXML($content)) bad('Invalid XML/OPML',400);
+      j(['ok'=>true,'content'=>$dom->saveXML()]);
+    }
+    bad('Unsupported for format',400);
+  }
+
+  bad('Unknown action',404);
 }
-?>
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title><?php echo $TITLE; ?></title>
+
+/* ====== HTML (UI) ====== */
+if (!$authed): ?>
+<!doctype html><meta charset="utf-8"><title><?=$TITLE?> — Login</title>
 <style>
-body{font-family:sans-serif;margin:0;display:flex;flex-direction:column;height:100vh;}
-#topbar{background:#eee;padding:4px;display:flex;align-items:center;gap:8px;}
-#breadcrumb span{cursor:pointer;color:blue;margin-right:4px;}
-#panels{flex:1;display:flex;overflow:hidden;}
-#folders,#files{width:20%;border-right:1px solid #ccc;overflow:auto;}
-#editor{flex:1;display:flex;flex-direction:column;}
-#links{border-top:1px solid #ccc;padding:4px;}
-ul{list-style:none;margin:0;padding:0;}
-li{padding:2px 4px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
-li span{flex:1;}
-li:hover{background:#def;}
-li button{margin-left:4px;}
-#actions button{margin-right:4px;}
-#content{flex:1;width:100%;height:60vh;overflow:auto;}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:#0f0f12;color:#e5e5e5;display:grid;place-items:center;height:100dvh;margin:0}
+.card{background:#141418;border:1px solid #2e2e36;padding:24px;border-radius:16px;min-width:280px}
+h1{margin:0 0 16px;font-size:18px}
+input{width:100%;padding:10px 12px;margin:8px 0;background:#0f0f12;border:1px solid #2e2e36;color:#fff;border-radius:10px}
+button{width:100%;padding:10px 12px;background:#1e1e26;border:1px solid #3a3a46;color:#fff;border-radius:10px;cursor:pointer}
+.err{color:#ff6b6b;margin:8px 0 0}
+.tip{opacity:.7;font-size:12px;margin-top:6px}
 </style>
-</head>
-<body>
-<div id="topbar">
-<button onclick="openDir('')">Root</button>
-<div id="breadcrumb"></div>
-<input id="pathjump" placeholder="Jump to path"/>
-<button onclick="jumpPath()">Go</button>
+<div class="card">
+  <h1><?=$TITLE?></h1>
+  <form method="post">
+    <input name="u" placeholder="user" autofocus>
+    <input name="p" type="password" placeholder="password">
+    <button name="do_login" value="1">Sign in</button>
+    <?php if(!empty($err)):?><div class="err"><?=$err?></div><?php endif;?>
+    <div class="tip">Tip: set env vars WEBEDITOR_USER / WEBEDITOR_PASS to avoid hardcoded creds.</div>
+  </form>
 </div>
-<div id="panels">
-<div id="folders"></div>
-<div id="files"></div>
-<div id="editor">
-<div id="actions">
-<button onclick="saveFile()">Save</button>
-<button onclick="renameFile()">Rename</button>
-<button onclick="deleteEntry()">Delete</button>
-<button onclick="formatContent()">Format</button>
-<button onclick="minifyContent()">Minify</button>
-<button onclick="scrollHome()">Home</button>
-<button onclick="scrollEnd()">End</button>
+<?php exit; endif; ?>
+<!doctype html><meta charset="utf-8"><title><?=$TITLE?></title>
+<style>
+:root{--bg:#0f0f12;--panel:#121218;--line:#262631;--text:#e5e5e5;--muted:#9aa}
+*{box-sizing:border-box} html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif}
+.top{display:flex;gap:12px;align-items:center;padding:10px;border-bottom:1px solid var(--line)}
+.path{opacity:.8}
+.kv{display:flex;gap:8px;align-items:center}
+.input{padding:6px 8px;background:#0e0e14;border:1px solid var(--line);color:#fff;border-radius:8px}
+.btn{padding:6px 10px;border:1px solid var(--line);background:#181822;border-radius:8px;color:#ddd;cursor:pointer}
+.grid{display:grid;grid-template-columns:260px 320px 1fr;gap:8px;height:calc(100% - 56px);padding:8px}
+.panel{background:#121218;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0}
+.head{padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
+.body{padding:8px;overflow:auto}
+ul{list-style:none;margin:0;padding:0}
+li{padding:6px;border-radius:8px;cursor:pointer}
+li:hover{background:#181822}
+small{opacity:.6}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.editorbar{padding:8px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
+.tag{background:#1e1e26;border:1px solid var(--line);padding:3px 6px;border-radius:6px;font-size:12px}
+.mono{font-family:ui-monospace,Consolas,monospace}
+textarea{width:100%;height:100%;resize:none;background:#0e0e14;color:#e5e5e5;border:0;padding:12px;font-family:ui-monospace,Consolas,monospace}
+footer{position:fixed;right:10px;bottom:8px;opacity:.5}
+.crumb a{color:#aee;text-decoration:none;margin-right:6px}
+.crumb a:hover{text-decoration:underline}
+</style>
+
+<div class="top">
+  <div class="path" id="rootNote">root: …</div>
+  <div class="crumb" id="crumb"></div>
+  <div class="kv" style="margin-left:auto">
+    <input id="pathInput" class="input" placeholder="jump to path (rel)">
+    <button class="btn" onclick="jump()">Open</button>
+    <a class="btn" href="?logout=1">Logout</a>
+  </div>
 </div>
-<textarea id="content"></textarea>
+
+<div class="grid">
+  <div class="panel">
+    <div class="head"><strong>FIND</strong><button class="btn" onclick="mkdirPrompt()">+ Folder</button></div>
+    <div class="body"><ul id="folderList"></ul></div>
+  </div>
+
+  <div class="panel">
+    <div class="head"><strong>STRUCTURE</strong><button class="btn" onclick="newFilePrompt()">+ File</button>
+      <label class="btn" style="position:relative;overflow:hidden">Upload<input type="file" style="position:absolute;inset:0;opacity:0" onchange="uploadFile(this)"></label>
+    </div>
+    <div class="body"><ul id="fileList"></ul></div>
+  </div>
+
+  <div class="panel">
+    <div class="editorbar">
+      <span class="tag" id="fileName">—</span>
+      <span class="tag mono" id="fileSize"></span>
+      <span class="tag" id="fileWhen"></span>
+      <div style="margin-left:auto"></div>
+      <button class="btn" onclick="formatDoc()" id="fmtBtn" disabled>Format</button>
+      <button class="btn" onclick="save()" id="saveBtn" disabled>Save</button>
+      <button class="btn" onclick="del()"  id="delBtn"  disabled>Delete</button>
+    </div>
+    <div class="body" style="padding:0;display:flex;flex-direction:column">
+      <textarea id="ta" placeholder="Open a text file…" disabled></textarea>
+    </div>
+  </div>
 </div>
-</div>
-<div id="links">
-<h3>Links</h3>
-<textarea id="linksArea" rows="4" style="width:100%"></textarea>
-<button onclick="saveLinks()">Save Links</button>
-</div>
+
+<footer><?=$TITLE?></footer>
 <script>
-let currentDir='';
-let currentFile='';
-let currentLinksFile='';
-function api(url,opts={}){return fetch(url,opts).then(r=>r.json());}
-function openDir(path){
-    currentDir=path;
-    breadcrumb();
-    api('index.php?api=list&path='+encodeURIComponent(path)).then(data=>{
-        let f=document.getElementById('folders');
-        let fi=document.getElementById('files');
-        f.innerHTML='';fi.innerHTML='';
-        let up=path.split('/');
-        up.pop();
-        let upPath=up.join('/');
-        let ulF=document.createElement('ul');
-        if(path){
-            let li=document.createElement('li');
-            li.textContent='..';
-            li.onclick=()=>openDir(upPath);
-            ulF.appendChild(li);
-        }
-        data.items.filter(i=>i.type==='dir').sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
-            let li=document.createElement('li');
-            let span=document.createElement('span');
-            span.textContent=item.name;
-            span.onclick=()=>openDir(item.rel);
-            li.appendChild(span);
-            let btn=document.createElement('button');
-            btn.textContent='✖';
-            btn.onclick=(e)=>{e.stopPropagation();deletePath(item.rel);};
-            li.appendChild(btn);
-            ulF.appendChild(li);
-        });
-        f.appendChild(ulF);
-        let ulFile=document.createElement('ul');
-        data.items.filter(i=>i.type==='file').sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
-            let li=document.createElement('li');
-            let span=document.createElement('span');
-            span.textContent=item.name;
-            span.onclick=()=>loadFile(item.rel);
-            li.appendChild(span);
-            let btn=document.createElement('button');
-            btn.textContent='✖';
-            btn.onclick=(e)=>{e.stopPropagation();deletePath(item.rel);};
-            li.appendChild(btn);
-            ulFile.appendChild(li);
-        });
-        fi.appendChild(ulFile);
-    });
+const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
+const api = (act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
+let currentDir='', currentFile='';
+
+function setCrumb(rel){
+  const c=document.getElementById('crumb'); c.innerHTML='';
+  const parts = rel? rel.split('/') : [];
+  let acc = '';
+  const rootA = document.createElement('a'); rootA.textContent='/'; rootA.href='#'; rootA.onclick=(e)=>{e.preventDefault(); openDir('');}; c.appendChild(rootA);
+  parts.forEach((p,i)=>{
+    acc += (i?'/':'') + p;
+    const a=document.createElement('a'); a.textContent=p; a.href='#'; a.onclick=(e)=>{e.preventDefault(); openDir(acc);}; c.appendChild(a);
+  });
+  document.getElementById('pathInput').value = rel || '';
 }
-function breadcrumb(){
-    let bc=document.getElementById('breadcrumb');
-    bc.innerHTML='';
-    let parts=currentDir.split('/');
-    let path='';
-    let root=document.createElement('span');
-    root.textContent='/';
-    root.onclick=()=>openDir('');
-    bc.appendChild(root);
-    for(let p of parts){
-        if(!p) continue;
-        path+=(path?'/':'')+p;
-        let span=document.createElement('span');
-        span.textContent=p+'/';
-        span.onclick=(()=>{let t=path;return()=>openDir(t);})();
-        bc.appendChild(span);
-    }
+
+async function init(){
+  const info = await (await api('whereami')).json();
+  rootNote.textContent = 'root: ' + (info.root || '(unset)');
+  openDir('');
 }
-function jumpPath(){
-    let p=document.getElementById('pathjump').value;
-    api('index.php?api=list&path='+encodeURIComponent(p)).then(()=>openDir(p)).catch(()=>alert('bad path'));
+
+function ent(name,rel,isDir,size,mtime){
+  const li=document.createElement('li');
+  li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}</div><small>${isDir?'':fmtSize(size)}</small></div>`;
+  li.onclick=()=> isDir? openDir(rel) : openFile(rel,name,size,mtime);
+  return li;
 }
-function loadFile(rel){
-    currentFile=rel;
-    currentLinksFile=rel+'.links.json';
-    api('index.php?api=read&path='+encodeURIComponent(rel)).then(data=>{
-        document.getElementById('content').value=data.content;
-        loadLinks();
-    });
+
+async function openDir(rel){
+  currentDir = rel || '';
+  setCrumb(currentDir);
+  // left: folders
+  const FL=document.getElementById('folderList'); FL.innerHTML='';
+  const r = await (await api('list',{path:currentDir})).json();
+  if (!r.ok){ alert(r.error||'list failed'); return; }
+  if (currentDir){
+    const up = currentDir.split('/').slice(0,-1).join('/');
+    const li = document.createElement('li'); li.textContent='⬆️ ..'; li.onclick=()=>openDir(up); FL.appendChild(li);
+  }
+  r.items.filter(i=>i.type==='dir').sort((a,b)=>a.name.localeCompare(b.name)).forEach(d=>FL.appendChild(ent(d.name,d.rel,true,0,d.mtime)));
+  // middle: files
+  const FI=document.getElementById('fileList'); FI.innerHTML='';
+  r.items.filter(i=>i.type==='file').sort((a,b)=>a.name.localeCompare(b.name)).forEach(f=>FI.appendChild(ent(f.name,f.rel,false,f.size,f.mtime)));
 }
-function saveFile(){
-    if(!currentFile){alert('No file');return;}
-    api('index.php?api=write&path='+encodeURIComponent(currentFile),{
-        method:'POST',
-        body:JSON.stringify({content:document.getElementById('content').value})
-    }).then(()=>openDir(currentDir));
+
+function jump(){
+  const p = document.getElementById('pathInput').value.trim();
+  openDir(p);
 }
-function deletePath(rel){
-    if(!confirm('Delete '+rel+'?')) return;
-    api('index.php?api=delete&path='+encodeURIComponent(rel),{method:'POST'}).then(()=>{
-        if(currentFile===rel){
-            document.getElementById('content').value='';
-            currentFile='';
-        }
-        openDir(currentDir);
-    }).catch(()=>alert('Delete failed'));
+
+function fmtSize(b){ if(b<1024) return b+' B'; let u=['KB','MB','GB']; let i=-1; do{ b/=1024;i++; }while(b>=1024&&i<2); return b.toFixed(1)+' '+u[i]; }
+function fmtWhen(s){ try{return new Date(s*1000).toLocaleString();}catch{ return ''; } }
+
+async function openFile(rel,name,size,mtime){
+  currentFile = rel;
+  fileName.textContent = name;
+  fileSize.textContent = size?fmtSize(size):'';
+  fileWhen.textContent = mtime?fmtWhen(mtime):'';
+  const r = await (await api('read',{path:rel})).json();
+  const ta = document.getElementById('ta');
+  if (!r.ok){ alert(r.error||'Cannot open'); ta.value=''; ta.disabled=true; btns(false); return; }
+  ta.value = r.content; ta.disabled = false; btns(true);
+  // enable Format for json/xml/opml
+  const ext = name.toLowerCase().split('.').pop();
+  document.getElementById('fmtBtn').disabled = !['json','xml','opml'].includes(ext);
 }
-function deleteEntry(){
-    if(!currentFile){alert('No file');return;}
-    deletePath(currentFile);
+
+function btns(on){
+  saveBtn.disabled = !on; delBtn.disabled = !on;
 }
-function renameFile(){
-    if(!currentFile){alert('No file');return;}
-    let to=prompt('Enter new relative path for '+currentFile,currentFile);
-    if(!to) return;
-    if(!confirm('Rename/move to '+to+'?')) return;
-    api('index.php?api=rename&path='+encodeURIComponent(currentFile),{
-        method:'POST',
-        body:JSON.stringify({to:to})
-    }).then(()=>{openDir(currentDir);currentFile=to;});
+
+async function save(){
+  if (!currentFile) return;
+  const body = JSON.stringify({content: document.getElementById('ta').value});
+  const r = await (await fetch(`?api=write&`+new URLSearchParams({path:currentFile}), {method:'POST', headers:{'X-CSRF':CSRF}, body})).json();
+  if (!r.ok){ alert(r.error||'Save failed'); return; }
+  alert('Saved');
 }
-function formatContent(){
-    let txt=document.getElementById('content').value;
-    if(currentFile.endsWith('.json')){
-        document.getElementById('content').value=JSON.stringify(JSON.parse(txt),null,2);
-    }else if(currentFile.endsWith('.opml')||currentFile.endsWith('.xml')){
-        let parser=new DOMParser();
-        let xml=parser.parseFromString(txt,'application/xml');
-        let serializer=new XMLSerializer();
-        let str=serializer.serializeToString(xml);
-        document.getElementById('content').value=formatXml(str);
-    }else if(currentFile.endsWith('.yaml')||currentFile.endsWith('.yml')){
-        alert('YAML formatting not yet implemented');
-    }else{
-        alert('No formatter for this file');
-    }
+
+async function del(){
+  if (!currentFile) return;
+  if (!confirm('Delete this file?')) return;
+  const r = await (await fetch(`?api=delete&`+new URLSearchParams({path:currentFile}), {method:'POST', headers:{'X-CSRF':CSRF}})).json();
+  if (!r.ok){ alert(r.error||'Delete failed'); return; }
+  ta.value=''; ta.disabled=true; btns(false); openDir(currentDir);
 }
-function minifyContent(){
-    let txt=document.getElementById('content').value;
-    if(currentFile.endsWith('.json')){
-        document.getElementById('content').value=JSON.stringify(JSON.parse(txt));
-    }else if(currentFile.endsWith('.yaml')||currentFile.endsWith('.yml')){
-        alert('YAML minify not yet implemented');
-    }else{
-        alert('No minifier for this file');
-    }
+
+async function mkdirPrompt(){
+  const name = prompt('New folder name:'); if(!name) return;
+  const r = await (await fetch(`?api=mkdir&`+new URLSearchParams({path:currentDir}), {method:'POST', headers:{'X-CSRF':CSRF}, body: JSON.stringify({name})})).json();
+  if (!r.ok){ alert(r.error||'mkdir failed'); return; }
+  openDir(currentDir);
 }
-function scrollHome(){
-    document.getElementById('content').scrollTop=0;
+
+async function newFilePrompt(){
+  const name = prompt('New file name:'); if(!name) return;
+  const r = await (await fetch(`?api=newfile&`+new URLSearchParams({path:currentDir}), {method:'POST', headers:{'X-CSRF':CSRF}, body: JSON.stringify({name})})).json();
+  if (!r.ok){ alert(r.error||'newfile failed'); return; }
+  openDir(currentDir);
 }
-function scrollEnd(){
-    let c=document.getElementById('content');
-    c.scrollTop=c.scrollHeight;
+
+async function uploadFile(inp){
+  if (!inp.files.length) return;
+  const fd = new FormData(); fd.append('file', inp.files[0]);
+  const r = await (await fetch(`?api=upload&`+new URLSearchParams({path:currentDir}), {method:'POST', headers:{'X-CSRF':CSRF}, body: fd})).json();
+  if (!r.ok){ alert(r.error||'upload failed'); return; }
+  openDir(currentDir);
 }
-function loadLinks(){
-    api('index.php?api=read&path='+encodeURIComponent(currentLinksFile)).then(data=>{
-        document.getElementById('linksArea').value=data.content;
-    }).catch(()=>{document.getElementById('linksArea').value='';});
+
+async function formatDoc(){
+  if (!currentFile) return;
+  const body = JSON.stringify({content: document.getElementById('ta').value});
+  const r = await (await fetch(`?api=format&`+new URLSearchParams({path:currentFile}), {method:'POST', headers:{'X-CSRF':CSRF}, body})).json();
+  if (!r.ok){ alert(r.error||'format failed'); return; }
+  document.getElementById('ta').value = r.content;
 }
-function saveLinks(){
-    if(!currentFile){alert('No file');return;}
-    api('index.php?api=write&path='+encodeURIComponent(currentLinksFile),{
-        method:'POST',
-        body:JSON.stringify({content:document.getElementById('linksArea').value})
-    }).then(()=>alert('Links saved'));
-}
-function formatXml(xml){
-    let P="\n",indent=0,xmlText=xml.replace(/(>)(<)(\/*)/g,'$1'+P+'$2$3');
-    return xmlText.split(P).map(line=>{
-        let pad='';
-        if(line.match(/.+<\/\w[^>]*>$/)||line.match(/^<\/.+>$/)) indent--;
-        for(let i=0;i<indent;i++) pad+='  ';
-        if(line.match(/^<[^!?]+[^\/>]*[^\/]>$/)) indent++;
-        return pad+line;
-    }).join(P);
-}
-openDir('');
+init();
 </script>
-</body>
-</html>
+
