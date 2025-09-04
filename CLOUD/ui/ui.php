@@ -759,6 +759,7 @@ const api = (act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
 let isMobile = window.matchMedia('(max-width: 900px)').matches;
 const searchBtn = document.getElementById('searchBtn');
+const rootNote = document.getElementById('rootNote');
 function setPane(p){
   if(!isMobile) return;
   ['Find','Struct','Content'].forEach(k=>{
