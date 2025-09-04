@@ -512,6 +512,7 @@ button{width:100%;padding:10px 12px;background:#1e1e26;border:1px solid #3a3a46;
     <input name="p" type="password" placeholder="password">
     <button name="do_login" value="1">Sign in</button>
     <?php if(!empty($err)):?><div class="err"><?=$err?></div><?php endif;?>
+    <?php if(!empty($expired)):?><div class="err">Session expired</div><script>localStorage.setItem('sessionExpired','1');</script><?php endif;?>
     <div class="tip">Tip: set env vars WEBEDITOR_USER / WEBEDITOR_PASS to avoid hardcoded creds.</div>
   </form>
 </div>
@@ -888,6 +889,10 @@ async function init(){
   const info = await (await api('whereami')).json();
   rootNote.textContent = 'root: ' + (info.root || '(unset)');
   openDir('');
+  if(localStorage.getItem('sessionExpired')){
+    toast('Session expired','err');
+    localStorage.removeItem('sessionExpired');
+  }
 }
 
 function ent(name,rel,isDir,size,mtime){
