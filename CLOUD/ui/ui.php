@@ -545,8 +545,10 @@ button{width:100%;padding:10px 12px;background:#1e1e26;border:1px solid #3a3a46;
 *{box-sizing:border-box} html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif; padding-bottom:var(--tabs-space);}
 .top{position:sticky;top:0;z-index:5;display:flex;gap:12px;align-items:center;padding:10px;height:var(--top-h);border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(18,18,24,.95),rgba(18,18,24,.85))}
+.menuTitle{font-weight:bold}
 .path{opacity:.8}
 .kv{display:flex;gap:8px;align-items:center}
+.subfolders{margin-bottom:6px;font-size:12px;color:var(--muted)}
 .input{padding:10px 12px;background:#0e0e14;border:1px solid var(--line);color:#fff;border-radius:10px;min-height:40px}
 .btn{padding:10px 12px;border:1px solid var(--line);background:#181822;border-radius:10px;color:#ddd;cursor:pointer;min-height:40px}
 .btn.small{padding:6px 10px;min-height:36px}
@@ -620,12 +622,11 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 </style>
 
 <div class="top">
+  <div class="menuTitle"><?=$TITLE?></div>
   <div class="path" id="rootNote">root: …</div>
   <div class="crumb" id="crumb"></div>
   <button class="btn" onclick="openDir('')">Home</button>
   <div class="kv" style="margin-left:auto">
-    <input id="pathInput" class="input" placeholder="jump to path (rel)">
-    <button class="btn" onclick="jump()">Open</button>
     <button class="btn" id="searchBtn" title="Search (/)">Search</button>
     <!-- [UX PATCH] Theme switcher -->
     <select id="themeSel" class="input" style="width:120px">
@@ -643,6 +644,11 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <label class="btn only-desktop" style="position:relative;overflow:hidden">Upload Folder<input type="file" webkitdirectory multiple style="position:absolute;inset:0;opacity:0" onchange="uploadFolder(this)"></label>
     </div>
     <div class="body" style="position:relative">
+      <div class="row" style="gap:6px; margin-bottom:6px;">
+        <input id="pathInput" class="input" placeholder="jump to path (rel)">
+        <button class="btn" onclick="jump()">Open</button>
+      </div>
+      <div id="subFolders" class="subfolders"></div>
       <div class="pullHint">↓ Pull to refresh</div>
       <ul id="folderList"></ul>
     </div>
@@ -918,9 +924,13 @@ async function openDir(rel){
   if (!r.ok){ toast(r.error||'list failed','err'); return; }
   if (currentDir){
     const up = currentDir.split('/').slice(0,-1).join('/');
-    const li = document.createElement('li'); li.textContent='⬆️ ..'; li.onclick=()=>openDir(up); FL.appendChild(li);
+    const parentName = up.split('/').pop() || 'root';
+    const li = document.createElement('li'); li.textContent='⬆️ '+parentName; li.onclick=()=>openDir(up); FL.appendChild(li);
   }
-  r.items.filter(i=>i.type==='dir').sort((a,b)=>a.name.localeCompare(b.name)).forEach(d=>FL.appendChild(ent(d.name,d.rel,true,0,d.mtime)));
+  const dirs = r.items.filter(i=>i.type==='dir').sort((a,b)=>a.name.localeCompare(b.name));
+  dirs.forEach(d=>FL.appendChild(ent(d.name,d.rel,true,0,d.mtime)));
+  const SF=document.getElementById('subFolders');
+  if(SF) SF.textContent = dirs.length ? 'Subfolders: '+dirs.map(d=>d.name).join(', ') : 'No subfolders';
   // middle: files
   const FI=document.getElementById('fileList'); FI.innerHTML='';
   r.items.filter(i=>i.type==='file').sort((a,b)=>a.name.localeCompare(b.name)).forEach(f=>FI.appendChild(ent(f.name,f.rel,false,f.size,f.mtime)));
