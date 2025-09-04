@@ -1,6 +1,0 @@
-**/build/
-**/.gradle/
-**/__pycache__/
-**/.idea/
-**/.vscode/
-**/.pytest_cache/
