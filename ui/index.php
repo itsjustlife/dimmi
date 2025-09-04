@@ -130,30 +130,224 @@ if (isset($_GET['api'])) {
     $ok=move_uploaded_file($tmp,$dst); audit('upload',rel_of($dst),$ok); j(['ok'=>$ok,'name'=>$name]);
   }
 
-  if ($action==='opml_tree') {
-    $file = $_GET['file'] ?? $_POST['file'] ?? '';
-    $fileAbs = safe_abs($file);
-    if ($fileAbs===false || !is_file($fileAbs)) bad('Bad file');
-    if (!is_opml($fileAbs)) bad('Not OPML',415);
-    $xml = @file_get_contents($fileAbs); if ($xml===false) bad('Read error',500);
-    $dom = new DOMDocument('1.0','UTF-8');
-    $dom->preserveWhiteSpace=false;
+  // ===== OPML helpers =====  // [NODE PATCH]
+  function opml_load_dom($abs) {
+    if (!class_exists('DOMDocument')) bad('DOM extension missing',500);
     libxml_use_internal_errors(true);
-    if(!$dom->loadXML($xml, LIBXML_NONET)) bad('Invalid OPML',422);
-    $outlines = $dom->getElementsByTagName('body')->item(0);
-    $toTree = function($node) use (&$toTree) {
-      $res = [];
-      foreach ($node->childNodes as $c) {
-        if ($c->nodeType !== XML_ELEMENT_NODE || strtolower($c->nodeName) !== 'outline') continue;
-        $title = $c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
-        $item = ['t'=>$title];
-        if ($c->hasChildNodes()) $item['children'] = $toTree($c);
-        $res[] = $item;
+    $dom = new DOMDocument('1.0','UTF-8');
+    $dom->preserveWhiteSpace = false;
+    if (!$dom->load($abs, LIBXML_NONET)) bad('Invalid OPML/XML',422);
+    return $dom;
+  }
+  function opml_body($dom){
+    $b = $dom->getElementsByTagName('body')->item(0);
+    if(!$b) bad('No <body> in OPML',422);
+    return $b;
+  }
+  function opml_outline_at($parent,$idx){
+    $i=-1; foreach($parent->childNodes as $c){
+      if($c->nodeType===XML_ELEMENT_NODE && strtolower($c->nodeName)==='outline'){
+        $i++; if($i===(int)$idx) return $c;
       }
-      return $res;
+    } return null;
+  }
+  function opml_node_by_id($dom,$id){ // id like "0/2/5"
+    $p = trim((string)$id)==='' ? [] : array_map('intval', explode('/',$id));
+    $cur = opml_body($dom);
+    foreach($p as $ix){ $cur = opml_outline_at($cur,$ix); if(!$cur) bad('Node not found',404); }
+    return $cur;
+  }
+  function opml_index_of($node){
+    $i=-1; while($node && $node->previousSibling){
+      $node=$node->previousSibling;
+      if($node->nodeType===XML_ELEMENT_NODE && strtolower($node->nodeName)==='outline') $i++;
+    } return $i;
+  }
+  function opml_id_of($node){ // compute "0/2/5"
+    $path=[]; $n=$node;
+    while($n && strtolower($n->nodeName)==='outline'){
+      $ix = 0; $s=$n; while($s=$s->previousSibling){
+        if($s->nodeType===XML_ELEMENT_NODE && strtolower($s->nodeName)==='outline') $ix++;
+      }
+      array_unshift($path,$ix);
+      $n=$n->parentNode;
+      if(!$n || strtolower($n->nodeName)==='body') break;
+    }
+    return implode('/',$path);
+  }
+  function opml_atomic_save($dom,$abs){
+    $tmp=$abs.'.tmp';
+    if($dom->save($tmp)===false) bad('Write failed',500);
+    if(!@rename($tmp,$abs)){ @unlink($tmp); bad('Replace failed',500); }
+  }
+  function opml_ext_ok($abs){
+    $ext=strtolower(pathinfo($abs, PATHINFO_EXTENSION));
+    if(!in_array($ext,['opml','xml'])) bad('Not OPML/XML',415);
+  }
+
+  // ===== Return tree with IDs =====
+  if ($action==='opml_tree') {  // [NODE PATCH]
+    $file = $_GET['file'] ?? $_POST['file'] ?? '';
+    $abs  = safe_abs($file); if($abs===false || !is_file($abs)) bad('Bad file');
+    opml_ext_ok($abs);
+    $dom = opml_load_dom($abs);
+    $body = opml_body($dom);
+    $walk = function($node,$prefix='') use (&$walk){
+      $out=[]; $i=0;
+      foreach($node->childNodes as $c){
+        if($c->nodeType!==XML_ELEMENT_NODE || strtolower($c->nodeName)!=='outline') continue;
+        $t = $c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
+        $id = ($prefix==='') ? strval($i) : ($prefix.'/'.$i);
+        $childs = $c->hasChildNodes() ? $walk($c,$id) : [];
+        $out[] = ['id'=>$id,'t'=>$t,'children'=>$childs];
+        $i++;
+      } return $out;
     };
-    $tree = $outlines ? $toTree($outlines) : [];
-    j(['ok'=>true,'tree'=>$tree]);
+    j(['ok'=>true,'tree'=>$walk($body,'')]);
+  }
+
+  // ===== Node editing =====
+  if ($action==='opml_node' && $method==='POST') {  // [NODE PATCH]
+    $data = json_decode(file_get_contents('php://input'), true);
+    $file = $data['file'] ?? ''; $op = $data['op'] ?? ''; $id = $data['id'] ?? '';
+    $abs  = safe_abs($file); if($abs===false || !is_file($abs)) bad('Bad file');
+    opml_ext_ok($abs);
+    $dom = opml_load_dom($abs); $body=opml_body($dom);
+
+    $sel = null;
+    switch($op){
+      case 'add_child': {
+        $parent = opml_node_by_id($dom,$id);
+        $n = $dom->createElement('outline');
+        $title = trim($data['title'] ?? 'New');
+        if($title!=='') $n->setAttribute('title',$title);
+        $parent->appendChild($n);
+        $sel = $n;
+      } break;
+
+      case 'add_sibling': {
+        $cur = opml_node_by_id($dom,$id); $par=$cur->parentNode;
+        $n = $dom->createElement('outline');
+        $title = trim($data['title'] ?? 'New');
+        if($title!=='') $n->setAttribute('title',$title);
+        if($cur->nextSibling) $par->insertBefore($n,$cur->nextSibling); else $par->appendChild($n);
+        $sel = $n;
+      } break;
+
+      case 'set_title': {
+        $cur = opml_node_by_id($dom,$id);
+        $title = (string)($data['title'] ?? '');
+        $cur->setAttribute('title',$title);
+        if(!$cur->getAttribute('text')) $cur->setAttribute('text',$title);
+        $sel = $cur;
+      } break;
+
+      case 'set_attrs': {
+        $cur = opml_node_by_id($dom,$id);
+        $attrs = is_array($data['attrs'] ?? null) ? $data['attrs'] : [];
+        foreach($attrs as $k=>$v){
+          $k = preg_replace('/[^a-zA-Z0-9_:\-]/','',$k);
+          $v = is_array($v) ? implode(',', $v) : (string)$v;
+          if($v==='') $cur->removeAttribute($k); else $cur->setAttribute($k,$v);
+        }
+        $sel = $cur;
+      } break;
+
+      case 'delete': {
+        $cur = opml_node_by_id($dom,$id);
+        $p = $cur->parentNode; $p->removeChild($cur);
+        $sel = $p; // select parent after delete
+      } break;
+
+      case 'move': {
+        $dir = $data['dir'] ?? '';
+        $cur = opml_node_by_id($dom,$id);
+        $par = $cur->parentNode;
+        // helpers: previous / next outline sibling
+        $prev=null; $next=null;
+        for($n=$cur->previousSibling;$n;$n=$n->previousSibling){ if($n->nodeType===XML_ELEMENT_NODE && strtolower($n->nodeName)==='outline'){ $prev=$n; break; } }
+        for($n=$cur->nextSibling;$n;$n=$n->nextSibling){ if($n->nodeType===XML_ELEMENT_NODE && strtolower($n->nodeName)==='outline'){ $next=$n; break; } }
+        if($dir==='up' && $prev){
+          $par->insertBefore($cur,$prev);
+        } elseif($dir==='down' && $next){
+          if($next->nextSibling) $par->insertBefore($cur,$next->nextSibling); else $par->appendChild($cur);
+        } elseif($dir==='in' && $prev){
+          // become last child of previous sibling
+          $prev->appendChild($cur);
+        } elseif($dir==='out'){
+          if(strtolower($par->nodeName)!=='outline') bad('Cannot outdent root-level',400);
+          $g = $par->parentNode; // grandparent
+          if($par->nextSibling) $g->insertBefore($cur,$par->nextSibling); else $g->appendChild($cur);
+        }
+        $sel = $cur;
+      } break;
+
+      default: bad('Unknown op',400);
+    }
+
+    opml_atomic_save($dom,$abs);
+    $selectId = $sel ? opml_id_of($sel) : $id;
+    j(['ok'=>true,'select'=>$selectId]);
+  }
+
+  // ===== Links API =====
+  function links_path($abs){ return $abs.'.links.json'; }  // [NODE PATCH]
+  function links_load($abs){
+    $p=links_path($abs);
+    if(!file_exists($p)) return ['meta'=>['v'=>1],'nodes'=>[]];
+    $j=json_decode(@file_get_contents($p),true);
+    if(!$j) return ['meta'=>['v'=>1],'nodes'=>[]];
+    if(empty($j['meta'])) $j['meta']=['v'=>1];
+    if(empty($j['nodes'])) $j['nodes']=[];
+    return $j;
+  }
+  function links_save_atomic($abs,$obj){
+    $p=links_path($abs); $tmp=$p.'.tmp';
+    if(file_put_contents($tmp, json_encode($obj,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES))===false) bad('Links write failed',500);
+    if(!@rename($tmp,$p)){ @unlink($tmp); bad('Links replace failed',500); }
+  }
+
+  if($action==='links_list'){  // [NODE PATCH]
+    $file=$_GET['file']??''; $id=$_GET['id']??'';
+    $abs=safe_abs($file); if($abs===false || !is_file($abs)) bad('Bad file');
+    $data=links_load($abs);
+    $items = $id!=='' ? ($data['nodes'][$id] ?? []) : $data['nodes'];
+    j(['ok'=>true,'items'=>$items]);
+  }
+
+  if($action==='links_edit' && $method==='POST'){  // [NODE PATCH]
+    $data=json_decode(file_get_contents('php://input'),true);
+    $file=$data['file']??''; $id=$data['id']??''; $op=$data['op']??'';
+    $abs=safe_abs($file); if($abs===false || !is_file($abs)) bad('Bad file');
+    $obj=links_load($abs);
+    $obj['nodes'][$id] = $obj['nodes'][$id] ?? [];
+    $now = date('c');
+
+    if($op==='add'){
+      $it=$data['item']??[];
+      $it['id'] = $it['id'] ?? substr(bin2hex(random_bytes(6)),0,12);
+      $it['label'] = trim($it['label'] ?? 'link');
+      $it['href']  = trim($it['href']  ?? '');
+      $it['tags']  = array_values(array_filter(array_map('trim', is_array($it['tags']??[])?$it['tags']:explode(',',(string)($it['tags']??'')))));
+      $it['note']  = (string)($it['note']??'');
+      $it['created']=$now; $it['updated']=$now;
+      $obj['nodes'][$id][]=$it;
+    } elseif($op==='update'){
+      $linkId=$data['linkId']??''; $it=$data['item']??[];
+      foreach($obj['nodes'][$id] as &$ref){
+        if($ref['id']===$linkId){
+          foreach(['label','href','note'] as $k){ if(isset($it[$k])) $ref[$k]=(string)$it[$k]; }
+          if(isset($it['tags'])) $ref['tags']=array_values(array_filter(array_map('trim', is_array($it['tags'])?$it['tags']:explode(',',$it['tags']))));
+          $ref['updated']=$now;
+        }
+      } unset($ref);
+    } elseif($op==='delete'){
+      $linkId=$data['linkId']??'';
+      $obj['nodes'][$id]=array_values(array_filter($obj['nodes'][$id], fn($x)=>$x['id']!==$linkId));
+    } else bad('Unknown links op',400);
+
+    links_save_atomic($abs,$obj);
+    j(['ok'=>true]);
   }
 
   if ($action==='format' && $method==='POST') { // OPML/XML/JSON pretty-print
@@ -254,13 +448,25 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
     <div class="head"><strong>STRUCTURE</strong>
       <button class="btn" onclick="newFilePrompt()">+ File</button>
       <label class="btn" style="position:relative;overflow:hidden">Upload<input type="file" style="position:absolute;inset:0;opacity:0" onchange="uploadFile(this)"></label>
-      <!-- [PATCH] List / Tree toggle -->
+      <!-- [NODE PATCH] List / Tree toggle -->
       <span style="margin-left:auto; display:flex; gap:6px">
         <button class="btn small" id="structListBtn" type="button">List</button>
-        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
+        <button class="btn small" id="structTreeBtn" type="button" title="OPML tree" disabled>Tree</button>
       </span>
     </div>
-    <div class="body" style="position:relative"><ul id="fileList"></ul><div id="opmlTreeWrap" style="display:none; position:absolute; inset:8px; overflow:auto"></div></div>
+    <div class="body" style="position:relative">
+      <ul id="fileList"></ul>
+      <div id="opmlTreeWrap" style="display:none; position:absolute; inset:8px; overflow:auto"></div>
+    </div>
+    <div id="treeTools" class="row" style="display:none; gap:6px; margin-top:6px">
+      <button class="btn small" id="addChildBtn">+ Child</button>
+      <button class="btn small" id="addSiblingBtn">+ Sibling</button>
+      <button class="btn small" id="delNodeBtn">Delete</button>
+      <button class="btn small" id="upBtn">↑</button>
+      <button class="btn small" id="downBtn">↓</button>
+      <button class="btn small" id="outBtn">⇤</button>
+      <button class="btn small" id="inBtn">⇥</button>
+    </div>
   </div>
 
   <div class="panel">
@@ -273,6 +479,23 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <button class="btn" onclick="del()"  id="delBtn"  disabled>Delete</button>
     </div>
     <div class="body" style="padding:0;display:flex;flex-direction:column;flex:1">
+      <div id="nodeEditor" style="display:none; padding:8px; border-bottom:1px solid var(--line)">
+        <div class="row" style="gap:8px; align-items:center">
+          <label>Title:</label>
+          <input id="nodeTitle" class="input" style="flex:1" placeholder="Node title">
+          <button class="btn small" id="saveTitleBtn">Save Title</button>
+        </div>
+        <div style="margin-top:8px">
+          <strong>Links</strong>
+          <div id="linksList" style="margin-top:6px; display:flex; flex-direction:column; gap:6px"></div>
+          <div class="row" style="gap:6px; margin-top:6px">
+            <input class="input" id="newLinkLabel" placeholder="label">
+            <input class="input" id="newLinkHref" placeholder="https://...">
+            <input class="input" id="newLinkTags" placeholder="tags (comma)">
+            <button class="btn small" id="addLinkBtn">+ Add</button>
+          </div>
+        </div>
+      </div>
       <textarea id="ta" placeholder="Open a text file…" disabled style="flex:1"></textarea>
     </div>
   </div>
@@ -284,12 +507,26 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api = (act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
-const listBtn=document.getElementById('structListBtn');
-const treeBtn=document.getElementById('structTreeBtn');
-const treeWrap=document.getElementById('opmlTreeWrap');
+const structListBtn=document.getElementById('structListBtn');
+const structTreeBtn=document.getElementById('structTreeBtn');
+const opmlTreeWrap=document.getElementById('opmlTreeWrap');
 const fileList=document.getElementById('fileList');
-listBtn.onclick = ()=> hideTree();
-treeBtn.onclick = ()=> showTree();
+const treeTools=document.getElementById('treeTools');
+const nodeEditor=document.getElementById('nodeEditor');
+const nodeTitle=document.getElementById('nodeTitle');
+const saveTitleBtn=document.getElementById('saveTitleBtn');
+const addChildBtn=document.getElementById('addChildBtn');
+const addSiblingBtn=document.getElementById('addSiblingBtn');
+const delNodeBtn=document.getElementById('delNodeBtn');
+const upBtn=document.getElementById('upBtn');
+const downBtn=document.getElementById('downBtn');
+const outBtn=document.getElementById('outBtn');
+const inBtn=document.getElementById('inBtn');
+const linksList=document.getElementById('linksList');
+const newLinkLabel=document.getElementById('newLinkLabel');
+const newLinkHref=document.getElementById('newLinkHref');
+const newLinkTags=document.getElementById('newLinkTags');
+const addLinkBtn=document.getElementById('addLinkBtn');
 const ctxMenu=document.getElementById('ctxMenu');
 let ctxInfo=null;
 document.addEventListener('click',()=>ctxMenu.style.display='none');
@@ -360,9 +597,6 @@ async function openFile(rel,name,size,mtime){
   const ta = document.getElementById('ta');
   if (!r.ok){ alert(r.error||'Cannot open'); ta.value=''; ta.disabled=true; btns(false); return; }
   ta.value = r.content; ta.disabled = false; btns(true);
-  // [PATCH] enable Tree toggle if an OPML is open
-  const ext = name.toLowerCase().split('.').pop();
-  document.getElementById('structTreeBtn').disabled = !['opml','xml'].includes(ext);
   hideTree(); // default to list on open
 }
 
@@ -442,53 +676,135 @@ async function ctxDelete(){
   openDir(currentDir);
 }
 
-// [PATCH] STRUCTURE Tree: render + toggle
-function hideTree(){ if(treeWrap) treeWrap.style.display='none'; if(fileList) fileList.style.visibility='visible'; }
+// ===== Tree selection & tools ====================================  // [NODE PATCH]
+let selectedId = null;
+
+function hideTree(){ opmlTreeWrap.style.display='none'; fileList.style.visibility='visible'; treeTools.style.display='none'; nodeEditor.style.display='none'; }
 function showTree(){
-  if(treeBtn && treeBtn.disabled) return;
-  if(treeWrap) treeWrap.style.display='block';
-  if(fileList) fileList.style.visibility='hidden';
+  if(!currentFile) return;
+  opmlTreeWrap.style.display='block'; fileList.style.visibility='hidden'; treeTools.style.display='flex';
   loadTree();
 }
 
 function renderTree(nodes){
-  const el=document.createElement('div');
-  el.className='tree';
-  el.style.lineHeight='1.35';
-  el.style.fontSize='14px';
-  const mk=(arr)=>{
-    const ul=document.createElement('ul');
-    ul.style.listStyle='none'; ul.style.paddingLeft='14px'; ul.style.margin='4px 0';
+  const wrap=document.createElement('div'); wrap.style.lineHeight='1.35'; wrap.style.fontSize='14px';
+  const mk=(arr,prefix='')=>{
+    const ul=document.createElement('ul'); ul.style.listStyle='none'; ul.style.paddingLeft='14px'; ul.style.margin='6px 0';
     for(const n of arr){
       const li=document.createElement('li');
-      const row=document.createElement('div');
-      row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem';
-      const caret=document.createElement('span');
-      caret.textContent=n.children && n.children.length ? '▸' : '•';
-      caret.style.cursor=n.children && n.children.length ? 'pointer' : 'default';
+      const row=document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem';
+      const has=n.children && n.children.length;
+      const caret=document.createElement('span'); caret.textContent=has?'▸':'•'; caret.style.cursor=has?'pointer':'default';
       const title=document.createElement('span'); title.textContent=n.t;
-      row.appendChild(caret); row.appendChild(title); li.appendChild(row);
-      if(n.children && n.children.length){
-        const child=mk(n.children); child.style.display='none';
-        li.appendChild(child);
-        row.onclick=()=>{ child.style.display=child.style.display==='none'?'block':'none'; caret.textContent=child.style.display==='none'?'▸':'▾'; };
-      }
+      row.dataset.id = n.id;
+      row.onclick = (e)=>{
+        if(has && e.target===caret){ child.style.display = child.style.display==='none' ? 'block':'none'; caret.textContent = child.style.display==='none' ? '▸':'▾'; }
+        selectNode(n.id, n.t);
+      };
+      li.appendChild(row);
+      if(has){ const child=mk(n.children,n.id); child.style.display='none'; li.appendChild(child); }
       ul.appendChild(li);
-    }
-    return ul;
+    } return ul;
   };
-  el.appendChild(mk(nodes));
-  if(treeWrap) treeWrap.replaceChildren(el);
+  wrap.appendChild(mk(nodes));
+  opmlTreeWrap.replaceChildren(wrap);
 }
 
 async function loadTree(){
-  try{
-    const res = await fetch(`?api=opml_tree&`+new URLSearchParams({file:currentFile}));
-    if(!res.ok) throw new Error('Failed to load tree');
-    const data = await res.json();
-    if(!data.ok) throw new Error('Invalid tree');
-    renderTree(data.tree||[]);
-  }catch(e){ if(treeWrap) treeWrap.textContent='OPML parse error.'; }
+  const data = await (await api('opml_tree',{file:currentFile})).json();
+  if(!data.ok){ opmlTreeWrap.textContent = data.error||'OPML error'; return; }
+  renderTree(data.tree||[]);
 }
+
+async function selectNode(id, title){
+  selectedId = id;
+  nodeEditor.style.display='block';
+  nodeTitle.value = title || '';
+  await refreshLinks();
+}
+
+// ===== Node ops (buttons) =========================================
+async function nodeOp(op, extra={}){
+  if(!currentFile || selectedId===null) return;
+  const body = JSON.stringify({file:currentFile, op, id:selectedId, ...extra});
+  const r = await (await fetch(`?api=opml_node`, {method:'POST', headers:{'X-CSRF':CSRF,'Content-Type':'application/json'}, body})).json();
+  if(!r.ok){ alert(r.error||'node op failed'); return; }
+  selectedId = r.select ?? selectedId;
+  await loadTree(); // refresh view
+  await refreshLinks();
+}
+
+addChildBtn.onclick   = ()=> nodeOp('add_child',{title:'New'});
+addSiblingBtn.onclick = ()=> nodeOp('add_sibling',{title:'New'});
+delNodeBtn.onclick    = ()=> { if(confirm('Delete this node?')) nodeOp('delete'); };
+upBtn.onclick         = ()=> nodeOp('move',{dir:'up'});
+downBtn.onclick       = ()=> nodeOp('move',{dir:'down'});
+inBtn.onclick         = ()=> nodeOp('move',{dir:'in'});
+outBtn.onclick        = ()=> nodeOp('move',{dir:'out'});
+
+saveTitleBtn.onclick  = ()=> nodeOp('set_title',{title:nodeTitle.value});
+
+// Enable Tree only for OPML
+function enableTreeIfOPML(name){
+  const ext=name.toLowerCase().split('.').pop();
+  structTreeBtn.disabled = !['opml','xml'].includes(ext);
+}
+
+// Hook existing openFile
+const _openFile = openFile;
+openFile = async (rel,name,size,mtime)=>{
+  await _openFile(rel,name,size,mtime);
+  enableTreeIfOPML(name);
+  nodeEditor.style.display='none'; selectedId=null;
+};
+
+// ===== Links CRUD ================================================
+async function refreshLinks(){
+  if(!currentFile || selectedId===null) return;
+  const data = await (await api('links_list',{file:currentFile, id:selectedId})).json();
+  if(!data.ok){ linksList.textContent = data.error||'links error'; return; }
+  const items = data.items || [];
+  const list = document.createElement('div');
+  for(const it of items){
+    const row=document.createElement('div'); row.className='row'; row.style.gap='6px';
+    const lbl=in('label',it.label); const href=in('href',it.href); const tags=in('tags',(it.tags||[]).join(', '));
+    const save=document.createElement('button'); save.className='btn small'; save.textContent='Save';
+    const del=document.createElement('button');  del.className='btn small';  del.textContent='X';
+    save.onclick=async ()=>{
+      const body = JSON.stringify({file:currentFile,id:selectedId,op:'update',linkId:it.id, item:{
+        label:lbl.value, href:href.value, tags:tags.value
+      }});
+      const r = await (await fetch(`?api=links_edit`,{method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body})).json();
+      if(!r.ok) alert(r.error||'save link failed');
+    };
+    del.onclick=async ()=>{
+      if(!confirm('Delete link?')) return;
+      const body = JSON.stringify({file:currentFile,id:selectedId,op:'delete',linkId:it.id});
+      const r = await (await fetch(`?api=links_edit`,{method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body})).json();
+      if(!r.ok) alert(r.error||'delete link failed'); else refreshLinks();
+    };
+    row.append(lbl,href,tags,save,del); list.append(row);
+  }
+  linksList.replaceChildren(list);
+
+  function in(ph,val){ const e=document.createElement('input'); e.className='input'; e.placeholder=ph; e.value=val||''; e.style.flex='1'; return e; }
+}
+
+addLinkBtn.onclick = async ()=>{
+  if(!currentFile || selectedId===null) return;
+  const label=newLinkLabel.value.trim()||'link';
+  const href =newLinkHref.value.trim();
+  const tags =newLinkTags.value.trim();
+  const body = JSON.stringify({file:currentFile,id:selectedId,op:'add', item:{label,href,tags}});
+  const r = await (await fetch(`?api=links_edit`,{method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body})).json();
+  if(!r.ok){ alert(r.error||'add link failed'); return; }
+  newLinkLabel.value=''; newLinkHref.value=''; newLinkTags.value='';
+  refreshLinks();
+};
+
+// Tree/List buttons (assumes existing ids)
+structListBtn.onclick = ()=> hideTree();
+structTreeBtn.onclick = ()=> showTree();
+
 init();
 </script>
