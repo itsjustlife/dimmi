@@ -666,13 +666,13 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
         <button class="btn small" id="structTreeBtn" type="button" title="Show OPML ARK" disabled>ARK</button>
       </span>
     </div>
-    <div class="body" style="position:relative">
+    <div class="body" style="position:relative; display:flex; flex-direction:column; overflow:hidden">
       <div class="pullHint">↓ Pull to refresh</div>
-      <ul id="fileList"></ul>
-      <div id="opmlTreeWrap" style="display:none; height:100%; overflow:auto"></div>
+      <ul id="fileList" style="flex:1; overflow:auto"></ul>
+      <div id="opmlTreeWrap" style="display:none; flex:1; overflow:auto"></div>
       <div id="treeTools" class="row" style="display:none; gap:6px; margin-top:6px">
-        <button class="btn small" id="addChildBtn">+ Child</button>
-        <button class="btn small" id="addSiblingBtn">+ Sibling</button>
+        <button class="btn small" id="addChildBtn">Add Sub</button>
+        <button class="btn small" id="addSiblingBtn">Add Same</button>
         <button class="btn small" id="delNodeBtn">Delete</button>
         <button class="btn small" id="upBtn">↑</button>
         <button class="btn small" id="downBtn">↓</button>
@@ -1087,10 +1087,16 @@ async function renameItem(ev,rel){
 // ===== Tree selection & tools ====================================  // [NODE PATCH]
 let selectedId = null;
 
-function hideTree(){ treeWrap.style.display='none'; fileList.style.visibility='visible'; treeTools.style.display='none'; nodeEditor.style.display='none'; }
+function hideTree(){
+  treeWrap.style.display='none';
+  fileList.style.display='block';
+  treeTools.style.display='none';
+  nodeEditor.style.display='none';
+}
 function showTree(){
   if(!currentFile) return;
-  treeWrap.style.display='block'; fileList.style.visibility='hidden';
+  treeWrap.style.display='block';
+  fileList.style.display='none';
   loadTree();
   treeTools.style.display='flex';
   autoPaneTo('Struct');
@@ -1100,13 +1106,14 @@ function renderTree(nodes){
   const wrap=document.createElement('div'); wrap.style.lineHeight='1.35'; wrap.style.fontSize='14px';
   const mk=(arr,prefix='')=>{
     const ul=document.createElement('ul'); ul.style.listStyle='none'; ul.style.paddingLeft='14px'; ul.style.margin='6px 0';
-    for(const n of arr){
-      const li=document.createElement('li');
-      const row=document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem';
-      const has=n.children && n.children.length;
-      const caret=document.createElement('span'); caret.textContent=has?'▸':'•'; caret.style.cursor=has?'pointer':'default';
-      const title=document.createElement('span'); title.textContent=n.t;
-      row.dataset.id = n.id;
+      for(const n of arr){
+        const li=document.createElement('li');
+        const row=document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem';
+        const has=n.children && n.children.length;
+        const caret=document.createElement('span'); caret.textContent=has?'▸':'•'; caret.style.cursor=has?'pointer':'default';
+        const title=document.createElement('span'); title.textContent=n.t;
+        row.append(caret, title);
+        row.dataset.id = n.id;
       row.onclick = (e)=>{
         if(has && e.target===caret){ child.style.display = child.style.display==='none' ? 'block':'none'; caret.textContent = child.style.display==='none' ? '▸':'▾'; }
         selectNode(n.id, n.t, n.note);
