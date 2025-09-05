@@ -363,7 +363,7 @@ if (isset($_GET['api'])) {
   <title><?=$TITLE?></title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="h-screen flex flex-col bg-gray-50 text-gray-800">
+<body class="h-screen flex flex-col bg-gray-50 text-gray-800 overflow-x-hidden">
   <header class="flex items-center gap-4 p-4 bg-white shadow">
     <div id="rootNote" class="text-xs text-gray-500"></div>
     <button onclick="openDir('')" class="text-gray-600 hover:text-gray-800">
@@ -375,7 +375,7 @@ if (isset($_GET['api'])) {
       <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
     </a>
   </header>
-  <main class="flex-1 overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:h-[calc(100vh-64px)]">
+  <main class="flex-1 overflow-auto md:overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:h-[calc(100vh-64px)]">
     <!-- FIND -->
     <section class="bg-white rounded shadow flex flex-col">
       <div class="flex items-center gap-2 p-4 border-b">
@@ -387,12 +387,17 @@ if (isset($_GET['api'])) {
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
           <input type="file" webkitdirectory multiple class="hidden" onchange="uploadFolder(this)">
         </label>
+        <button class="ml-2 md:hidden" onclick="toggleSection('findBody', this)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+        </button>
       </div>
-      <div class="flex gap-2 p-4">
-        <input id="pathInput" class="flex-1 border rounded px-2 py-1" placeholder="jump to path (rel)">
-        <button onclick="jump()" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-500">Open</button>
+      <div id="findBody" class="flex-1 flex flex-col">
+        <div class="flex gap-2 p-4">
+          <input id="pathInput" class="flex-1 border rounded px-2 py-1" placeholder="jump to path (rel)">
+          <button onclick="jump()" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-500">Open</button>
+        </div>
+        <ul id="folderList" class="flex-1 overflow-auto divide-y text-sm"></ul>
       </div>
-      <ul id="folderList" class="flex-1 overflow-auto divide-y text-sm"></ul>
     </section>
 
     <!-- STRUCTURE -->
@@ -410,8 +415,11 @@ if (isset($_GET['api'])) {
           <button id="structListBtn" type="button" class="px-2 py-1 text-sm border rounded">List</button>
           <button id="structTreeBtn" type="button" class="px-2 py-1 text-sm border rounded" title="Show OPML ARK" disabled>ARK</button>
         </div>
+        <button class="ml-2 md:hidden" onclick="toggleSection('structBody', this)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+        </button>
       </div>
-      <div class="p-4 flex-1 flex flex-col overflow-hidden">
+      <div id="structBody" class="p-4 flex-1 flex flex-col overflow-hidden">
         <ul id="fileList" class="flex-1 overflow-auto divide-y text-sm"></ul>
         <div id="opmlTreeWrap" class="hidden flex-1 overflow-auto"></div>
         <div id="treeTools" class="hidden mt-2 flex gap-2 text-sm">
@@ -437,8 +445,11 @@ if (isset($_GET['api'])) {
           <button onclick="save()" id="saveBtn" disabled class="px-3 py-2 bg-blue-600 text-white rounded disabled:opacity-50">Save</button>
           <button onclick="del()" id="delBtn" disabled class="px-3 py-2 bg-red-600 text-white rounded disabled:opacity-50">Delete</button>
         </div>
+        <button class="ml-2 md:hidden" onclick="toggleSection('contentBody', this)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+        </button>
       </div>
-      <div class="flex-1 flex flex-col">
+      <div id="contentBody" class="flex-1 flex flex-col">
         <div id="nodeEditor" class="hidden p-4 border-b">
           <div class="flex items-center gap-2">
             <label class="text-sm">Title:</label>
@@ -499,6 +510,13 @@ let selectedId=null;
 if(listBtn && treeBtn){
   listBtn.onclick=()=>hideTree();
   treeBtn.onclick=()=>showTree();
+}
+
+function toggleSection(id,btn){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('hidden');
+  if(btn) btn.classList.toggle('rotate-180');
 }
 
 function crumb(rel){
@@ -664,22 +682,27 @@ function showTree(){
   loadTree();
 }
 function renderTree(nodes){
-  const wrap=document.createElement('div'); wrap.style.lineHeight='1.35'; wrap.style.fontSize='14px';
+  const wrap=document.createElement('div');
+  wrap.className='text-base leading-relaxed';
   const mk=(arr)=>{
-    const ul=document.createElement('ul'); ul.style.listStyle='none'; ul.style.paddingLeft='14px'; ul.style.margin='6px 0';
+    const ul=document.createElement('ul');
+    ul.className='list-none pl-4 my-1';
     for(const n of arr){
       const li=document.createElement('li');
-      const row=document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem';
+      const row=document.createElement('div');
+      row.className='flex items-center gap-2 px-2 py-2 hover:bg-gray-100 rounded cursor-pointer';
       const has=n.children && n.children.length;
-      const caret=document.createElement('span'); caret.textContent=has?'▸':'•'; caret.style.cursor=has?'pointer':'default';
+      const caret=document.createElement('span');
+      caret.textContent=has?'▸':'•';
+      caret.className=has?'cursor-pointer select-none':'text-gray-400';
       const title=document.createElement('span'); title.textContent=n.t;
       row.append(caret,title); row.dataset.id=n.id;
       let child=null;
-      if(has){ child=mk(n.children); child.style.display='none'; li.appendChild(child); }
+      if(has){ child=mk(n.children); child.classList.add('hidden'); li.appendChild(child); }
       row.onclick=(e)=>{
         if(has && e.target===caret){
-          child.style.display = child.style.display==='none' ? 'block' : 'none';
-          caret.textContent = child.style.display==='none' ? '▸' : '▾';
+          child.classList.toggle('hidden');
+          caret.textContent = child.classList.contains('hidden') ? '▸' : '▾';
         }
         selectNode(n.id,n.t,n.note);
       };
