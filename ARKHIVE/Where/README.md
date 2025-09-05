@@ -15,4 +15,6 @@ Spatial knowledge: places, realms, and dimensions. This branch organizes everyth
 - [Abstract Spatial Domains](Abstract Spatial Domains/README.md)
 - [Maps & Wayfinding](Maps & Wayfinding/README.md)
 
+For concrete examples, see the [Where Items](../Items/Where/README.md).
+
 Refer to [Arkhive-Where.txt](Arkhive-Where.txt) for the detailed taxonomy and rules.
