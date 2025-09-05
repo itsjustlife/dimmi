@@ -220,10 +220,10 @@ if (isset($_GET['api'])) {
       $out=[]; $i=0; foreach($node->childNodes as $c){
         if ($c->nodeType!==XML_ELEMENT_NODE || strtolower($c->nodeName)!=='outline') continue;
         $t = $c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
-        $p = $path===''? (string)$i : $path.'/'.$i;
-        $item = ['t'=>$t, 'p'=>$p, 'children'=>[]];
+        $id = $path===''? (string)$i : $path.'/'.$i;
+        $item = ['t'=>$t, 'id'=>$id, 'children'=>[]];
         if ($c->hasAttribute('_note')) $item['note']=$c->getAttribute('_note');
-        if ($c->hasChildNodes()) $item['children']=$walk($c,$p);
+        if ($c->hasChildNodes()) $item['children']=$walk($c,$id);
         $out[]=$item; $i++;
       } return $out;
     };
@@ -631,7 +631,7 @@ function renderTree(nodes){
         const ta=document.getElementById('ta');
         ta.value=n.note||''; ta.disabled=false;
         saveBtn.disabled=false; delBtn.disabled=true;
-        currentOutlinePath=n.p;
+        currentOutlinePath=n.id;
         fileName.textContent=n.t; fileSize.textContent=''; fileWhen.textContent='';
       };
       row.appendChild(caret); row.appendChild(title); li.appendChild(row);
