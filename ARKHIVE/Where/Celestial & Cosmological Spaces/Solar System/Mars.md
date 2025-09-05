@@ -3,18 +3,17 @@ Type: Planet
 Parent: WHERE / Celestial & Cosmological Spaces / Solar System
 Aliases: [Mars_(Planet)]
 Tags: [WHERE, planet]
-Links: [WHO:NASA | WHAT:Planet | WHEN:Space-Missions | WHY:Exploration]
+Links: [WHO:../../../Who/README.md, WHAT:../../../What/README.md, WHEN:../../../When/README.md, WHY:../../../Why/README.md]
 
-Mars is the fourth planet from the Sun and is known as the Red Planet due to its reddish appearance. It has been a primary target for exploration missions seeking signs of past or present life.
+Mars is the fourth planet from the Sun, notable for its red hue and exploration interest.
 
-_Context:_ Fourth planet in the Solar System.
+_Context:_ Outer edge of the inner planets in the Solar System.
 _History:_
-- 1965: Mariner 4 flyby provided first close-up images (WHEN:1965).
-- Ongoing exploration by rovers and orbiters (WHO:NASA).
+- 1965: Mariner 4 flyby provides first close-up images (WHEN:../../../When/README.md).
 _Links:_
-- WHAT: Planet
-- WHEN: Space Missions
-- WHO: NASA
-- WHY: Exploration
-- WHERE: Solar System
+- WHO: [NASA](../../../Who/README.md)
+- WHAT: [Planetary Science](../../../What/README.md)
+- WHEN: [Mars Exploration](../../../When/README.md)
+- WHY: [Search for Life](../../../Why/README.md)
+- WHERE: [Solar System](README.md)
 _See also:_ [Solar System](README.md)

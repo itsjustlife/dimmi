@@ -3,16 +3,17 @@ Type: Mythic Realm
 Parent: WHERE / Fictional & Mythological Settings / Mythological & Religious Realms
 Aliases: [Mount_Olympus]
 Tags: [WHERE, mythic, Greek]
-Links: [WHO:Greek-Gods | WHAT:Greek-Mythology | WHEN:Mythic-Ages | WHY:Religion]
+Links: [WHO:../../../Who/README.md, WHAT:../../../What/README.md, WHEN:../../../When/README.md, WHY:../../../Why/README.md]
 
-Mount Olympus is the mythical home of the Greek gods in Hellenic mythology. It is depicted as a lofty mountain dwelling of deities, distinct from the real mountain in Greece.
+Mount Olympus is the legendary home of the Greek gods in Hellenic myth.
 
-_Context:_ Mythological mountain above Greece.
+_Context:_ Mythic mountain above Greece distinct from the real peak.
 _History:_
-- Described in ancient Greek epics (WHEN:Antiquity).
+- Antiquity: Featured in Homeric epics (WHEN:../../../When/README.md).
 _Links:_
-- WHAT: Greek Mythology
-- WHY: Religion
-- WHO: Greek Gods
-- WHERE: Greece (mythic context)
-_See also:_ [README](../README.md)
+- WHO: [Greek Gods](../../../Who/README.md)
+- WHAT: [Greek Mythology](../../../What/README.md)
+- WHEN: [Mythic Ages](../../../When/README.md)
+- WHY: [Religion](../../../Why/README.md)
+- WHERE: [Mythological & Religious Realms](../README.md)
+_See also:_ [Europe](../../Physical Geography/Continents/Europe/README.md)
