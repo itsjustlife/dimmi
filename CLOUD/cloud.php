@@ -327,7 +327,7 @@ function fmtWhen(s){ try{return new Date(s*1000).toLocaleString();}catch{return 
 async function openFile(rel,name,size,mtime){
   currentFile=rel; fileName.textContent=name; fileSize.textContent=size?fmtSize(size):''; fileWhen.textContent=mtime?fmtWhen(mtime):'';
   const r=await (await api('read',{path:rel})).json(); const ta=document.getElementById('ta');
-  if(!r.ok){ alert(r.error||'Cannot open'); ta.value=''; ta.disabled=true; btns(false); return; }
+  if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); return; }
   ta.value=r.content; ta.disabled=false; btns(true);
   // [PATCH] enable Tree toggle if an OPML is open
   const ext=name.toLowerCase().split('.').pop();
