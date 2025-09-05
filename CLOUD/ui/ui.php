@@ -669,7 +669,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
     <div class="body" style="position:relative">
       <div class="pullHint">↓ Pull to refresh</div>
       <ul id="fileList"></ul>
-      <div id="opmlTreeWrap" style="display:none; position:absolute; inset:8px; overflow:auto"></div>
+      <div id="opmlTreeWrap" style="display:none; height:100%; overflow:auto"></div>
       <div id="treeTools" class="row" style="display:none; gap:6px; margin-top:6px">
         <button class="btn small" id="addChildBtn">+ Child</button>
         <button class="btn small" id="addSiblingBtn">+ Sibling</button>
