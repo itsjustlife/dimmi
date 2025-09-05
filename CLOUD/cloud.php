@@ -152,30 +152,82 @@ if (isset($_GET['api'])) {
     bad('Unsupported for format',400);
   }
 
-  // [PATCH] OPML → JSON tree for STRUCTURE panel
+  // ===== OPML helpers =====
+  function opml_load_dom($abs){
+    if(!class_exists('DOMDocument')) bad('DOM extension missing',500);
+    libxml_use_internal_errors(true);
+    $dom=new DOMDocument('1.0','UTF-8');
+    $dom->preserveWhiteSpace=false;
+    if(!$dom->load($abs, LIBXML_NONET)) bad('Invalid OPML/XML',422);
+    return $dom;
+  }
+  function opml_body($dom){
+    $b=$dom->getElementsByTagName('body')->item(0);
+    if(!$b) bad('No <body> in OPML',422);
+    return $b;
+  }
+  function opml_outline_at($parent,$idx){
+    $i=-1; foreach($parent->childNodes as $c){
+      if($c->nodeType===XML_ELEMENT_NODE && strtolower($c->nodeName)==='outline'){
+        $i++; if($i===(int)$idx) return $c;
+      }
+    } return null;
+  }
+  function opml_node_by_id($dom,$id){
+    $p=trim((string)$id)===''?[]:array_map('intval',explode('/',$id));
+    $cur=opml_body($dom); foreach($p as $ix){ $cur=opml_outline_at($cur,$ix); if(!$cur) bad('Node not found',404); }
+    return $cur;
+  }
+  function opml_id_of($node){
+    $path=[]; while($node && strtolower($node->nodeName)==='outline'){
+      $ix=0; for($s=$node->previousSibling;$s;$s=$s->previousSibling){ if($s->nodeType===XML_ELEMENT_NODE && strtolower($s->nodeName)==='outline') $ix++; }
+      array_unshift($path,$ix); $node=$node->parentNode; if(!$node || strtolower($node->nodeName)==='body') break;
+    }
+    return implode('/',$path);
+  }
+  function opml_atomic_save($dom,$abs){ $tmp=$abs.'.tmp'; if($dom->save($tmp)===false) bad('Write failed',500); if(!@rename($tmp,$abs)){ @unlink($tmp); bad('Replace failed',500); } }
+  function opml_ext_ok($abs){ $ext=strtolower(pathinfo($abs, PATHINFO_EXTENSION)); if(!in_array($ext,['opml','xml'])) bad('Not OPML/XML',415); }
+
+  // OPML tree with IDs
   if ($action==='opml_tree') {
     $file = $_GET['file'] ?? $_POST['file'] ?? '';
     $fileAbs = safe_abs($file);
     if ($fileAbs===false || !is_file($fileAbs)) bad('Bad file');
-    $ext = strtolower(pathinfo($fileAbs, PATHINFO_EXTENSION));
-    if (!in_array($ext, ['opml','xml'])) bad('Not OPML/XML',415);
-    $xml = @file_get_contents($fileAbs); if ($xml===false) bad('Read error',500);
-    if (!class_exists('DOMDocument')) bad('DOM extension missing',500);
-    libxml_use_internal_errors(true);
-    $dom=new DOMDocument('1.0','UTF-8'); $dom->preserveWhiteSpace=false;
-    if (!$dom->loadXML($xml, LIBXML_NONET)) bad('Invalid OPML/XML',422);
-    $body = $dom->getElementsByTagName('body')->item(0);
-    $walk = function($node) use (&$walk){
-      $out=[]; foreach($node->childNodes as $c){
-        if ($c->nodeType!==XML_ELEMENT_NODE || strtolower($c->nodeName)!=='outline') continue;
-        $t = $c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
-        $item = ['t'=>$t, 'children'=>[]];
-        if ($c->hasChildNodes()) $item['children']=$walk($c);
-        $out[]=$item;
+    opml_ext_ok($fileAbs);
+    $dom = opml_load_dom($fileAbs); $body = opml_body($dom);
+    $walk = function($node,$base) use (&$walk){
+      $out=[]; $i=0; foreach($node->childNodes as $c){
+        if($c->nodeType!==XML_ELEMENT_NODE || strtolower($c->nodeName)!=='outline') continue;
+        $t=$c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
+        $id=($base==='')?"$i":"$base/$i";
+        $item=['id'=>$id,'t'=>$t,'children'=>[]];
+        if($c->hasAttribute('_note')) $item['note']=$c->getAttribute('_note');
+        if($c->hasChildNodes()) $item['children']=$walk($c,$id);
+        $out[]=$item; $i++;
       } return $out;
     };
-    $tree = $body? $walk($body) : [];
-    j(['ok'=>true,'tree'=>$tree]);
+    j(['ok'=>true,'tree'=>$walk($body,'')]);
+  }
+
+  // OPML node ops
+  if ($action==='opml_node' && $method==='POST') {
+    $data=json_decode(file_get_contents('php://input'),true);
+    $file=$data['file']??''; $op=$data['op']??''; $id=$data['id']??'';
+    $abs=safe_abs($file); if($abs===false || !is_file($abs)) bad('Bad file');
+    opml_ext_ok($abs);
+    $dom=opml_load_dom($abs); $body=opml_body($dom);
+    $sel=null;
+    switch($op){
+      case 'set_note': {
+        $cur=opml_node_by_id($dom,$id);
+        $note=(string)($data['note']??'');
+        if($note==='') $cur->removeAttribute('_note'); else $cur->setAttribute('_note',$note);
+        $sel=$cur;
+      } break;
+      default: bad('Unknown op',400);
+    }
+    opml_atomic_save($dom,$abs);
+    j(['ok'=>true,'select'=>$sel?opml_id_of($sel):$id]);
   }
 
   bad('Unknown action',404);
@@ -218,6 +270,7 @@ ul{list-style:none;margin:0;padding:0} li{padding:6px;border-radius:8px;cursor:p
 small{opacity:.6} .row{display:flex;gap:8px;align-items:center;justify-content:space-between}
 .actions{display:flex;gap:4px;align-items:center}
 .btn.small{padding:2px 4px;font-size:12px}
+.btn.icon{width:24px;height:24px;padding:0;border-radius:4px;display:flex;align-items:center;justify-content:center}
 .editorbar{padding:8px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
 .tag{background:#1e1e26;border:1px solid var(--line);padding:3px 6px;border-radius:6px;font-size:12px}
 .mono{font-family:ui-monospace,Consolas,monospace}
@@ -259,12 +312,12 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <!-- [PATCH] List / Tree toggle -->
       <span style="margin-left:auto; display:flex; gap:6px">
         <button class="btn small" id="structListBtn" type="button">List</button>
-        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
+        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML ARK" disabled>ARK</button>
       </span>
     </div>
     <div class="body" style="position:relative">
       <ul id="fileList"></ul>
-      <div id="opmlTreeWrap" style="display:none; position:absolute; inset:8px; overflow:auto"></div>
+      <div id="opmlTreeWrap" style="display:none; height:100%; overflow:auto"></div>
     </div>
   </div>
   <div class="panel">
@@ -309,6 +362,8 @@ const listBtn=document.getElementById('structListBtn');
 const treeBtn=document.getElementById('structTreeBtn');
 const treeWrap=document.getElementById('opmlTreeWrap');
 const fileList=document.getElementById('fileList');
+let selectedId=null;
+let editingNote=false;
 if(listBtn && treeBtn){
   listBtn.onclick=()=>hideTree();
   treeBtn.onclick=()=>showTree();
@@ -327,7 +382,7 @@ async function init(){
 }
 function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
-  li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}</div><div class="actions">${isDir?'':'<small>'+fmtSize(size)+'</small>'}<button class="btn small" onclick="renameItem(event,'${rel}')">Rename</button><button class="btn small" onclick="deleteItem(event,'${rel}')">Delete</button></div></div>`;
+  li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}</div><div class="actions">${isDir?'':'<small>'+fmtSize(size)+'</small>'}<button class="btn small icon" onclick="renameItem(event,'${rel}')" title="Rename">✏️</button><button class="btn small icon" onclick="deleteItem(event,'${rel}')" title="Delete">🗑️</button></div></div>`;
   li.onclick=()=> isDir? openDir(rel) : openFile(rel,name,size,mtime);
   return li;
 }
@@ -345,6 +400,7 @@ function fmtSize(b){ if(b<1024) return b+' B'; let u=['KB','MB','GB']; let i=-1;
 function fmtWhen(s){ try{return new Date(s*1000).toLocaleString();}catch{return '';} }
 
 async function openFile(rel,name,size,mtime){
+  editingNote=false; selectedId=null;
   currentFile=rel; fileName.textContent=name; fileSize.textContent=size?fmtSize(size):''; fileWhen.textContent=mtime?fmtWhen(mtime):'';
   const r=await (await api('read',{path:rel})).json(); const ta=document.getElementById('ta');
   if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); return; }
@@ -357,9 +413,17 @@ async function openFile(rel,name,size,mtime){
 function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; }
 async function save(){
   if(!currentFile) return;
-  const body=JSON.stringify({content:document.getElementById('ta').value});
-  const r=await (await fetch(`?api=write&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF},body})).json();
-  if(!r.ok){alert(r.error||'Save failed');return;}
+  const val=document.getElementById('ta').value;
+  if(editingNote && selectedId!==null){
+    const body=JSON.stringify({file:currentFile, op:'set_note', id:selectedId, note:val});
+    const r=await (await fetch(`?api=opml_node`,{method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body})).json();
+    if(!r.ok){alert(r.error||'Save failed');return;}
+    await loadTree();
+  } else {
+    const body=JSON.stringify({content:val});
+    const r=await (await fetch(`?api=write&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF},body})).json();
+    if(!r.ok){alert(r.error||'Save failed');return;}
+  }
 }
 async function del(){
   if(!currentFile) return; if(!confirm('Delete this file?')) return;
@@ -426,7 +490,9 @@ async function uploadFolder(inp){
 
 async function renameItem(ev,rel){
   ev.stopPropagation();
-  const name=prompt('Rename to:'); if(!name) return;
+  const oldName = rel.split('/').pop();
+  const name = prompt('Rename to:', oldName);
+  if(!name || name === oldName) return;
   // [PATCH] send {to: newRel}
   const dir = rel.split('/').slice(0,-1).join('/');
   const target = (dir? dir+'/' : '') + name.replace(/^\/+/,'');
@@ -445,33 +511,52 @@ async function deleteItem(ev,rel){
   openDir(currentDir);
 }
 // [PATCH] STRUCTURE Tree: render + toggle
-function hideTree(){ if(treeWrap) treeWrap.style.display='none'; if(fileList) fileList.style.visibility='visible'; }
+function hideTree(){
+  if(treeWrap) treeWrap.style.display='none';
+  if(fileList) fileList.style.display='block';
+  if(editingNote){ editingNote=false; saveBtn.disabled=true; }
+}
 function showTree(){
   if(treeBtn && treeBtn.disabled) return;
   if(treeWrap) treeWrap.style.display='block';
-  if(fileList) fileList.style.visibility='hidden';
+  if(fileList) fileList.style.display='none';
   loadTree();
 }
 function renderTree(nodes){
   const wrap=document.createElement('div'); wrap.style.lineHeight='1.35'; wrap.style.fontSize='14px';
-  const ul=(arr)=>{
-    const u=document.createElement('ul'); u.style.listStyle='none'; u.style.paddingLeft='14px'; u.style.margin='6px 0';
+  const mk=(arr)=>{
+    const ul=document.createElement('ul'); ul.style.listStyle='none'; ul.style.paddingLeft='14px'; ul.style.margin='6px 0';
     for(const n of arr){
       const li=document.createElement('li');
-      const row=document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem';
+      const row=document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem'; row.dataset.id=n.id;
       const has=n.children && n.children.length;
       const caret=document.createElement('span'); caret.textContent=has?'▸':'•'; caret.style.cursor=has?'pointer':'default';
       const title=document.createElement('span'); title.textContent=n.t;
       row.appendChild(caret); row.appendChild(title); li.appendChild(row);
-      if(has){ const child=ul(n.children); child.style.display='none'; li.appendChild(child);
-        row.onclick=()=>{ child.style.display=child.style.display==='none'?'block':'none'; caret.textContent=child.style.display==='none'?'▸':'▾'; };
-      }
-      u.appendChild(li);
+      if(has){ const child=mk(n.children); child.style.display='none'; li.appendChild(child); }
+      row.onclick = (e)=>{
+        if(has && e.target===caret){
+          const child=li.lastChild; child.style.display=child.style.display==='none'?'block':'none';
+          caret.textContent=child.style.display==='none'?'▸':'▾';
+        } else {
+          selectNode(n.id, n.t, n.note);
+        }
+      };
+      ul.appendChild(li);
     }
-    return u;
+    return ul;
   };
-  wrap.appendChild(ul(nodes));
+  wrap.appendChild(mk(nodes));
   if(treeWrap) treeWrap.replaceChildren(wrap);
+}
+
+function selectNode(id,title,note){
+  selectedId=id;
+  const ta=document.getElementById('ta');
+  ta.value=note||''; ta.disabled=false;
+  saveBtn.disabled=false; delBtn.disabled=true;
+  fileName.textContent=title||''; fileSize.textContent=''; fileWhen.textContent='';
+  editingNote=true;
 }
 async function loadTree(){
   try{

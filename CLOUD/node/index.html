@@ -52,12 +52,12 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <!-- [PATCH] List / Tree toggle -->
       <span style="margin-left:auto; display:flex; gap:6px">
         <button class="btn small" id="structListBtn" type="button">List</button>
-        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
+        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML ARK" disabled>ARK</button>
       </span>
     </div>
     <div class="body" style="position:relative">
       <ul id="fileList"></ul>
-      <div id="opmlTreeWrap" style="display:none; position:absolute; inset:8px; overflow:auto"></div>
+      <div id="opmlTreeWrap" style="display:none; height:100%; overflow:auto"></div>
     </div>
   </div>
   <div class="panel">
@@ -235,11 +235,11 @@ async function deleteItem(ev,rel){
   if(currentFile===rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); currentFile=''; }
   openDir(currentDir);
 }
-function hideTree(){ if(treeWrap) treeWrap.style.display='none'; if(fileList) fileList.style.visibility='visible'; }
+function hideTree(){ if(treeWrap) treeWrap.style.display='none'; if(fileList) fileList.style.display='block'; }
 function showTree(){
   if(treeBtn && treeBtn.disabled) return;
   if(treeWrap) treeWrap.style.display='block';
-  if(fileList) fileList.style.visibility='hidden';
+  if(fileList) fileList.style.display='none';
   loadTree();
 }
 function renderTree(nodes){
@@ -252,9 +252,24 @@ function renderTree(nodes){
       const has=n.children && n.children.length;
       const caret=document.createElement('span'); caret.textContent=has?'▸':'•'; caret.style.cursor=has?'pointer':'default';
       const title=document.createElement('span'); title.textContent=n.t;
+
+      if(n.note){
+        title.style.cursor='pointer';
+        title.onclick=e=>{
+          e.stopPropagation();
+          const ta=document.getElementById('ta');
+          ta.value=n.note; ta.disabled=false; btns(false);
+          fileName.textContent=n.t; fileSize.textContent=''; fileWhen.textContent='';
+        };
+      }
+
       row.appendChild(caret); row.appendChild(title); li.appendChild(row);
-      if(has){ const child=ul(n.children); child.style.display='none'; li.appendChild(child);
-        row.onclick=()=>{ child.style.display=child.style.display==='none'?'block':'none'; caret.textContent=child.style.display==='none'?'▸':'▾'; };
+
+      if(has){
+        const child=ul(n.children); child.style.display='none'; li.appendChild(child);
+        const toggle=()=>{ child.style.display=child.style.display==='none'?'block':'none'; caret.textContent=child.style.display==='none'?'▸':'▾'; };
+        caret.onclick=toggle;
+        if(!n.note) row.onclick=toggle;
       }
       u.appendChild(li);
     }

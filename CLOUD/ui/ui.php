@@ -271,7 +271,9 @@ if (isset($_GET['api'])) {
         $t = $c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
         $id = ($prefix==='') ? strval($i) : ($prefix.'/'.$i);
         $childs = $c->hasChildNodes() ? $walk($c,$id) : [];
-        $out[] = ['id'=>$id,'t'=>$t,'children'=>$childs];
+        $item = ['id'=>$id,'t'=>$t,'children'=>$childs];
+        if($c->hasAttribute('_note')) $item['note']=$c->getAttribute('_note');
+        $out[] = $item;
         $i++;
       } return $out;
     };
@@ -312,6 +314,13 @@ if (isset($_GET['api'])) {
         $title = (string)($data['title'] ?? '');
         $cur->setAttribute('title',$title);
         if(!$cur->getAttribute('text')) $cur->setAttribute('text',$title);
+        $sel = $cur;
+      } break;
+
+      case 'set_note': {
+        $cur = opml_node_by_id($dom,$id);
+        $note = (string)($data['note'] ?? '');
+        if($note==='') $cur->removeAttribute('_note'); else $cur->setAttribute('_note',$note);
         $sel = $cur;
       } break;
 
@@ -661,13 +670,13 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <!-- [NODE PATCH] List / Tree toggle -->
       <span style="margin-left:auto; display:flex; gap:6px">
         <button class="btn small" id="structListBtn" type="button">List</button>
-        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
+        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML ARK" disabled>ARK</button>
       </span>
     </div>
     <div class="body" style="position:relative">
       <div class="pullHint">↓ Pull to refresh</div>
       <ul id="fileList"></ul>
-      <div id="opmlTreeWrap" style="display:none; position:absolute; inset:8px; overflow:auto"></div>
+      <div id="opmlTreeWrap" style="display:none; height:100%; overflow:auto"></div>
       <div id="treeTools" class="row" style="display:none; gap:6px; margin-top:6px">
         <button class="btn small" id="addChildBtn">+ Child</button>
         <button class="btn small" id="addSiblingBtn">+ Sibling</button>
@@ -898,6 +907,9 @@ const newLinkHref=document.getElementById('newLinkHref');
 const newLinkTags=document.getElementById('newLinkTags');
 const addLinkBtn=document.getElementById('addLinkBtn');
 
+let editingNote=false;
+let selectedId=null;
+
 function setCrumb(rel){
   const c=document.getElementById('crumb'); c.innerHTML='';
   const parts = rel? rel.split('/'): [];
@@ -964,6 +976,7 @@ function fmtSize(b){ if(b<1024) return b+' B'; let u=['KB','MB','GB']; let i=-1;
 function fmtWhen(s){ try{return new Date(s*1000).toLocaleString();}catch{ return ''; } }
 
 async function openFile(rel,name,size,mtime){
+  editingNote=false;
   currentFile = rel;
   fileName.textContent = name;
   fileSize.textContent = size?fmtSize(size):'';
@@ -985,10 +998,18 @@ function btns(on){
 
 async function save(){
   if (!currentFile) return;
-  const body = JSON.stringify({content: document.getElementById('ta').value});
-  const r = await (await fetch(`?api=write&`+new URLSearchParams({path:currentFile}), {method:'POST', headers:{'X-CSRF':CSRF}, body})).json();
-  if (!r.ok){ toast(r.error||'Save failed','err'); return; }
-  toast('Saved ✓','ok');
+  const val=document.getElementById('ta').value;
+  if(editingNote && selectedId!==null){
+    const body=JSON.stringify({file:currentFile, op:'set_note', id:selectedId, note:val});
+    const r=await (await fetch(`?api=opml_node`,{method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body})).json();
+    if(!r.ok){ toast(r.error||'Save failed','err'); return; }
+    await loadTree();
+  } else {
+    const body=JSON.stringify({content:val});
+    const r=await (await fetch(`?api=write&`+new URLSearchParams({path:currentFile}), {method:'POST', headers:{'X-CSRF':CSRF}, body})).json();
+    if(!r.ok){ toast(r.error||'Save failed','err'); return; }
+    toast('Saved ✓','ok');
+  }
 }
 
 async function del(){
@@ -1083,12 +1104,18 @@ async function renameItem(ev,rel){
   if(!r.ok){ toast(r.error||'rename failed','err'); return; } openDir(currentDir); toast('Renamed ✓','ok');
 }
 // ===== Tree selection & tools ====================================  // [NODE PATCH]
-let selectedId = null;
 
-function hideTree(){ treeWrap.style.display='none'; fileList.style.visibility='visible'; treeTools.style.display='none'; nodeEditor.style.display='none'; }
+function hideTree(){
+  treeWrap.style.display='none';
+  fileList.style.display='block';
+  treeTools.style.display='none';
+  nodeEditor.style.display='none';
+  if(editingNote){ editingNote=false; saveBtn.disabled=true; }
+}
 function showTree(){
   if(!currentFile) return;
-  treeWrap.style.display='block'; fileList.style.visibility='hidden';
+  treeWrap.style.display='block';
+  fileList.style.display='none';
   loadTree();
   treeTools.style.display='flex';
   autoPaneTo('Struct');
@@ -1107,7 +1134,7 @@ function renderTree(nodes){
       row.dataset.id = n.id;
       row.onclick = (e)=>{
         if(has && e.target===caret){ child.style.display = child.style.display==='none' ? 'block':'none'; caret.textContent = child.style.display==='none' ? '▸':'▾'; }
-        selectNode(n.id, n.t);
+        selectNode(n.id, n.t, n.note);
       };
       li.appendChild(row);
       if(has){ const child=mk(n.children,n.id); child.style.display='none'; li.appendChild(child); }
@@ -1124,10 +1151,17 @@ async function loadTree(){
   renderTree(data.tree||[]);
 }
 
-async function selectNode(id, title){
+async function selectNode(id, title, note){
   selectedId = id;
   nodeEditor.style.display='block';
   nodeTitle.value = title || '';
+  const ta=document.getElementById('ta');
+  ta.value = note || '';
+  ta.disabled=false;
+  saveBtn.disabled=false;
+  delBtn.disabled=true;
+  fileName.textContent=title||''; fileSize.textContent=''; fileWhen.textContent='';
+  editingNote=true;
   await refreshLinks();
 }
 
