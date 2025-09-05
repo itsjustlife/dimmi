@@ -458,7 +458,7 @@ small{opacity:.6} .row{display:flex;gap:8px;align-items:center;justify-content:s
 .editorbar{padding:8px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
 .tag{background:#1e1e26;border:1px solid var(--line);padding:3px 6px;border-radius:6px;font-size:12px}
 .mono{font-family:ui-monospace,Consolas,monospace}
-textarea{width:100%;height:100%;flex:1;min-height:220px;resize:none;background:#0e0e14;color:#e5e5e5;border:0;padding:14px;font-family:ui-monospace,Consolas,monospace}
+textarea{width:100%;height:100%;flex:1;min-height:220px;resize:none;background:#0e0e14;color:#e5e5e5;border:0;padding:14px;box-sizing:border-box;font-family:ui-monospace,Consolas,monospace}
 footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 .crumb a{color:#aee;text-decoration:none;margin-right:6px}.crumb a:hover{text-decoration:underline}
 /* Toasts */
@@ -476,6 +476,9 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 #ctx{position:fixed; z-index:30; display:none; min-width:160px; background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
 #ctx button{display:block; width:100%; text-align:left; padding:10px 12px; border:0; background:transparent; color:var(--text); cursor:pointer}
 #ctx button:hover{background:#181822}
+#newFileModal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.4); z-index:50}
+#newFileModal .box{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:10px; width:260px}
+#newFileModal .ext.selected{outline:2px solid var(--accent)}
 /* Pull hint */
 .pullHint{position:absolute; top:-34px; left:0; right:0; height:24px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:12px}
 /* Palette */
@@ -512,6 +515,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 
 <div class="top">
   <div id="rootNote">root: …</div>
+  <button class="btn" onclick="openDir('')">Home</button>
   <div class="crumb" id="crumb" style="margin-left:8px"></div>
   <div style="margin-left:auto;display:flex;gap:8px">
     <input id="pathInput" class="input" placeholder="jump to path (rel)">
@@ -609,6 +613,22 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
   </button>
 </nav>
 
+<div id="newFileModal">
+  <div class="box">
+    <input id="newFileName" class="input" placeholder="new file name">
+    <div class="row" id="extBtns" style="gap:6px">
+      <button class="btn small ext" data-ext=".txt">.txt</button>
+      <button class="btn small ext" data-ext=".html">.html</button>
+      <button class="btn small ext" data-ext=".md">.md</button>
+      <button class="btn small ext" data-ext=".opml">.opml</button>
+    </div>
+    <div class="row" style="justify-content:flex-end; gap:6px">
+      <button class="btn small" id="newFileCreateBtn">Create</button>
+      <button class="btn small" id="newFileCancelBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="toasts"></div>
 <div id="ctx" role="menu">
   <button data-act="open">Open</button>
@@ -639,6 +659,8 @@ const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
 let isMobile = window.matchMedia('(max-width: 900px)').matches;
+const newExts=['.txt','.html','.md','.opml'];
+let newExtIndex=0;
 
 function setPane(p){
   if(!isMobile) return;
@@ -730,7 +752,7 @@ async function openDir(rel){
   const FI=document.getElementById('fileList');   FI.innerHTML='';
   const r=await (await api('list',{path:currentDir})).json();
   if(!r.ok){ toast(r.error||'list failed','err'); return; }
-  if(currentDir){ const up=currentDir.split('/').slice(0,-1).join('/'); const li=document.createElement('li'); li.textContent='⬆️ ..'; li.onclick=()=>openDir(up); FL.appendChild(li); }
+  if(currentDir){ const up=currentDir.split('/').slice(0,-1).join('/'); const upName=up.split('/').pop() || '/'; const li=document.createElement('li'); li.textContent='⬆️ '+upName; li.onclick=()=>openDir(up); FL.appendChild(li); }
   r.items.filter(i=>i.type==='dir').sort((a,b)=>a.name.localeCompare(b.name)).forEach(d=>FL.appendChild(baseEnt(d.name,d.rel,true,0,d.mtime)));
   r.items.filter(i=>i.type==='file').sort((a,b)=>a.name.localeCompare(b.name)).forEach(f=>FI.appendChild(baseEnt(f.name,f.rel,false,f.size,f.mtime)));
   autoPaneTo('Find');
@@ -739,9 +761,10 @@ function jump(){ const p=document.getElementById('pathInput').value.trim(); open
 
 /* File open/save/delete */
 async function openFile(rel,name,size,mtime){
+  const r=await (await api('read',{path:rel})).json();
+  if(!r.ok){ return; }
   currentFile=rel; fileName.textContent=name; fileSize.textContent=size?fmtSize(size):''; fileWhen.textContent=mtime?fmtWhen(mtime):'';
-  const r=await (await api('read',{path:rel})).json(); const ta=document.getElementById('ta');
-  if(!r.ok){ toast(r.error||'Cannot open','err'); ta.value=''; ta.disabled=true; btns(false); return; }
+  const ta=document.getElementById('ta');
   ta.value=r.content; ta.disabled=false; btns(true);
   const ext=name.toLowerCase().split('.').pop();
   document.getElementById('structTreeBtn').disabled = !['opml','xml'].includes(ext);
@@ -755,7 +778,7 @@ async function save(){
   if(!currentFile) return;
   const body=JSON.stringify({content:document.getElementById('ta').value});
   const r=await (await fetch(`?api=write&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF},body})).json();
-  if(!r.ok){ toast(r.error||'Save failed','err'); return; } toast('Saved ✓','ok');
+  if(!r.ok){ toast(r.error||'Save failed','err'); return; }
 }
 async function del(){
   if(!currentFile) return; if(!confirm('Delete this file?')) return;
@@ -768,10 +791,37 @@ async function mkdirPrompt(){
   const r=await (await fetch(`?api=mkdir&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
   if(!r.ok){ toast(r.error||'mkdir failed','err'); return; } openDir(currentDir); toast('Folder created','ok');
 }
-async function newFilePrompt(){
-  const name=prompt('New file name:'); if(!name) return;
+function newFilePrompt(){
+  const m=document.getElementById('newFileModal');
+  const input=document.getElementById('newFileName');
+  m.style.display='flex';
+  newExtIndex=0;
+  updateExtBtns();
+  input.value='';
+  input.focus();
+}
+
+function updateExtBtns(){
+  document.querySelectorAll('#extBtns .ext').forEach((b,i)=>{
+    b.classList.toggle('selected', i===newExtIndex);
+  });
+}
+document.querySelectorAll('#extBtns .ext').forEach((btn,i)=>{
+  btn.addEventListener('click',()=>{ newExtIndex=i; updateExtBtns(); document.getElementById('newFileName').focus(); });
+});
+document.getElementById('newFileName').addEventListener('keydown',(e)=>{
+  if(e.key==='Tab'){ e.preventDefault(); newExtIndex=(newExtIndex+1)%newExts.length; updateExtBtns(); }
+  if(e.key==='Enter'){ e.preventDefault(); createNewFile(); }
+});
+document.getElementById('newFileCreateBtn').addEventListener('click',createNewFile);
+document.getElementById('newFileCancelBtn').addEventListener('click',()=>{ document.getElementById('newFileModal').style.display='none'; });
+
+async function createNewFile(){
+  let name=document.getElementById('newFileName').value.trim();
+  if(!name) return;
+  if(!name.includes('.')) name+=newExts[newExtIndex];
   const r=await (await fetch(`?api=newfile&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
-  if(!r.ok){ toast(r.error||'newfile failed','err'); return; } openDir(currentDir); toast('File created','ok');
+  if(r.ok){ document.getElementById('newFileModal').style.display='none'; openDir(currentDir); } else { toast(r.error||'newfile failed','err'); }
 }
 async function uploadFile(inp){
   if(!inp.files.length) return; const fd=new FormData(); fd.append('file',inp.files[0]);
