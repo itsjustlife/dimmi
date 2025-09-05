@@ -56,6 +56,14 @@ function audit($action,$rel,$ok=true,$extra=''){
   $ip = $_SERVER['REMOTE_ADDR'] ?? '-'; $ts = date('c');
   @file_put_contents($LOG_FILE, "$ts\t$ip\t$action\t$rel\t".($ok?'ok':'fail')."\t$extra\n", FILE_APPEND);
 }
+function copy_dir($src,$dst){
+  if(!is_dir($dst)) @mkdir($dst,0775,true);
+  foreach(scandir($src) as $n){
+    if($n==='.'||$n==='..') continue;
+    $s="$src/$n"; $d="$dst/$n";
+    if(is_dir($s)) copy_dir($s,$d); else @copy($s,$d);
+  }
+}
 
 /* ===== API ===== */
 if (isset($_GET['api'])) {
@@ -122,6 +130,28 @@ if (isset($_GET['api'])) {
     $to=trim(($data['to'] ?? $data['name'] ?? ''),'/'); if($to==='') bad('Missing target');
     $dst=safe_abs($to); if($dst===false) bad('Invalid target');
     $ok = @rename($abs,$dst); audit('rename',$path,$ok,"-> ".rel_of($dst)); j(['ok'=>$ok]);
+  }
+
+  if ($action==='copy' && $method==='POST') {
+    if (!file_exists($abs)) bad('Source not found');
+    $data=json_decode(file_get_contents('php://input'),true);
+    $to=trim(($data['to']??''),'/'); if($to==='') bad('Missing target');
+    $dstDir=safe_abs($to); if($dstDir===false) bad('Invalid target');
+    $dst=$dstDir.'/'.basename($abs);
+    $ok=false;
+    if (is_dir($abs)) { copy_dir($abs,$dst); $ok=true; }
+    else { $dir=dirname($dst); if(!is_dir($dir)) @mkdir($dir,0775,true); $ok=@copy($abs,$dst); }
+    audit('copy',$path,$ok,"-> ".rel_of($dst)); j(['ok'=>$ok]);
+  }
+
+  if ($action==='move' && $method==='POST') {
+    if (!file_exists($abs)) bad('Source not found');
+    $data=json_decode(file_get_contents('php://input'),true);
+    $to=trim(($data['to']??''),'/'); if($to==='') bad('Missing target');
+    $dstDir=safe_abs($to); if($dstDir===false) bad('Invalid target');
+    $dst=$dstDir.'/'.basename($abs);
+    $ok=@rename($abs,$dst);
+    audit('move',$path,$ok,"-> ".rel_of($dst)); j(['ok'=>$ok]);
   }
 
   if ($action==='upload' && $method==='POST') {
@@ -214,9 +244,8 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-ap
 .panel{background:#121218;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0}
 .head{padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
 .body{padding:8px;overflow:auto}
-ul{list-style:none;margin:0;padding:0} li{padding:6px;border-radius:8px;cursor:pointer} li:hover{background:#181822}
+ul{list-style:none;margin:0;padding:0} li{padding:6px;border-radius:8px;cursor:pointer} li:hover,li.sel{background:#181822}
 small{opacity:.6} .row{display:flex;gap:8px;align-items:center;justify-content:space-between}
-.actions{display:flex;gap:4px;align-items:center}
 .btn.small{padding:2px 4px;font-size:12px}
 .editorbar{padding:8px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
 .tag{background:#1e1e26;border:1px solid var(--line);padding:3px 6px;border-radius:6px;font-size:12px}
@@ -262,6 +291,13 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
         <button class="btn small" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
       </span>
     </div>
+    <div class="row" id="ctxBar" style="padding:8px; gap:6px">
+      <button class="btn small" onclick="ctxCopy()">Copy</button>
+      <button class="btn small" onclick="ctxCut()">Cut</button>
+      <button class="btn small" onclick="ctxPaste()">Paste</button>
+      <button class="btn small" onclick="ctxRename()">Rename</button>
+      <button class="btn small" onclick="ctxDelete()">Delete</button>
+    </div>
     <div class="body" style="position:relative">
       <ul id="fileList"></ul>
       <div id="opmlTreeWrap" style="display:none; position:absolute; inset:8px; overflow:auto"></div>
@@ -298,11 +334,18 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
   </div>
 </div>
 <footer><?=$TITLE?></footer>
+<div id="ctxMenu" style="position:absolute;display:none;z-index:1000;background:#fff;border:1px solid #ccc;padding:4px;">
+  <button onclick="ctxCopy()">Copy</button>
+  <button onclick="ctxCut()">Cut</button>
+  <button onclick="ctxPaste()">Paste</button>
+</div>
 
 <script>
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
+let clipPath='', clipMode='';
+let selectedPath='', ctxTarget='', ctxIsDir=false;
 const newExts=['.txt','.html','.md','.opml'];
 let newExtIndex=0;
 const listBtn=document.getElementById('structListBtn');
@@ -325,14 +368,20 @@ function crumb(rel){
 async function init(){
   const info=await (await api('whereami')).json(); rootNote.textContent='root: '+(info.root||'(unset)'); openDir('');
 }
+function selectItem(el,rel){
+  selectedPath=rel;
+  document.querySelectorAll('#fileList li, #folderList li').forEach(li=>li.classList.remove('sel'));
+  el.classList.add('sel');
+}
 function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
-  li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}</div><div class="actions">${isDir?'':'<small>'+fmtSize(size)+'</small>'}<button class="btn small" onclick="renameItem(event,'${rel}')">Rename</button><button class="btn small" onclick="deleteItem(event,'${rel}')">Delete</button></div></div>`;
-  li.onclick=()=> isDir? openDir(rel) : openFile(rel,name,size,mtime);
+  li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}${isDir?'':' <small>'+fmtSize(size)+'</small>'}</div></div>`;
+  li.onclick=()=>{ selectItem(li,rel); isDir? openDir(rel) : openFile(rel,name,size,mtime); };
+  li.oncontextmenu=(e)=>{ e.preventDefault(); selectItem(li,rel); showMenu(e,rel,isDir); };
   return li;
 }
 async function openDir(rel){
-  currentDir = rel || ''; crumb(currentDir);
+  currentDir = rel || ''; selectedPath=''; crumb(currentDir);
   const FL=document.getElementById('folderList'); FL.innerHTML='';
   const r=await (await api('list',{path:currentDir})).json(); if(!r.ok){alert(r.error||'list failed');return;}
   if(currentDir){ const up=currentDir.split('/').slice(0,-1).join('/'); const upName=up.split('/').pop() || '/'; const li=document.createElement('li'); li.textContent='⬆️ '+upName; li.onclick=()=>openDir(up); FL.appendChild(li); }
@@ -359,126 +408,4 @@ async function save(){
   if(!currentFile) return;
   const body=JSON.stringify({content:document.getElementById('ta').value});
   const r=await (await fetch(`?api=write&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF},body})).json();
-  if(!r.ok){alert(r.error||'Save failed');return;}
-}
-async function del(){
-  if(!currentFile) return; if(!confirm('Delete this file?')) return;
-  const r=await (await fetch(`?api=delete&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
-  if(!r.ok){alert(r.error||'Delete failed');return;} ta.value=''; ta.disabled=true; btns(false); openDir(currentDir);
-}
-async function mkdirPrompt(){
-  const name=prompt('New folder name:'); if(!name) return;
-  const r=await (await fetch(`?api=mkdir&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
-  if(!r.ok){alert(r.error||'mkdir failed');return;} openDir(currentDir);
-}
-function newFilePrompt(){
-  const m=document.getElementById('newFileModal');
-  const input=document.getElementById('newFileName');
-  m.style.display='flex';
-  newExtIndex=0;
-  updateExtBtns();
-  input.value='';
-  input.focus();
-}
-
-function updateExtBtns(){
-  document.querySelectorAll('#extBtns .ext').forEach((b,i)=>{
-    b.classList.toggle('selected', i===newExtIndex);
-  });
-}
-document.querySelectorAll('#extBtns .ext').forEach((btn,i)=>{
-  btn.addEventListener('click',()=>{ newExtIndex=i; updateExtBtns(); document.getElementById('newFileName').focus(); });
-});
-document.getElementById('newFileName').addEventListener('keydown',(e)=>{
-  if(e.key==='Tab'){ e.preventDefault(); newExtIndex=(newExtIndex+1)%newExts.length; updateExtBtns(); }
-  if(e.key==='Enter'){ e.preventDefault(); createNewFile(); }
-});
-document.getElementById('newFileCreateBtn').addEventListener('click', createNewFile);
-document.getElementById('newFileCancelBtn').addEventListener('click', ()=>{ document.getElementById('newFileModal').style.display='none'; });
-
-async function createNewFile(){
-  let name=document.getElementById('newFileName').value.trim();
-  if(!name) return;
-  if(!name.includes('.')) name+=newExts[newExtIndex];
-  const r=await (await fetch(`?api=newfile&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
-  if(!r.ok){ alert(r.error||'newfile failed'); return; }
-  document.getElementById('newFileModal').style.display='none';
-  openDir(currentDir);
-}
-async function uploadFile(inp){
-  if(!inp.files.length) return; const fd=new FormData(); fd.append('file',inp.files[0]);
-  const r=await (await fetch(`?api=upload&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
-  if(!r.ok){alert(r.error||'upload failed');return;} openDir(currentDir);
-}
-
-async function uploadFolder(inp){
-  if(!inp.files.length) return;
-  for(const f of inp.files){
-    const fd=new FormData(); fd.append('file',f);
-    const relPath=f.webkitRelativePath||f.name;
-    const subdir=relPath.split('/').slice(0,-1).join('/');
-    const target=currentDir+(subdir?`/${subdir}`:'');
-    const r=await (await fetch(`?api=upload&`+new URLSearchParams({path:target}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
-    if(!r.ok){alert(r.error||'upload failed');return;}
-  }
-  openDir(currentDir);
-}
-
-async function renameItem(ev,rel){
-  ev.stopPropagation();
-  const name=prompt('Rename to:'); if(!name) return;
-  // [PATCH] send {to: newRel}
-  const dir = rel.split('/').slice(0,-1).join('/');
-  const target = (dir? dir+'/' : '') + name.replace(/^\/+/,'');
-  const r=await (await fetch(`?api=rename&`+new URLSearchParams({path:rel}),{
-    method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:target})
-  })).json();
-  if(!r.ok){alert(r.error||'rename failed');return;} openDir(currentDir);
-}
-
-async function deleteItem(ev,rel){
-  ev.stopPropagation();
-  if(!confirm('Delete this item?')) return;
-  const r=await (await fetch(`?api=delete&`+new URLSearchParams({path:rel}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
-  if(!r.ok){alert(r.error||'delete failed');return;}
-  if(currentFile===rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); currentFile=''; }
-  openDir(currentDir);
-}
-// [PATCH] STRUCTURE Tree: render + toggle
-function hideTree(){ if(treeWrap) treeWrap.style.display='none'; if(fileList) fileList.style.visibility='visible'; }
-function showTree(){
-  if(treeBtn && treeBtn.disabled) return;
-  if(treeWrap) treeWrap.style.display='block';
-  if(fileList) fileList.style.visibility='hidden';
-  loadTree();
-}
-function renderTree(nodes){
-  const wrap=document.createElement('div'); wrap.style.lineHeight='1.35'; wrap.style.fontSize='14px';
-  const ul=(arr)=>{
-    const u=document.createElement('ul'); u.style.listStyle='none'; u.style.paddingLeft='14px'; u.style.margin='6px 0';
-    for(const n of arr){
-      const li=document.createElement('li');
-      const row=document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem';
-      const has=n.children && n.children.length;
-      const caret=document.createElement('span'); caret.textContent=has?'▸':'•'; caret.style.cursor=has?'pointer':'default';
-      const title=document.createElement('span'); title.textContent=n.t;
-      row.appendChild(caret); row.appendChild(title); li.appendChild(row);
-      if(has){ const child=ul(n.children); child.style.display='none'; li.appendChild(child);
-        row.onclick=()=>{ child.style.display=child.style.display==='none'?'block':'none'; caret.textContent=child.style.display==='none'?'▸':'▾'; };
-      }
-      u.appendChild(li);
-    }
-    return u;
-  };
-  wrap.appendChild(ul(nodes));
-  if(treeWrap) treeWrap.replaceChildren(wrap);
-}
-async function loadTree(){
-  try{
-    const r=await (await api('opml_tree',{ file: currentFile })).json();
-    if(!r.ok){ if(treeWrap) treeWrap.textContent=r.error||'OPML parse error.'; return; }
-    renderTree(r.tree||[]);
-  }catch(e){ if(treeWrap) treeWrap.textContent='OPML load error.'; }
-}
-init();
-</script>
+  if
