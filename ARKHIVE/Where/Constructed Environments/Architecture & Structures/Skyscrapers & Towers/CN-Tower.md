@@ -1,20 +1,19 @@
 Title: CN Tower
-Type: Structure
+Type: Landmark
 Parent: WHERE / Constructed Environments / Architecture & Structures / Skyscrapers & Towers
 Aliases: [CN_Tower]
 Tags: [WHERE, landmark, Toronto]
-Links: [WHO:Canadian-National-Railways | WHAT:Architecture | WHEN:1976 | WHY:Communications]
+Links: [WHO:../../../../Who/README.md, WHAT:../../../../What/README.md, WHEN:../../../../When/README.md, WHY:../../../../Why/README.md]
 
-The CN Tower in Toronto, Canada, is a 553.3 m concrete communications and observation tower completed in 1976. It was the world's tallest free-standing structure until 2007.
+The CN Tower in Toronto, Canada, is a 553.3 m concrete communications and observation tower completed in 1976.
 
 _Context:_ Downtown Toronto, Ontario, Canada.
 _History:_
-- 1976: Opening to the public (WHEN:1976).
-- Designed by the Canadian National Railways (WHO:Canadian-National-Railways).
+- 1976: Opening to the public (WHEN:../../../../When/README.md).
 _Links:_
-- WHAT: Architecture
-- WHEN: 1976
-- WHO: Canadian National Railways
-- WHY: Communications
-- WHERE: Toronto
-_See also:_ [../README.md](../README.md)
+- WHO: [Canadian National Railways](../../../../Who/README.md)
+- WHAT: [Architecture](../../../../What/README.md)
+- WHEN: [1976](../../../../When/README.md)
+- WHY: [Communications](../../../../Why/README.md)
+- WHERE: [Skyscrapers & Towers](../README.md)
+_See also:_ [Architecture & Structures](../../README.md)

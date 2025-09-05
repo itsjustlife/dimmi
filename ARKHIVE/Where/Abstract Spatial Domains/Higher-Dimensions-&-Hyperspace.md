@@ -3,16 +3,18 @@ Type: Concept
 Parent: WHERE / Abstract Spatial Domains
 Aliases: [Higher_Dimensions_Hyperspace]
 Tags: [WHERE, abstract]
-Links: [WHAT:Physics | WHY:Theoretical-Models]
+Links: [WHO:../../Who/README.md, WHAT:../../What/README.md, WHEN:../../When/README.md, WHY:../../Why/README.md]
 
-Higher dimensions and hyperspace refer to spatial dimensions beyond the familiar three, used in theoretical physics and mathematics to model complex phenomena.
+Spatial dimensions beyond the familiar three, explored in mathematics and physics to model complex phenomena.
 
 _Context:_ Conceptual realms beyond observable space.
 _History:_
-- 19th century: Mathematical explorations of non-Euclidean geometry (WHEN:19th-century).
-- 20th century: Theories like string theory propose extra dimensions (WHAT:Physics).
+- 19th century: Non-Euclidean geometry expands spatial understanding (WHEN:../../When/README.md).
+- 20th century: String theory proposes extra dimensions (WHAT:../../What/README.md).
 _Links:_
-- WHAT: Physics
-- WHY: Theory motivation
-- WHERE: Abstract Spatial Domains
-_See also:_ [README](README.md)
+- WHO: [Theoretical Physicists](../../Who/README.md)
+- WHAT: [Physics](../../What/README.md)
+- WHEN: [Modern Physics](../../When/README.md)
+- WHY: [Model Reality](../../Why/README.md)
+- WHERE: [Abstract Spatial Domains](README.md)
+_See also:_ [Parallel Universes & Multiverse](Parallel-Universes-Multiverse.md)
