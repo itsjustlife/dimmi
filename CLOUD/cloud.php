@@ -412,9 +412,19 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
         <button class="btn small" id="structTreeBtn" type="button" title="Show OPML ARK" disabled>ARK</button>
       </span>
     </div>
-    <div class="body" style="position:relative">
-      <ul id="fileList"></ul>
-      <div id="opmlTreeWrap" style="display:none; position:absolute; inset:8px; overflow:auto"></div>
+    <div class="body" style="position:relative; display:flex; flex-direction:column; overflow:hidden">
+      <div class="pullHint">↓ Pull to refresh</div>
+      <ul id="fileList" style="flex:1; overflow:auto"></ul>
+      <div id="opmlTreeWrap" style="display:none; flex:1; overflow:auto"></div>
+      <div id="treeTools" class="row" style="display:none; gap:6px; margin-top:6px">
+        <button class="btn small" id="addChildBtn">Add Sub</button>
+        <button class="btn small" id="addSiblingBtn">Add Same</button>
+        <button class="btn small" id="delNodeBtn">Delete</button>
+        <button class="btn small" id="upBtn">↑</button>
+        <button class="btn small" id="downBtn">↓</button>
+        <button class="btn small" id="outBtn">⇤</button>
+        <button class="btn small" id="inBtn">⇥</button>
+      </div>
     </div>
   </div>
   <div class="panel">
@@ -427,7 +437,14 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <button class="btn" onclick="save()" id="saveBtn" disabled>Save</button>
       <button class="btn" onclick="del()" id="delBtn" disabled>Delete</button>
     </div>
-    <div class="body" style="padding:0;display:flex;flex-direction:column;flex:1">
+    <div class="body" style="padding:0;display:flex;flex-direction:column">
+      <div id="nodeEditor" style="display:none; padding:8px; border-bottom:1px solid var(--line)">
+        <div class="row" style="gap:8px; align-items:center">
+          <label>Title:</label>
+          <input id="nodeTitle" class="input" style="flex:1" placeholder="Node title">
+          <button class="btn small" id="saveTitleBtn">Save Title</button>
+        </div>
+      </div>
       <textarea id="ta" placeholder="Open a text file…" disabled></textarea>
     </div>
   </div>
@@ -459,6 +476,18 @@ const listBtn=document.getElementById('structListBtn');
 const treeBtn=document.getElementById('structTreeBtn');
 const treeWrap=document.getElementById('opmlTreeWrap');
 const fileList=document.getElementById('fileList');
+const treeTools=document.getElementById('treeTools');
+const nodeEditor=document.getElementById('nodeEditor');
+const nodeTitle=document.getElementById('nodeTitle');
+const saveTitleBtn=document.getElementById('saveTitleBtn');
+const addChildBtn=document.getElementById('addChildBtn');
+const addSiblingBtn=document.getElementById('addSiblingBtn');
+const delNodeBtn=document.getElementById('delNodeBtn');
+const upBtn=document.getElementById('upBtn');
+const downBtn=document.getElementById('downBtn');
+const outBtn=document.getElementById('outBtn');
+const inBtn=document.getElementById('inBtn');
+let selectedId=null;
 if(listBtn && treeBtn){
   listBtn.onclick=()=>hideTree();
   treeBtn.onclick=()=>showTree();
@@ -608,53 +637,83 @@ async function deleteItem(ev,rel){
   if(currentFile===rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); currentFile=''; }
   openDir(currentDir);
 }
-// [PATCH] STRUCTURE Tree: render + toggle
-function hideTree(){ if(treeWrap) treeWrap.style.display='none'; if(fileList) fileList.style.visibility='visible'; }
+// [PATCH] STRUCTURE Tree: render + toggle + node ops
+function hideTree(){
+  treeWrap.style.display='none';
+  fileList.style.display='block';
+  treeTools.style.display='none';
+  nodeEditor.style.display='none';
+  selectedId=null;
+  currentOutlinePath='';
+}
 function showTree(){
-  if(treeBtn && treeBtn.disabled) return;
-  if(treeWrap) treeWrap.style.display='block';
-  if(fileList) fileList.style.visibility='hidden';
+  if(!currentFile) return;
+  treeWrap.style.display='block';
+  fileList.style.display='none';
+  treeTools.style.display='flex';
   loadTree();
 }
 function renderTree(nodes){
   const wrap=document.createElement('div'); wrap.style.lineHeight='1.35'; wrap.style.fontSize='14px';
-  const ul=(arr)=>{
-    const u=document.createElement('ul'); u.style.listStyle='none'; u.style.paddingLeft='14px'; u.style.margin='6px 0';
+  const mk=(arr)=>{
+    const ul=document.createElement('ul'); ul.style.listStyle='none'; ul.style.paddingLeft='14px'; ul.style.margin='6px 0';
     for(const n of arr){
       const li=document.createElement('li');
       const row=document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem';
       const has=n.children && n.children.length;
       const caret=document.createElement('span'); caret.textContent=has?'▸':'•'; caret.style.cursor=has?'pointer':'default';
-      const title=document.createElement('span'); title.textContent=n.t; title.style.cursor='pointer';
-      title.onclick=e=>{
-        e.stopPropagation();
-        const ta=document.getElementById('ta');
-        ta.value=n.note||''; ta.disabled=false;
-        saveBtn.disabled=false; delBtn.disabled=true;
-        currentOutlinePath=n.id;
-        fileName.textContent=n.t; fileSize.textContent=''; fileWhen.textContent='';
+      const title=document.createElement('span'); title.textContent=n.t;
+      row.append(caret,title); row.dataset.id=n.id;
+      let child=null;
+      if(has){ child=mk(n.children); child.style.display='none'; li.appendChild(child); }
+      row.onclick=(e)=>{
+        if(has && e.target===caret){
+          child.style.display = child.style.display==='none' ? 'block' : 'none';
+          caret.textContent = child.style.display==='none' ? '▸' : '▾';
+        }
+        selectNode(n.id,n.t,n.note);
       };
-      row.appendChild(caret); row.appendChild(title); li.appendChild(row);
-
-      if(has){
-        const child=ul(n.children); child.style.display='none'; li.appendChild(child);
-        const toggle=()=>{ child.style.display=child.style.display==='none'?'block':'none'; caret.textContent=child.style.display==='none'?'▸':'▾'; };
-        caret.onclick=toggle;
-        row.onclick=toggle;
-      }
-      u.appendChild(li);
+      li.appendChild(row);
+      ul.appendChild(li);
     }
-    return u;
+    return ul;
   };
-  wrap.appendChild(ul(nodes));
-  if(treeWrap) treeWrap.replaceChildren(wrap);
+  wrap.appendChild(mk(nodes));
+  treeWrap.replaceChildren(wrap);
 }
 async function loadTree(){
   try{
-    const r=await (await api('opml_tree',{ file: currentFile })).json();
-    if(!r.ok){ if(treeWrap) treeWrap.textContent=r.error||'OPML parse error.'; return; }
+    const r=await (await api('opml_tree',{file:currentFile})).json();
+    if(!r.ok){ treeWrap.textContent=r.error||'OPML parse error.'; return; }
     renderTree(r.tree||[]);
-  }catch(e){ if(treeWrap) treeWrap.textContent='OPML load error.'; }
+  }catch(e){ treeWrap.textContent='OPML load error.'; }
 }
+function selectNode(id,title,note){
+  selectedId=id;
+  currentOutlinePath=id;
+  nodeEditor.style.display='block';
+  nodeTitle.value=title||'';
+  if(note!==undefined){
+    const ta=document.getElementById('ta');
+    ta.value=note||''; ta.disabled=false; btns(false);
+    fileName.textContent=title||''; fileSize.textContent=''; fileWhen.textContent='';
+  }
+}
+async function nodeOp(op,extra={}){
+  if(!currentFile || selectedId===null) return;
+  const body=JSON.stringify({file:currentFile,op,id:selectedId,...extra});
+  const r=await (await fetch(`?api=opml_node`,{method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body})).json();
+  if(!r.ok){ alert(r.error||'node op failed'); return; }
+  selectedId=r.select ?? selectedId;
+  await loadTree();
+}
+addChildBtn.onclick   = ()=> nodeOp('add_child',{title:'New'});
+addSiblingBtn.onclick = ()=> nodeOp('add_sibling',{title:'New'});
+delNodeBtn.onclick    = ()=> { if(confirm('Delete this node?')) nodeOp('delete'); };
+upBtn.onclick         = ()=> nodeOp('move',{dir:'up'});
+downBtn.onclick       = ()=> nodeOp('move',{dir:'down'});
+outBtn.onclick        = ()=> nodeOp('move',{dir:'out'});
+inBtn.onclick         = ()=> nodeOp('move',{dir:'in'});
+saveTitleBtn.onclick  = ()=> nodeOp('set_title',{title:nodeTitle.value});
 init();
 </script>
