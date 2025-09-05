@@ -218,6 +218,7 @@ ul{list-style:none;margin:0;padding:0} li{padding:6px;border-radius:8px;cursor:p
 small{opacity:.6} .row{display:flex;gap:8px;align-items:center;justify-content:space-between}
 .actions{display:flex;gap:4px;align-items:center}
 .btn.small{padding:2px 4px;font-size:12px}
+.btn.icon{width:24px;height:24px;padding:0;border-radius:4px;display:flex;align-items:center;justify-content:center}
 .editorbar{padding:8px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
 .tag{background:#1e1e26;border:1px solid var(--line);padding:3px 6px;border-radius:6px;font-size:12px}
 .mono{font-family:ui-monospace,Consolas,monospace}
@@ -327,7 +328,7 @@ async function init(){
 }
 function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
-  li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}</div><div class="actions">${isDir?'':'<small>'+fmtSize(size)+'</small>'}<button class="btn small" onclick="renameItem(event,'${rel}')">Rename</button><button class="btn small" onclick="deleteItem(event,'${rel}')">Delete</button></div></div>`;
+  li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}</div><div class="actions">${isDir?'':'<small>'+fmtSize(size)+'</small>'}<button class="btn small icon" onclick="renameItem(event,'${rel}')" title="Rename">✏️</button><button class="btn small icon" onclick="deleteItem(event,'${rel}')" title="Delete">🗑️</button></div></div>`;
   li.onclick=()=> isDir? openDir(rel) : openFile(rel,name,size,mtime);
   return li;
 }
@@ -426,7 +427,9 @@ async function uploadFolder(inp){
 
 async function renameItem(ev,rel){
   ev.stopPropagation();
-  const name=prompt('Rename to:'); if(!name) return;
+  const oldName = rel.split('/').pop();
+  const name = prompt('Rename to:', oldName);
+  if(!name || name === oldName) return;
   // [PATCH] send {to: newRel}
   const dir = rel.split('/').slice(0,-1).join('/');
   const target = (dir? dir+'/' : '') + name.replace(/^\/+/,'');
