@@ -12,4 +12,5 @@ Quick links to major sections.
 - [Mind Routes](Mind/Mind-Predictive.txt)
 - [O Hub](O/START.md)
 - [Triad Refiner ability](THINK/ABILITIES/Triad-Refiner.md)
+- [Structure Wrangler ability](THINK/ABILITIES/structure-wrangler.md)
 
