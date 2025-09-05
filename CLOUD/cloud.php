@@ -315,7 +315,7 @@ async function openDir(rel){
   currentDir = rel || ''; crumb(currentDir);
   const FL=document.getElementById('folderList'); FL.innerHTML='';
   const r=await (await api('list',{path:currentDir})).json(); if(!r.ok){alert(r.error||'list failed');return;}
-  if(currentDir){ const up=currentDir.split('/').slice(0,-1).join('/'); const li=document.createElement('li'); li.textContent='⬆️ ..'; li.onclick=()=>openDir(up); FL.appendChild(li); }
+  if(currentDir){ const up=currentDir.split('/').slice(0,-1).join('/'); const upName=up.split('/').pop() || '/'; const li=document.createElement('li'); li.textContent='⬆️ '+upName; li.onclick=()=>openDir(up); FL.appendChild(li); }
   r.items.filter(i=>i.type==='dir').sort((a,b)=>a.name.localeCompare(b.name)).forEach(d=>FL.appendChild(ent(d.name,d.rel,true,0,d.mtime)));
   const FI=document.getElementById('fileList'); FI.innerHTML='';
   r.items.filter(i=>i.type==='file').sort((a,b)=>a.name.localeCompare(b.name)).forEach(f=>FI.appendChild(ent(f.name,f.rel,false,f.size,f.mtime)));
