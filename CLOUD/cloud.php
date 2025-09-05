@@ -229,13 +229,14 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 }
 </style>
 
-<div class="top">
-  <div id="rootNote">root: …</div>
-  <div class="crumb" id="crumb" style="margin-left:8px"></div>
-  <div style="margin-left:auto;display:flex;gap:8px">
-    <a class="btn" href="?logout=1">Logout</a>
+  <div class="top">
+    <div id="rootNote">root: …</div>
+    <button class="btn" onclick="openDir('')">Home</button>
+    <div class="crumb" id="crumb" style="margin-left:8px"></div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <a class="btn" href="?logout=1">Logout</a>
+    </div>
   </div>
-</div>
 
 <div class="grid">
   <div class="panel">
