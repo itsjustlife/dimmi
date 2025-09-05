@@ -330,158 +330,155 @@ if (isset($_GET['api'])) {
   bad('Unknown action',404);
 }
 
-/* ===== HTML (UI) ===== */
-if (!$authed): ?>
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?=$TITLE?> — Login</title>
-<style>
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:#1e1e1e;color:#e5e5e5;display:grid;place-items:center;height:100dvh;margin:0}
-.card{background:#2a2a2a;border:1px solid #3d3d3d;padding:24px;border-radius:16px;min-width:280px}
-h1{margin:0 0 16px;font-size:18px}
-input{width:100%;padding:10px 12px;margin:8px 0;background:#1e1e1e;border:1px solid #3d3d3d;color:#fff;border-radius:10px}
-button{width:100%;padding:10px 12px;background:#3a3a3a;border:1px solid #4a4a4a;color:#fff;border-radius:10px;cursor:pointer}
-.err{color:#ff6b6b;margin:8px 0 0}.tip{opacity:.7;font-size:12px;margin-top:6px}
-</style>
-<div class="card"><h1><?=$TITLE?></h1>
-<form method="post">
-  <input name="u" placeholder="user" autofocus>
-  <input name="p" type="password" placeholder="password">
-  <button name="do_login" value="1">Sign in</button>
-  <?php if(!empty($err)):?><div class="err"><?=$err?></div><?php endif;?>
-  <div class="tip">Set env vars WEBEDITOR_USER / WEBEDITOR_PASS for stronger creds.</div>
-</form></div>
+  /* ===== HTML (UI) ===== */
+  if (!$authed): ?>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><?=$TITLE?> — Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center">
+  <div class="bg-white p-6 rounded shadow w-80">
+    <h1 class="text-xl font-semibold mb-4 text-gray-800"><?=$TITLE?></h1>
+    <form method="post" class="space-y-4">
+      <input name="u" placeholder="user" autofocus class="w-full border rounded px-3 py-2">
+      <input name="p" type="password" placeholder="password" class="w-full border rounded px-3 py-2">
+      <button name="do_login" value="1" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-500">Sign in</button>
+      <?php if(!empty($err)):?><div class="text-red-500 text-sm"><?=$err?></div><?php endif;?>
+      <p class="text-xs text-gray-500">Set env vars WEBEDITOR_USER / WEBEDITOR_PASS for stronger creds.</p>
+    </form>
+  </div>
+</body>
+</html>
 <?php exit; endif; ?>
 
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?=$TITLE?></title>
-<style>
-:root{--bg:#1e1e1e;--panel:#2a2a2a;--line:#3d3d3d;--text:#e5e5e5;--accent:#8ab4f8}
-*{box-sizing:border-box} html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif}
-.top{display:flex;gap:12px;align-items:center;padding:10px;border-bottom:1px solid var(--line);background:var(--panel)}
-.input{padding:10px 12px;background:#2a2a2a;border:1px solid var(--line);color:#fff;border-radius:10px;font-size:1rem}
-.btn{padding:10px 14px;border:1px solid var(--line);background:#333;border-radius:10px;color:#eee;cursor:pointer;font-size:1rem;min-height:44px;touch-action:manipulation}
-.grid{display:grid;grid-template-columns:260px 320px 1fr;gap:8px;height:calc(100% - 56px);padding:8px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0}
-.head{padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
-.body{padding:8px;overflow:auto}
-ul{list-style:none;margin:0;padding:0} li{padding:6px;border-radius:8px;cursor:pointer} li:hover{background:#3a3a3a}
-small{opacity:.6} .row{display:flex;gap:8px;align-items:center;justify-content:space-between}
-.actions{display:flex;gap:4px;align-items:center}
-.btn.small{padding:6px 8px;font-size:.9rem;min-height:auto}
-.btn.icon{width:28px;height:28px;padding:0;border-radius:6px;display:flex;align-items:center;justify-content:center}
-.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2}
-.editorbar{padding:8px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
-.tag{background:#333;border:1px solid var(--line);padding:3px 6px;border-radius:6px;font-size:12px}
-.mono{font-family:ui-monospace,Consolas,monospace}
-textarea{width:100%;height:100%;flex:1;min-height:200px;resize:none;background:#1e1e1e;color:#e5e5e5;border:0;padding:14px;box-sizing:border-box;font-family:ui-monospace,Consolas,monospace;font-size:1rem}
-footer{position:fixed;right:10px;bottom:8px;opacity:.5}
-.crumb a{color:var(--accent);text-decoration:none;margin-right:6px}.crumb a:hover{text-decoration:underline}
-#newFileModal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.4); z-index:50}
-#newFileModal .box{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:10px; width:260px}
-#newFileModal .ext.selected{outline:2px solid var(--accent)}
-@media(max-width:600px){
-  body{font-size:18px}
-  .grid{grid-template-columns:1fr;grid-template-rows:240px 240px 1fr;height:auto}
-  .top{flex-wrap:wrap}
-  .btn,.input{font-size:18px;padding:14px 16px}
-  .ico{width:24px;height:24px}
-}
-</style>
-
-  <div class="top">
-    <div id="rootNote">root: …</div>
-    <button class="btn" onclick="openDir('')">Home</button>
-    <div class="crumb" id="crumb" style="margin-left:8px"></div>
-    <div style="margin-left:auto;display:flex;gap:8px">
-      <a class="btn" href="?logout=1">Logout</a>
-    </div>
-  </div>
-
-<div class="grid">
-  <div class="panel">
-    <div class="head"><strong>FIND</strong><button class="btn" onclick="mkdirPrompt()">+ Folder</button>
-      <label class="btn" style="position:relative;overflow:hidden">Upload Folder<input type="file" webkitdirectory multiple style="position:absolute;inset:0;opacity:0" onchange="uploadFolder(this)"></label>
-    </div>
-    <div style="padding:8px 10px;display:flex;gap:8px;align-items:center">
-      <input id="pathInput" class="input" placeholder="jump to path (rel)">
-      <button class="btn" onclick="jump()">Open</button>
-    </div>
-    <div class="body"><ul id="folderList"></ul></div>
-  </div>
-  <div class="panel">
-    <div class="head"><strong>STRUCTURE</strong>
-      <button class="btn" onclick="newFilePrompt()">+ File</button>
-      <label class="btn" style="position:relative;overflow:hidden">Upload<input type="file" style="position:absolute;inset:0;opacity:0" onchange="uploadFile(this)"></label>
-      <!-- [PATCH] List / Tree toggle -->
-      <span style="margin-left:auto; display:flex; gap:6px">
-        <button class="btn small" id="structListBtn" type="button">List</button>
-        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML ARK" disabled>ARK</button>
-      </span>
-    </div>
-    <div class="body" style="position:relative; display:flex; flex-direction:column; overflow:hidden">
-      <div class="pullHint">↓ Pull to refresh</div>
-      <ul id="fileList" style="flex:1; overflow:auto"></ul>
-      <div id="opmlTreeWrap" style="display:none; flex:1; overflow:auto"></div>
-      <div id="treeTools" class="row" style="display:none; gap:6px; margin-top:6px">
-        <button class="btn small" id="addChildBtn">Add Sub</button>
-        <button class="btn small" id="addSiblingBtn">Add Same</button>
-        <button class="btn small" id="delNodeBtn">Delete</button>
-        <button class="btn small" id="upBtn">↑</button>
-        <button class="btn small" id="downBtn">↓</button>
-        <button class="btn small" id="outBtn">⇤</button>
-        <button class="btn small" id="inBtn">⇥</button>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><?=$TITLE?></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="h-screen flex flex-col bg-gray-50 text-gray-800">
+  <header class="flex items-center gap-4 p-4 bg-white shadow">
+    <div id="rootNote" class="text-xs text-gray-500"></div>
+    <button onclick="openDir('')" class="text-gray-600 hover:text-gray-800">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+      <span class="sr-only">Home</span>
+    </button>
+    <nav id="crumb" class="flex items-center text-sm text-gray-600"></nav>
+    <a href="?logout=1" class="ml-auto text-gray-600 hover:text-gray-800" title="Logout">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+    </a>
+  </header>
+  <main class="flex-1 overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:h-[calc(100vh-64px)]">
+    <!-- FIND -->
+    <section class="bg-white rounded shadow flex flex-col">
+      <div class="flex items-center gap-2 p-4 border-b">
+        <h2 class="font-semibold flex-1">FIND</h2>
+        <button onclick="mkdirPrompt()" class="p-2 text-gray-600 hover:text-gray-800" title="New Folder">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/></svg>
+        </button>
+        <label class="p-2 text-gray-600 hover:text-gray-800 cursor-pointer" title="Upload Folder">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+          <input type="file" webkitdirectory multiple class="hidden" onchange="uploadFolder(this)">
+        </label>
       </div>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="editorbar">
-      <strong>CONTENT</strong>
-      <span class="tag" id="fileName">—</span>
-      <span class="tag mono" id="fileSize"></span>
-      <span class="tag" id="fileWhen"></span>
-      <div style="margin-left:auto"></div>
-      <button class="btn" onclick="save()" id="saveBtn" disabled>Save</button>
-      <button class="btn" onclick="del()" id="delBtn" disabled>Delete</button>
-    </div>
-    <div class="body" style="padding:0;display:flex;flex-direction:column">
-      <div id="nodeEditor" style="display:none; padding:8px; border-bottom:1px solid var(--line)">
-        <div class="row" style="gap:8px; align-items:center">
-          <label>Title:</label>
-          <input id="nodeTitle" class="input" style="flex:1" placeholder="Node title">
-          <button class="btn small" id="saveTitleBtn">Save Title</button>
+      <div class="flex gap-2 p-4">
+        <input id="pathInput" class="flex-1 border rounded px-2 py-1" placeholder="jump to path (rel)">
+        <button onclick="jump()" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-500">Open</button>
+      </div>
+      <ul id="folderList" class="flex-1 overflow-auto divide-y text-sm"></ul>
+    </section>
+
+    <!-- STRUCTURE -->
+    <section class="bg-white rounded shadow flex flex-col">
+      <div class="flex items-center gap-2 p-4 border-b">
+        <h2 class="font-semibold flex-1">STRUCTURE</h2>
+        <button onclick="newFilePrompt()" class="p-2 text-gray-600 hover:text-gray-800" title="New File">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+        </button>
+        <label class="p-2 text-gray-600 hover:text-gray-800 cursor-pointer" title="Upload File">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+          <input type="file" class="hidden" onchange="uploadFile(this)">
+        </label>
+        <div class="ml-auto flex gap-2">
+          <button id="structListBtn" type="button" class="px-2 py-1 text-sm border rounded">List</button>
+          <button id="structTreeBtn" type="button" class="px-2 py-1 text-sm border rounded" title="Show OPML ARK" disabled>ARK</button>
         </div>
       </div>
-      <textarea id="ta" placeholder="Open a text file…" disabled></textarea>
-    </div>
-  </div>
-</div>
-<div id="newFileModal">
-  <div class="box">
-    <input id="newFileName" class="input" placeholder="new file name">
-    <div class="row" id="extBtns" style="gap:6px">
-      <button class="btn small ext" data-ext=".txt">.txt</button>
-      <button class="btn small ext" data-ext=".html">.html</button>
-      <button class="btn small ext" data-ext=".md">.md</button>
-      <button class="btn small ext" data-ext=".opml">.opml</button>
-    </div>
-    <div class="row" style="justify-content:flex-end; gap:6px">
-      <button class="btn small" id="newFileCreateBtn">Create</button>
-      <button class="btn small" id="newFileCancelBtn">Cancel</button>
-    </div>
-  </div>
-</div>
-<footer><?=$TITLE?></footer>
+      <div class="p-4 flex-1 flex flex-col overflow-hidden">
+        <ul id="fileList" class="flex-1 overflow-auto divide-y text-sm"></ul>
+        <div id="opmlTreeWrap" class="hidden flex-1 overflow-auto"></div>
+        <div id="treeTools" class="hidden mt-2 flex gap-2 text-sm">
+          <button class="px-2 py-1 border rounded" id="addChildBtn">Add Sub</button>
+          <button class="px-2 py-1 border rounded" id="addSiblingBtn">Add Same</button>
+          <button class="px-2 py-1 border rounded text-red-600" id="delNodeBtn">Delete</button>
+          <button class="px-2 py-1 border rounded" id="upBtn">↑</button>
+          <button class="px-2 py-1 border rounded" id="downBtn">↓</button>
+          <button class="px-2 py-1 border rounded" id="outBtn">⇤</button>
+          <button class="px-2 py-1 border rounded" id="inBtn">⇥</button>
+        </div>
+      </div>
+    </section>
 
-<script>
+    <!-- CONTENT -->
+    <section class="bg-white rounded shadow flex flex-col">
+      <div class="flex items-center gap-2 p-4 border-b">
+        <h2 class="font-semibold">CONTENT</h2>
+        <span id="fileName" class="text-sm bg-gray-100 rounded px-2 py-1">—</span>
+        <span id="fileSize" class="text-xs text-gray-500"></span>
+        <span id="fileWhen" class="text-xs text-gray-500"></span>
+        <div class="ml-auto flex gap-2">
+          <button onclick="save()" id="saveBtn" disabled class="px-3 py-2 bg-blue-600 text-white rounded disabled:opacity-50">Save</button>
+          <button onclick="del()" id="delBtn" disabled class="px-3 py-2 bg-red-600 text-white rounded disabled:opacity-50">Delete</button>
+        </div>
+      </div>
+      <div class="flex-1 flex flex-col">
+        <div id="nodeEditor" class="hidden p-4 border-b">
+          <div class="flex items-center gap-2">
+            <label class="text-sm">Title:</label>
+            <input id="nodeTitle" class="flex-1 border rounded px-2 py-1" placeholder="Node title">
+            <button id="saveTitleBtn" class="px-2 py-1 text-sm bg-blue-600 text-white rounded">Save Title</button>
+          </div>
+        </div>
+        <textarea id="ta" class="flex-1 w-full p-4 resize-none border-0 outline-none" placeholder="Open a text file…" disabled></textarea>
+      </div>
+    </section>
+  </main>
+
+  <div id="newFileModal" class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-40">
+    <div class="bg-white rounded p-6 w-64 space-y-4">
+      <input id="newFileName" class="w-full border rounded px-2 py-1" placeholder="new file name">
+      <div id="extBtns" class="flex gap-2">
+        <button class="ext px-2 py-1 text-sm border rounded" data-ext=".txt">.txt</button>
+        <button class="ext px-2 py-1 text-sm border rounded" data-ext=".html">.html</button>
+        <button class="ext px-2 py-1 text-sm border rounded" data-ext=".md">.md</button>
+        <button class="ext px-2 py-1 text-sm border rounded" data-ext=".opml">.opml</button>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button id="newFileCreateBtn" class="px-2 py-1 text-sm bg-blue-600 text-white rounded">Create</button>
+        <button id="newFileCancelBtn" class="px-2 py-1 text-sm border rounded">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <footer class="text-xs text-gray-500 text-right p-2"><?=$TITLE?></footer>
+
+  <script>
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='', currentOutlinePath='';
 const newExts=['.txt','.html','.md','.opml'];
 let newExtIndex=0;
 const icons={
-  folder:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 5h5l2 2h11v12H3z" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
-  file:'<svg class="ico" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 2v5h5" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
-  edit:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14.06 4.94l3.75 3.75" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
-  trash:'<svg class="ico" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19 6v14H5V6m3-3h8v3" fill="none" stroke="currentColor" stroke-width="2"/></svg>'
+  folder:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/></svg>',
+  file:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>',
+  edit:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>',
+  trash:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>'
 };
 const listBtn=document.getElementById('structListBtn');
 const treeBtn=document.getElementById('structTreeBtn');
@@ -518,8 +515,11 @@ async function init(){
 function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
   const ico=isDir?icons.folder:icons.file;
-  const sizeHtml=isDir?'':`<small>${fmtSize(size)}</small>`;
-  li.innerHTML=`<div class="row"><div>${ico} ${name}</div><div class="actions">${sizeHtml}<button class="btn small icon" onclick="renameItem(event,'${rel}')" title="Rename">${icons.edit}</button><button class="btn small icon" onclick="deleteItem(event,'${rel}')" title="Delete">${icons.trash}</button></div></div>`;
+  const sizeHtml=isDir?'':`<span class="text-xs text-gray-500">${fmtSize(size)}</span>`;
+  li.innerHTML=`<div class="flex items-center justify-between px-2 py-2 hover:bg-gray-100 rounded">
+    <div class="flex items-center gap-2">${ico}<span>${name}</span></div>
+    <div class="flex items-center gap-2">${sizeHtml}<button class="text-gray-500 hover:text-blue-600" onclick="renameItem(event,'${rel}')" title="Rename">${icons.edit}</button><button class="text-gray-500 hover:text-red-600" onclick="deleteItem(event,'${rel}')" title="Delete">${icons.trash}</button></div>
+  </div>`;
   li.onclick=()=> isDir? openDir(rel) : openFile(rel,name,size,mtime);
   return li;
 }
@@ -534,7 +534,7 @@ async function openDir(rel){
 }
 function jump(){ const p=document.getElementById('pathInput').value.trim(); openDir(p); }
 function fmtSize(b){ if(b<1024) return b+' B'; let u=['KB','MB','GB']; let i=-1; do{b/=1024;i++;}while(b>=1024&&i<2); return b.toFixed(1)+' '+u[i]; }
-function fmtWhen(s){ try{return new Date(s*1000).toLocaleString();}catch{return '';} }
+function fmtWhen(s){ try{return new Date(s*1000).toLocaleString();}catch{return ''; } }
 
 async function openFile(rel,name,size,mtime){
   currentFile=rel; currentOutlinePath='';
@@ -542,10 +542,9 @@ async function openFile(rel,name,size,mtime){
   const r=await (await api('read',{path:rel})).json(); const ta=document.getElementById('ta');
   if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); return; }
   ta.value=r.content; ta.disabled=false; btns(true);
-  // [PATCH] enable Tree toggle if an OPML is open
   const ext=name.toLowerCase().split('.').pop();
   document.getElementById('structTreeBtn').disabled = !['opml','xml'].includes(ext);
-  hideTree(); // default to list on open
+  hideTree();
 }
 function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; }
 async function save(){
@@ -578,16 +577,16 @@ async function mkdirPrompt(){
 function newFilePrompt(){
   const m=document.getElementById('newFileModal');
   const input=document.getElementById('newFileName');
-  m.style.display='flex';
+  m.classList.remove('hidden');
   newExtIndex=0;
   updateExtBtns();
   input.value='';
   input.focus();
 }
-
 function updateExtBtns(){
   document.querySelectorAll('#extBtns .ext').forEach((b,i)=>{
-    b.classList.toggle('selected', i===newExtIndex);
+    b.classList.toggle('ring', i===newExtIndex);
+    b.classList.toggle('ring-blue-500', i===newExtIndex);
   });
 }
 document.querySelectorAll('#extBtns .ext').forEach((btn,i)=>{
@@ -598,7 +597,7 @@ document.getElementById('newFileName').addEventListener('keydown',(e)=>{
   if(e.key==='Enter'){ e.preventDefault(); createNewFile(); }
 });
 document.getElementById('newFileCreateBtn').addEventListener('click', createNewFile);
-document.getElementById('newFileCancelBtn').addEventListener('click', ()=>{ document.getElementById('newFileModal').style.display='none'; });
+document.getElementById('newFileCancelBtn').addEventListener('click', ()=>{ document.getElementById('newFileModal').classList.add('hidden'); });
 
 async function createNewFile(){
   let name=document.getElementById('newFileName').value.trim();
@@ -606,7 +605,7 @@ async function createNewFile(){
   if(!name.includes('.')) name+=newExts[newExtIndex];
   const r=await (await fetch(`?api=newfile&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
   if(!r.ok){ alert(r.error||'newfile failed'); return; }
-  document.getElementById('newFileModal').style.display='none';
+  document.getElementById('newFileModal').classList.add('hidden');
   openDir(currentDir);
 }
 async function uploadFile(inp){
@@ -633,9 +632,8 @@ async function renameItem(ev,rel){
   const oldName = rel.split('/').pop();
   const name = prompt('Rename to:', oldName);
   if(!name || name === oldName) return;
-  // [PATCH] send {to: newRel}
   const dir = rel.split('/').slice(0,-1).join('/');
-  const target = (dir? dir+'/' : '') + name.replace(/^\/+/,'');
+  const target = (dir? dir+'/' : '') + name.replace(/^\\+/,'');
   const r=await (await fetch(`?api=rename&`+new URLSearchParams({path:rel}),{
     method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:target})
   })).json();
@@ -650,20 +648,19 @@ async function deleteItem(ev,rel){
   if(currentFile===rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); currentFile=''; }
   openDir(currentDir);
 }
-// [PATCH] STRUCTURE Tree: render + toggle + node ops
 function hideTree(){
-  treeWrap.style.display='none';
-  fileList.style.display='block';
-  treeTools.style.display='none';
-  nodeEditor.style.display='none';
+  treeWrap.classList.add('hidden');
+  fileList.classList.remove('hidden');
+  treeTools.classList.add('hidden');
+  nodeEditor.classList.add('hidden');
   selectedId=null;
   currentOutlinePath='';
 }
 function showTree(){
   if(!currentFile) return;
-  treeWrap.style.display='block';
-  fileList.style.display='none';
-  treeTools.style.display='flex';
+  treeWrap.classList.remove('hidden');
+  fileList.classList.add('hidden');
+  treeTools.classList.remove('hidden');
   loadTree();
 }
 function renderTree(nodes){
@@ -704,7 +701,7 @@ async function loadTree(){
 function selectNode(id,title,note){
   selectedId=id;
   currentOutlinePath=id;
-  nodeEditor.style.display='block';
+  nodeEditor.classList.remove('hidden');
   nodeTitle.value=title||'';
   if(note!==undefined){
     const ta=document.getElementById('ta');
@@ -730,3 +727,5 @@ inBtn.onclick         = ()=> nodeOp('move',{dir:'in'});
 saveTitleBtn.onclick  = ()=> nodeOp('set_title',{title:nodeTitle.value});
 init();
 </script>
+</body>
+</html>
