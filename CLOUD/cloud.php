@@ -56,6 +56,14 @@ function audit($action,$rel,$ok=true,$extra=''){
   $ip = $_SERVER['REMOTE_ADDR'] ?? '-'; $ts = date('c');
   @file_put_contents($LOG_FILE, "$ts\t$ip\t$action\t$rel\t".($ok?'ok':'fail')."\t$extra\n", FILE_APPEND);
 }
+function copy_dir($src,$dst){
+  if(!is_dir($dst)) @mkdir($dst,0775,true);
+  foreach(scandir($src) as $n){
+    if($n==='.'||$n==='..') continue;
+    $s="$src/$n"; $d="$dst/$n";
+    if(is_dir($s)) copy_dir($s,$d); else @copy($s,$d);
+  }
+}
 
 /* ===== API ===== */
 if (isset($_GET['api'])) {
@@ -122,6 +130,28 @@ if (isset($_GET['api'])) {
     $to=trim(($data['to'] ?? $data['name'] ?? ''),'/'); if($to==='') bad('Missing target');
     $dst=safe_abs($to); if($dst===false) bad('Invalid target');
     $ok = @rename($abs,$dst); audit('rename',$path,$ok,"-> ".rel_of($dst)); j(['ok'=>$ok]);
+  }
+
+  if ($action==='copy' && $method==='POST') {
+    if (!file_exists($abs)) bad('Source not found');
+    $data=json_decode(file_get_contents('php://input'),true);
+    $to=trim(($data['to']??''),'/'); if($to==='') bad('Missing target');
+    $dstDir=safe_abs($to); if($dstDir===false) bad('Invalid target');
+    $dst=$dstDir.'/'.basename($abs);
+    $ok=false;
+    if (is_dir($abs)) { copy_dir($abs,$dst); $ok=true; }
+    else { $dir=dirname($dst); if(!is_dir($dir)) @mkdir($dir,0775,true); $ok=@copy($abs,$dst); }
+    audit('copy',$path,$ok,"-> ".rel_of($dst)); j(['ok'=>$ok]);
+  }
+
+  if ($action==='move' && $method==='POST') {
+    if (!file_exists($abs)) bad('Source not found');
+    $data=json_decode(file_get_contents('php://input'),true);
+    $to=trim(($data['to']??''),'/'); if($to==='') bad('Missing target');
+    $dstDir=safe_abs($to); if($dstDir===false) bad('Invalid target');
+    $dst=$dstDir.'/'.basename($abs);
+    $ok=@rename($abs,$dst);
+    audit('move',$path,$ok,"-> ".rel_of($dst)); j(['ok'=>$ok]);
   }
 
   if ($action==='upload' && $method==='POST') {
@@ -298,11 +328,18 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
   </div>
 </div>
 <footer><?=$TITLE?></footer>
+<div id="ctxMenu" style="position:absolute;display:none;z-index:1000;background:#fff;border:1px solid #ccc;padding:4px;">
+  <button onclick="ctxCopy()">Copy</button>
+  <button onclick="ctxCut()">Cut</button>
+  <button onclick="ctxPaste()">Paste</button>
+</div>
 
 <script>
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
+let clipPath='', clipMode='';
+let ctxTarget='', ctxIsDir=false;
 const newExts=['.txt','.html','.md','.opml'];
 let newExtIndex=0;
 const listBtn=document.getElementById('structListBtn');
@@ -327,8 +364,9 @@ async function init(){
 }
 function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
-  li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}</div><div class="actions">${isDir?'':'<small>'+fmtSize(size)+'</small>'}<button class="btn small" onclick="renameItem(event,'${rel}')">Rename</button><button class="btn small" onclick="deleteItem(event,'${rel}')">Delete</button></div></div>`;
+  li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}</div><div class="actions">${isDir?'':'<small>'+fmtSize(size)+'</small>'}<button class="btn small" onclick="copyItem(event,'${rel}')">Copy</button><button class="btn small" onclick="cutItem(event,'${rel}')">Cut</button>${isDir?`<button class=\"btn small\" onclick=\"pasteIntoDir(event,'${rel}')\">Paste</button>`:''}<button class="btn small" onclick="renameItem(event,'${rel}')">Rename</button><button class="btn small" onclick="deleteItem(event,'${rel}')">Delete</button></div></div>`;
   li.onclick=()=> isDir? openDir(rel) : openFile(rel,name,size,mtime);
+  li.oncontextmenu=(e)=>showMenu(e,rel,isDir);
   return li;
 }
 async function openDir(rel){
@@ -444,6 +482,28 @@ async function deleteItem(ev,rel){
   if(currentFile===rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); currentFile=''; }
   openDir(currentDir);
 }
+function copyItem(ev,rel){ if(ev) ev.stopPropagation(); clipPath=rel; clipMode='copy'; }
+function cutItem(ev,rel){ if(ev) ev.stopPropagation(); clipPath=rel; clipMode='move'; }
+async function pasteIntoDir(ev,rel){
+  if(ev) ev.stopPropagation();
+  if(!clipPath){ alert('Clipboard empty'); return; }
+  const act=clipMode==='move'?'move':'copy';
+  const r=await (await fetch(`?api=${act}&`+new URLSearchParams({path:clipPath}),{
+    method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:rel})
+  })).json();
+  if(!r.ok){ alert(r.error||'paste failed'); return; }
+  clipPath=''; clipMode=''; openDir(currentDir);
+}
+function showMenu(e,rel,isDir){
+  e.preventDefault(); ctxTarget=rel; ctxIsDir=isDir;
+  const m=document.getElementById('ctxMenu');
+  m.style.left=e.pageX+'px'; m.style.top=e.pageY+'px'; m.style.display='block';
+}
+function hideMenu(){ document.getElementById('ctxMenu').style.display='none'; }
+function ctxCopy(){ hideMenu(); copyItem(null,ctxTarget); }
+function ctxCut(){ hideMenu(); cutItem(null,ctxTarget); }
+function ctxPaste(){ hideMenu(); pasteIntoDir(null, ctxIsDir?ctxTarget:currentDir); }
+document.addEventListener('click',hideMenu);
 // [PATCH] STRUCTURE Tree: render + toggle
 function hideTree(){ if(treeWrap) treeWrap.style.display='none'; if(fileList) fileList.style.visibility='visible'; }
 function showTree(){
