@@ -221,7 +221,7 @@ small{opacity:.6} .row{display:flex;gap:8px;align-items:center;justify-content:s
 .editorbar{padding:8px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
 .tag{background:#1e1e26;border:1px solid var(--line);padding:3px 6px;border-radius:6px;font-size:12px}
 .mono{font-family:ui-monospace,Consolas,monospace}
-textarea{width:100%;height:100%;flex:1;min-height:200px;resize:none;background:#0e0e14;color:#e5e5e5;border:0;padding:12px;font-family:ui-monospace,Consolas,monospace}
+textarea{width:100%;height:100%;flex:1;min-height:200px;resize:none;background:#0e0e14;color:#e5e5e5;border:0;padding:12px;box-sizing:border-box;font-family:ui-monospace,Consolas,monospace}
 footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 .crumb a{color:#aee;text-decoration:none;margin-right:6px}.crumb a:hover{text-decoration:underline}
 #newFileModal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.4); z-index:50}
@@ -277,7 +277,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <button class="btn" onclick="save()" id="saveBtn" disabled>Save</button>
       <button class="btn" onclick="del()" id="delBtn" disabled>Delete</button>
     </div>
-    <div class="body" style="padding:0;display:flex;flex-direction:column">
+    <div class="body" style="padding:0;display:flex;flex-direction:column;flex:1">
       <textarea id="ta" placeholder="Open a text file…" disabled></textarea>
     </div>
   </div>
