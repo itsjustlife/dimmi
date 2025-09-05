@@ -1,0 +1,167 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>OPML ARK Viewer</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        height: 100vh;
+        margin: 0;
+      }
+      #tree {
+        flex: 1;
+        overflow: auto;
+        padding: 10px;
+      }
+      #controls {
+        width: 200px;
+        border-left: 1px solid #ccc;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+      .selected {
+        background: #ffd966;
+      }
+      li {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="tree"></div>
+    <div id="controls">
+      <input type="file" id="fileInput" /><br /><br />
+      <button id="addChild">Add Child</button>
+      <button id="addSibling">Add Sibling</button><br /><br />
+      <button id="expandAll">Expand All</button>
+      <button id="collapseAll">Collapse All</button><br /><br />
+      <button id="save">Save OPML</button>
+    </div>
+    <script>
+      let opmlDoc = null;
+      let selectedLi = null;
+
+      document.getElementById("fileInput").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const parser = new DOMParser();
+          opmlDoc = parser.parseFromString(reader.result, "text/xml");
+          renderTree();
+        };
+        reader.readAsText(file);
+      });
+
+      function renderTree() {
+        const body = opmlDoc.querySelector("body");
+        const treeDiv = document.getElementById("tree");
+        treeDiv.innerHTML = "";
+        const ul = document.createElement("ul");
+        body.childNodes.forEach((node) => {
+          if (node.nodeName === "outline") ul.appendChild(makeLi(node));
+        });
+        treeDiv.appendChild(ul);
+      }
+
+      function makeLi(outline) {
+        const li = document.createElement("li");
+        li.textContent = outline.getAttribute("text") || "Untitled";
+        li.dataset.path = getXPath(outline);
+        li.onclick = (e) => {
+          e.stopPropagation();
+          if (selectedLi) selectedLi.classList.remove("selected");
+          selectedLi = li;
+          li.classList.add("selected");
+        };
+        const children = outline.children;
+        if (children.length) {
+          const ul = document.createElement("ul");
+          [...children].forEach((c) => {
+            ul.appendChild(makeLi(c));
+          });
+          li.appendChild(ul);
+        }
+        return li;
+      }
+
+      function getXPath(node) {
+        if (node.nodeName === "body") return "/body";
+        const index = [...node.parentNode.children].indexOf(node) + 1;
+        return getXPath(node.parentNode) + `/outline[${index}]`;
+      }
+
+      function findOutline(path) {
+        return opmlDoc.evaluate(
+          path,
+          opmlDoc,
+          null,
+          XPathResult.FIRST_ORDERED_NODE_TYPE,
+          null,
+        ).singleNodeValue;
+      }
+
+      function promptNode() {
+        const text = prompt("Node title?");
+        if (text === null) return null;
+        const note = prompt("Note (optional)?");
+        const el = opmlDoc.createElement("outline");
+        el.setAttribute("text", text || "Untitled");
+        if (note) el.setAttribute("_note", note);
+        return el;
+      }
+
+      function addChild() {
+        if (!selectedLi) {
+          alert("Select a node first");
+          return;
+        }
+        const outline = findOutline(selectedLi.dataset.path);
+        const newNode = promptNode();
+        if (!newNode) return;
+        outline.appendChild(newNode);
+        renderTree();
+      }
+
+      function addSibling() {
+        if (!selectedLi) {
+          alert("Select a node first");
+          return;
+        }
+        const outline = findOutline(selectedLi.dataset.path);
+        const parent = outline.parentNode;
+        const newNode = promptNode();
+        if (!newNode) return;
+        parent.insertBefore(newNode, outline.nextSibling);
+        renderTree();
+      }
+
+      function expandCollapseAll(expand) {
+        document.querySelectorAll("#tree ul").forEach((ul) => {
+          ul.style.display = expand ? "block" : "none";
+        });
+      }
+
+      function save() {
+        const serializer = new XMLSerializer();
+        const text = serializer.serializeToString(opmlDoc);
+        const blob = new Blob([text], { type: "text/xml" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "output.opml";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      document.getElementById("addChild").onclick = addChild;
+      document.getElementById("addSibling").onclick = addSibling;
+      document.getElementById("expandAll").onclick = () =>
+        expandCollapseAll(true);
+      document.getElementById("collapseAll").onclick = () =>
+        expandCollapseAll(false);
+      document.getElementById("save").onclick = save;
+    </script>
+  </body>
+</html>
