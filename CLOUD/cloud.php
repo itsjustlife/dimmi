@@ -57,6 +57,57 @@ function audit($action,$rel,$ok=true,$extra=''){
   @file_put_contents($LOG_FILE, "$ts\t$ip\t$action\t$rel\t".($ok?'ok':'fail')."\t$extra\n", FILE_APPEND);
 }
 
+// ----- OPML helpers -----
+function opml_load_dom($abs){
+  if (!class_exists('DOMDocument')) bad('DOM extension missing',500);
+  libxml_use_internal_errors(true);
+  $dom=new DOMDocument('1.0','UTF-8');
+  $dom->preserveWhiteSpace=false;
+  if(!$dom->load($abs, LIBXML_NONET)) bad('Invalid OPML/XML',422);
+  return $dom;
+}
+function opml_body($dom){
+  $b=$dom->getElementsByTagName('body')->item(0);
+  if(!$b) bad('No body',422);
+  return $b;
+}
+function opml_outline_at($parent,$idx){
+  $i=-1;
+  foreach($parent->childNodes as $c){
+    if($c->nodeType===XML_ELEMENT_NODE && strtolower($c->nodeName)==='outline'){
+      $i++; if($i===(int)$idx) return $c;
+    }
+  }
+  return null;
+}
+function opml_node_by_id($dom,$id){
+  $parts = trim((string)$id)==='' ? [] : array_map('intval', explode('/',$id));
+  $cur = opml_body($dom);
+  foreach($parts as $ix){
+    $cur = opml_outline_at($cur,$ix);
+    if(!$cur) bad('Node not found',404);
+  }
+  return $cur;
+}
+function opml_id_of($node){
+  $path=[];
+  while($node && strtolower($node->nodeName)==='outline'){
+    $ix=0;
+    for($s=$node->previousSibling;$s;$s=$s->previousSibling){
+      if($s->nodeType===XML_ELEMENT_NODE && strtolower($s->nodeName)==='outline') $ix++;
+    }
+    array_unshift($path,$ix);
+    $node=$node->parentNode;
+    if(!$node || strtolower($node->nodeName)==='body') break;
+  }
+  return implode('/',$path);
+}
+function opml_save_dom($dom,$abs){
+  $tmp=$abs.'.tmp';
+  if($dom->save($tmp)===false) bad('Write failed',500);
+  if(!@rename($tmp,$abs)){ @unlink($tmp); bad('Replace failed',500); }
+}
+
 /* ===== API ===== */
 if (isset($_GET['api'])) {
   if (!$authed) bad('Unauthorized',401);
@@ -211,6 +262,69 @@ if (isset($_GET['api'])) {
     }
     if($note==='') $node->removeAttribute('_note'); else $node->setAttribute('_note',$note);
     $ok=$dom->save($fileAbs)!==false; audit('set_note',$file,$ok); j(['ok'=>$ok]);
+  }
+
+  // OPML node editing
+  if ($action==='opml_node' && $method==='POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $file = $data['file'] ?? '';
+    $id   = $data['id'] ?? '';
+    $op   = $data['op'] ?? '';
+    $fileAbs = safe_abs($file);
+    if ($fileAbs===false || !is_file($fileAbs)) bad('Bad file');
+    $ext = strtolower(pathinfo($fileAbs, PATHINFO_EXTENSION));
+    if (!in_array($ext, ['opml','xml'])) bad('Not OPML/XML',415);
+    $dom = opml_load_dom($fileAbs); $body = opml_body($dom);
+    $sel = null;
+    switch($op){
+      case 'set_title': {
+        $cur = opml_node_by_id($dom,$id);
+        $title = (string)($data['title'] ?? '');
+        $cur->setAttribute('title',$title);
+        if(!$cur->getAttribute('text')) $cur->setAttribute('text',$title);
+        $sel = $cur;
+      } break;
+      case 'add_child': {
+        $par = opml_node_by_id($dom,$id);
+        $n = $dom->createElement('outline');
+        $title = trim($data['title'] ?? 'New');
+        if($title!=='') $n->setAttribute('title',$title);
+        $par->appendChild($n);
+        $sel = $n;
+      } break;
+      case 'add_sibling': {
+        $cur = opml_node_by_id($dom,$id); $par=$cur->parentNode;
+        $n = $dom->createElement('outline');
+        $title = trim($data['title'] ?? 'New');
+        if($title!=='') $n->setAttribute('title',$title);
+        if($cur->nextSibling) $par->insertBefore($n,$cur->nextSibling); else $par->appendChild($n);
+        $sel = $n;
+      } break;
+      case 'delete': {
+        $cur = opml_node_by_id($dom,$id); $par=$cur->parentNode;
+        $par->removeChild($cur);
+        $sel = $par;
+      } break;
+      case 'move': {
+        $dir = $data['dir'] ?? '';
+        $cur = opml_node_by_id($dom,$id); $par=$cur->parentNode;
+        $prev=null; $next=null;
+        for($n=$cur->previousSibling;$n;$n=$n->previousSibling){ if($n->nodeType===XML_ELEMENT_NODE && strtolower($n->nodeName)==='outline'){ $prev=$n; break; } }
+        for($n=$cur->nextSibling;$n;$n=$n->nextSibling){ if($n->nodeType===XML_ELEMENT_NODE && strtolower($n->nodeName)==='outline'){ $next=$n; break; } }
+        if($dir==='up' && $prev){ $par->insertBefore($cur,$prev); }
+        elseif($dir==='down' && $next){ if($next->nextSibling) $par->insertBefore($cur,$next->nextSibling); else $par->appendChild($cur); }
+        elseif($dir==='in' && $prev){ $prev->appendChild($cur); }
+        elseif($dir==='out'){
+          if(strtolower($par->nodeName)!=='outline') bad('Cannot outdent root-level',400);
+          $gp=$par->parentNode;
+          if($par->nextSibling) $gp->insertBefore($cur,$par->nextSibling); else $gp->appendChild($cur);
+        }
+        $sel = $cur;
+      } break;
+      default: bad('Unknown op',400);
+    }
+    opml_save_dom($dom,$fileAbs);
+    j(['ok'=>true,'id'=>opml_id_of($sel ?: $body)]);
   }
 
   bad('Unknown action',404);
