@@ -233,8 +233,6 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
   <div id="rootNote">root: …</div>
   <div class="crumb" id="crumb" style="margin-left:8px"></div>
   <div style="margin-left:auto;display:flex;gap:8px">
-    <input id="pathInput" class="input" placeholder="jump to path (rel)">
-    <button class="btn" onclick="jump()">Open</button>
     <a class="btn" href="?logout=1">Logout</a>
   </div>
 </div>
@@ -243,6 +241,10 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
   <div class="panel">
     <div class="head"><strong>FIND</strong><button class="btn" onclick="mkdirPrompt()">+ Folder</button>
       <label class="btn" style="position:relative;overflow:hidden">Upload Folder<input type="file" webkitdirectory multiple style="position:absolute;inset:0;opacity:0" onchange="uploadFolder(this)"></label>
+    </div>
+    <div style="padding:8px 10px;display:flex;gap:8px;align-items:center">
+      <input id="pathInput" class="input" placeholder="jump to path (rel)">
+      <button class="btn" onclick="jump()">Open</button>
     </div>
     <div class="body"><ul id="folderList"></ul></div>
   </div>
