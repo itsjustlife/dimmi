@@ -1,0 +1,321 @@
+{
+  "text": "Where",
+  "children": [
+    {
+      "text": "Abstract Spatial Domains",
+      "children": []
+    },
+    {
+      "text": "Celestial & Cosmological Spaces",
+      "children": [
+        {
+          "text": "Exoplanets",
+          "children": []
+        },
+        {
+          "text": "Galaxies",
+          "children": []
+        },
+        {
+          "text": "Solar System",
+          "children": [
+            {
+              "text": "Dwarf Planets & Asteroid Belt",
+              "children": []
+            },
+            {
+              "text": "Inner Planets (Mercury\u2013Mars)",
+              "children": []
+            },
+            {
+              "text": "Moons of the Solar System",
+              "children": []
+            },
+            {
+              "text": "Outer Planets (Jupiter\u2013Neptune)",
+              "children": []
+            }
+          ]
+        },
+        {
+          "text": "Stars & Stellar Phenomena",
+          "children": []
+        },
+        {
+          "text": "Universe & Cosmology",
+          "children": []
+        }
+      ]
+    },
+    {
+      "text": "Constructed Environments",
+      "children": [
+        {
+          "text": "Archaeological Sites & Ruins",
+          "children": [
+            {
+              "text": "Ancient Civilizations Ruins",
+              "children": []
+            },
+            {
+              "text": "Ghost Towns & Abandoned Places",
+              "children": []
+            }
+          ]
+        },
+        {
+          "text": "Architecture & Structures",
+          "children": [
+            {
+              "text": "Fortresses & Castles",
+              "children": []
+            },
+            {
+              "text": "Monuments & Memorials",
+              "children": []
+            },
+            {
+              "text": "Palaces & Government Buildings",
+              "children": []
+            },
+            {
+              "text": "Religious & Sacred Sites",
+              "children": []
+            },
+            {
+              "text": "Skyscrapers & Towers",
+              "children": []
+            }
+          ]
+        },
+        {
+          "text": "Infrastructure & Networks",
+          "children": [
+            {
+              "text": "Communication Networks",
+              "children": []
+            },
+            {
+              "text": "Energy & Power",
+              "children": []
+            },
+            {
+              "text": "Transportation",
+              "children": []
+            },
+            {
+              "text": "Water & Sanitation",
+              "children": []
+            }
+          ]
+        },
+        {
+          "text": "Urban Planning & Design",
+          "children": []
+        }
+      ]
+    },
+    {
+      "text": "Fictional & Mythological Settings",
+      "children": [
+        {
+          "text": "Film & TV Settings",
+          "children": []
+        },
+        {
+          "text": "Literary Worlds",
+          "children": []
+        },
+        {
+          "text": "Mythological & Religious Realms",
+          "children": []
+        },
+        {
+          "text": "Video Game Worlds",
+          "children": []
+        },
+        {
+          "text": "Virtual Worlds",
+          "children": [
+            {
+              "text": "Online Virtual Worlds",
+              "children": []
+            },
+            {
+              "text": "VR Simulations",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "text": "Maps & Wayfinding",
+      "children": [
+        {
+          "text": "GIS & Coordinates",
+          "children": []
+        },
+        {
+          "text": "Gazetteers & Place Index",
+          "children": []
+        },
+        {
+          "text": "Maps & Atlases",
+          "children": []
+        },
+        {
+          "text": "Routes & Directions",
+          "children": []
+        }
+      ]
+    },
+    {
+      "text": "Physical Geography",
+      "children": [
+        {
+          "text": "Biomes & Ecosystems",
+          "children": [
+            {
+              "text": "Coral Reefs Marine Habitats",
+              "children": []
+            },
+            {
+              "text": "Deserts Arid Regions",
+              "children": []
+            },
+            {
+              "text": "Forests Jungles",
+              "children": []
+            },
+            {
+              "text": "Grasslands Savannas",
+              "children": []
+            },
+            {
+              "text": "Tundra Polar Regions",
+              "children": []
+            },
+            {
+              "text": "Wetlands Marshes",
+              "children": []
+            }
+          ]
+        },
+        {
+          "text": "Cities & Settlements",
+          "children": [
+            {
+              "text": "Cultural Centers",
+              "children": []
+            },
+            {
+              "text": "Economic Hubs",
+              "children": []
+            },
+            {
+              "text": "Historical Cities",
+              "children": []
+            },
+            {
+              "text": "Major World Cities",
+              "children": []
+            },
+            {
+              "text": "Tourist Destinations",
+              "children": []
+            }
+          ]
+        },
+        {
+          "text": "Continents",
+          "children": [
+            {
+              "text": "Africa",
+              "children": []
+            },
+            {
+              "text": "Antarctica",
+              "children": []
+            },
+            {
+              "text": "Asia",
+              "children": []
+            },
+            {
+              "text": "Europe",
+              "children": [
+                {
+                  "text": "France",
+                  "children": [
+                    {
+                      "text": "Paris",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "text": "North America",
+              "children": []
+            },
+            {
+              "text": "Oceania",
+              "children": []
+            },
+            {
+              "text": "South America",
+              "children": []
+            }
+          ]
+        },
+        {
+          "text": "Countries & Territories",
+          "children": []
+        },
+        {
+          "text": "Cultural & Historical Regions",
+          "children": []
+        },
+        {
+          "text": "Landforms & Natural Wonders",
+          "children": [
+            {
+              "text": "Caves & Rock Formations",
+              "children": []
+            },
+            {
+              "text": "Glaciers Icecaps",
+              "children": []
+            },
+            {
+              "text": "Islands Archipelagos",
+              "children": []
+            },
+            {
+              "text": "Mountains Volcanoes",
+              "children": []
+            },
+            {
+              "text": "Rivers Lakes",
+              "children": []
+            },
+            {
+              "text": "Valleys Canyons",
+              "children": []
+            },
+            {
+              "text": "Waterfalls",
+              "children": []
+            }
+          ]
+        },
+        {
+          "text": "Oceans & Seas",
+          "children": []
+        }
+      ]
+    }
+  ]
+}
