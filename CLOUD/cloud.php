@@ -165,18 +165,52 @@ if (isset($_GET['api'])) {
     $dom=new DOMDocument('1.0','UTF-8'); $dom->preserveWhiteSpace=false;
     if (!$dom->loadXML($xml, LIBXML_NONET)) bad('Invalid OPML/XML',422);
     $body = $dom->getElementsByTagName('body')->item(0);
-    $walk = function($node) use (&$walk){
-      $out=[]; foreach($node->childNodes as $c){
+    $walk = function($node,$path='') use (&$walk){
+      $out=[]; $i=0; foreach($node->childNodes as $c){
         if ($c->nodeType!==XML_ELEMENT_NODE || strtolower($c->nodeName)!=='outline') continue;
         $t = $c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
-        $item = ['t'=>$t, 'children'=>[]];
+        $p = $path===''? (string)$i : $path.'/'.$i;
+        $item = ['t'=>$t, 'p'=>$p, 'children'=>[]];
         if ($c->hasAttribute('_note')) $item['note']=$c->getAttribute('_note');
-        if ($c->hasChildNodes()) $item['children']=$walk($c);
-        $out[]=$item;
+        if ($c->hasChildNodes()) $item['children']=$walk($c,$p);
+        $out[]=$item; $i++;
       } return $out;
     };
     $tree = $body? $walk($body) : [];
     j(['ok'=>true,'tree'=>$tree]);
+  }
+
+  // [PATCH] update single outline note in OPML
+  if ($action==='set_note' && $method==='POST') {
+    $file = $_GET['file'] ?? $_POST['file'] ?? '';
+    $fileAbs = safe_abs($file);
+    if ($fileAbs===false || !is_file($fileAbs)) bad('Bad file');
+    $ext = strtolower(pathinfo($fileAbs, PATHINFO_EXTENSION));
+    if (!in_array($ext, ['opml','xml'])) bad('Not OPML/XML',415);
+    $data = json_decode(file_get_contents('php://input'), true);
+    $note = isset($data['note']) && is_string($data['note']) ? $data['note'] : '';
+    $path = $_GET['path'] ?? $_POST['path'] ?? '';
+    if (!class_exists('DOMDocument')) bad('DOM extension missing',500);
+    libxml_use_internal_errors(true);
+    $dom=new DOMDocument('1.0','UTF-8'); $dom->preserveWhiteSpace=false;
+    if(!$dom->load($fileAbs, LIBXML_NONET)) bad('Invalid OPML/XML',422);
+    $body=$dom->getElementsByTagName('body')->item(0);
+    if(!$body) bad('No body',422);
+    $indices=$path===''?[]:array_map('intval',explode('/',$path));
+    $node=$body;
+    foreach($indices as $idx){
+      $count=0; $next=null;
+      foreach($node->childNodes as $child){
+        if($child->nodeType===XML_ELEMENT_NODE && strtolower($child->nodeName)==='outline'){
+          if($count===$idx){ $next=$child; break; }
+          $count++;
+        }
+      }
+      if(!$next) bad('Node path not found',404);
+      $node=$next;
+    }
+    if($note==='') $node->removeAttribute('_note'); else $node->setAttribute('_note',$note);
+    $ok=$dom->save($fileAbs)!==false; audit('set_note',$file,$ok); j(['ok'=>$ok]);
   }
 
   bad('Unknown action',404);
@@ -304,7 +338,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 <script>
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
-let currentDir='', currentFile='';
+let currentDir='', currentFile='', currentOutlinePath='';
 const newExts=['.txt','.html','.md','.opml'];
 let newExtIndex=0;
 const listBtn=document.getElementById('structListBtn');
@@ -347,7 +381,8 @@ function fmtSize(b){ if(b<1024) return b+' B'; let u=['KB','MB','GB']; let i=-1;
 function fmtWhen(s){ try{return new Date(s*1000).toLocaleString();}catch{return '';} }
 
 async function openFile(rel,name,size,mtime){
-  currentFile=rel; fileName.textContent=name; fileSize.textContent=size?fmtSize(size):''; fileWhen.textContent=mtime?fmtWhen(mtime):'';
+  currentFile=rel; currentOutlinePath='';
+  fileName.textContent=name; fileSize.textContent=size?fmtSize(size):''; fileWhen.textContent=mtime?fmtWhen(mtime):'';
   const r=await (await api('read',{path:rel})).json(); const ta=document.getElementById('ta');
   if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); return; }
   ta.value=r.content; ta.disabled=false; btns(true);
@@ -359,9 +394,20 @@ async function openFile(rel,name,size,mtime){
 function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; }
 async function save(){
   if(!currentFile) return;
-  const body=JSON.stringify({content:document.getElementById('ta').value});
-  const r=await (await fetch(`?api=write&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF},body})).json();
-  if(!r.ok){alert(r.error||'Save failed');return;}
+  const content=document.getElementById('ta').value;
+  if(currentOutlinePath){
+    const r=await (await fetch(`?api=set_note&`+new URLSearchParams({file:currentFile,path:currentOutlinePath}),{
+      method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({note:content})
+    })).json();
+    if(!r.ok){alert(r.error||'Save failed');return;}
+    loadTree();
+  }else{
+    const body=JSON.stringify({content});
+    const r=await (await fetch(`?api=write&`+new URLSearchParams({path:currentFile}),{
+      method:'POST',headers:{'X-CSRF':CSRF},body
+    })).json();
+    if(!r.ok){alert(r.error||'Save failed');return;}
+  }
 }
 async function del(){
   if(!currentFile) return; if(!confirm('Delete this file?')) return;
@@ -465,25 +511,22 @@ function renderTree(nodes){
       const row=document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem';
       const has=n.children && n.children.length;
       const caret=document.createElement('span'); caret.textContent=has?'▸':'•'; caret.style.cursor=has?'pointer':'default';
-      const title=document.createElement('span'); title.textContent=n.t;
-
-      if(n.note){
-        title.style.cursor='pointer';
-        title.onclick=e=>{
-          e.stopPropagation();
-          const ta=document.getElementById('ta');
-          ta.value=n.note; ta.disabled=false; btns(false);
-          fileName.textContent=n.t; fileSize.textContent=''; fileWhen.textContent='';
-        };
-      }
-
+      const title=document.createElement('span'); title.textContent=n.t; title.style.cursor='pointer';
+      title.onclick=e=>{
+        e.stopPropagation();
+        const ta=document.getElementById('ta');
+        ta.value=n.note||''; ta.disabled=false;
+        saveBtn.disabled=false; delBtn.disabled=true;
+        currentOutlinePath=n.p;
+        fileName.textContent=n.t; fileSize.textContent=''; fileWhen.textContent='';
+      };
       row.appendChild(caret); row.appendChild(title); li.appendChild(row);
 
       if(has){
         const child=ul(n.children); child.style.display='none'; li.appendChild(child);
         const toggle=()=>{ child.style.display=child.style.display==='none'?'block':'none'; caret.textContent=child.style.display==='none'?'▸':'▾'; };
         caret.onclick=toggle;
-        if(!n.note) row.onclick=toggle;
+        row.onclick=toggle;
       }
       u.appendChild(li);
     }
