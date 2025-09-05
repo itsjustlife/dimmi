@@ -8,7 +8,7 @@
 /* ===== CONFIG ===== */
 $USER = getenv('WEBEDITOR_USER') ?: 'admin';
 $PASS = getenv('WEBEDITOR_PASS') ?: 'admin';
-$TITLE = 'Dimmi WebEditor (itsjustlife.cloud)';
+$TITLE = 'ARKHIVER ONLINE';
 
 $ROOT = (function () {
   // Prefer sibling ../dimmi relative to this file, else fall back to absolute
@@ -334,11 +334,11 @@ if (isset($_GET['api'])) {
 if (!$authed): ?>
 <!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?=$TITLE?> — Login</title>
 <style>
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:#0f0f12;color:#e5e5e5;display:grid;place-items:center;height:100dvh;margin:0}
-.card{background:#141418;border:1px solid #2e2e36;padding:24px;border-radius:16px;min-width:280px}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:#1e1e1e;color:#e5e5e5;display:grid;place-items:center;height:100dvh;margin:0}
+.card{background:#2a2a2a;border:1px solid #3d3d3d;padding:24px;border-radius:16px;min-width:280px}
 h1{margin:0 0 16px;font-size:18px}
-input{width:100%;padding:10px 12px;margin:8px 0;background:#0f0f12;border:1px solid #2e2e36;color:#fff;border-radius:10px}
-button{width:100%;padding:10px 12px;background:#1e1e26;border:1px solid #3a3a46;color:#fff;border-radius:10px;cursor:pointer}
+input{width:100%;padding:10px 12px;margin:8px 0;background:#1e1e1e;border:1px solid #3d3d3d;color:#fff;border-radius:10px}
+button{width:100%;padding:10px 12px;background:#3a3a3a;border:1px solid #4a4a4a;color:#fff;border-radius:10px;cursor:pointer}
 .err{color:#ff6b6b;margin:8px 0 0}.tip{opacity:.7;font-size:12px;margin-top:6px}
 </style>
 <div class="card"><h1><?=$TITLE?></h1>
@@ -353,32 +353,34 @@ button{width:100%;padding:10px 12px;background:#1e1e26;border:1px solid #3a3a46;
 
 <!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?=$TITLE?></title>
 <style>
-:root{--bg:#0f0f12;--panel:#121218;--line:#262631;--text:#e5e5e5;--accent:#7cc9ff}
+:root{--bg:#1e1e1e;--panel:#2a2a2a;--line:#3d3d3d;--text:#e5e5e5;--accent:#8ab4f8}
 *{box-sizing:border-box} html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif}
-.top{display:flex;gap:12px;align-items:center;padding:10px;border-bottom:1px solid var(--line)}
-.input{padding:6px 8px;background:#0e0e14;border:1px solid var(--line);color:#fff;border-radius:8px}
-.btn{padding:6px 10px;border:1px solid var(--line);background:#181822;border-radius:8px;color:#ddd;cursor:pointer}
+.top{display:flex;gap:12px;align-items:center;padding:10px;border-bottom:1px solid var(--line);background:var(--panel)}
+.input{padding:6px 8px;background:#2a2a2a;border:1px solid var(--line);color:#fff;border-radius:8px}
+.btn{padding:6px 10px;border:1px solid var(--line);background:#333;border-radius:8px;color:#eee;cursor:pointer}
 .grid{display:grid;grid-template-columns:260px 320px 1fr;gap:8px;height:calc(100% - 56px);padding:8px}
-.panel{background:#121218;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:0}
 .head{padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
 .body{padding:8px;overflow:auto}
-ul{list-style:none;margin:0;padding:0} li{padding:6px;border-radius:8px;cursor:pointer} li:hover{background:#181822}
+ul{list-style:none;margin:0;padding:0} li{padding:6px;border-radius:8px;cursor:pointer} li:hover{background:#3a3a3a}
 small{opacity:.6} .row{display:flex;gap:8px;align-items:center;justify-content:space-between}
 .actions{display:flex;gap:4px;align-items:center}
 .btn.small{padding:2px 4px;font-size:12px}
 .btn.icon{width:24px;height:24px;padding:0;border-radius:4px;display:flex;align-items:center;justify-content:center}
+.ico{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
 .editorbar{padding:8px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
-.tag{background:#1e1e26;border:1px solid var(--line);padding:3px 6px;border-radius:6px;font-size:12px}
+.tag{background:#333;border:1px solid var(--line);padding:3px 6px;border-radius:6px;font-size:12px}
 .mono{font-family:ui-monospace,Consolas,monospace}
-textarea{width:100%;height:100%;flex:1;min-height:200px;resize:none;background:#0e0e14;color:#e5e5e5;border:0;padding:12px;box-sizing:border-box;font-family:ui-monospace,Consolas,monospace}
+textarea{width:100%;height:100%;flex:1;min-height:200px;resize:none;background:#1e1e1e;color:#e5e5e5;border:0;padding:12px;box-sizing:border-box;font-family:ui-monospace,Consolas,monospace}
 footer{position:fixed;right:10px;bottom:8px;opacity:.5}
-.crumb a{color:#aee;text-decoration:none;margin-right:6px}.crumb a:hover{text-decoration:underline}
+.crumb a{color:var(--accent);text-decoration:none;margin-right:6px}.crumb a:hover{text-decoration:underline}
 #newFileModal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.4); z-index:50}
 #newFileModal .box{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:10px; width:260px}
 #newFileModal .ext.selected{outline:2px solid var(--accent)}
 @media(max-width:600px){
   .grid{grid-template-columns:1fr;grid-template-rows:200px 200px 1fr;height:auto}
+  .top{flex-wrap:wrap}
 }
 </style>
 
@@ -472,6 +474,12 @@ const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='', currentOutlinePath='';
 const newExts=['.txt','.html','.md','.opml'];
 let newExtIndex=0;
+const icons={
+  folder:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 5h5l2 2h11v12H3z" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  file:'<svg class="ico" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 2v5h5" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  edit:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14.06 4.94l3.75 3.75" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  trash:'<svg class="ico" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19 6v14H5V6m3-3h8v3" fill="none" stroke="currentColor" stroke-width="2"/></svg>'
+};
 const listBtn=document.getElementById('structListBtn');
 const treeBtn=document.getElementById('structTreeBtn');
 const treeWrap=document.getElementById('opmlTreeWrap');
@@ -506,7 +514,9 @@ async function init(){
 }
 function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
-  li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}</div><div class="actions">${isDir?'':'<small>'+fmtSize(size)+'</small>'}<button class="btn small icon" onclick="renameItem(event,'${rel}')" title="Rename">✏️</button><button class="btn small icon" onclick="deleteItem(event,'${rel}')" title="Delete">🗑️</button></div></div>`;
+  const ico=isDir?icons.folder:icons.file;
+  const sizeHtml=isDir?'':`<small>${fmtSize(size)}</small>`;
+  li.innerHTML=`<div class="row"><div>${ico} ${name}</div><div class="actions">${sizeHtml}<button class="btn small icon" onclick="renameItem(event,'${rel}')" title="Rename">${icons.edit}</button><button class="btn small icon" onclick="deleteItem(event,'${rel}')" title="Delete">${icons.trash}</button></div></div>`;
   li.onclick=()=> isDir? openDir(rel) : openFile(rel,name,size,mtime);
   return li;
 }
@@ -514,7 +524,7 @@ async function openDir(rel){
   currentDir = rel || ''; crumb(currentDir);
   const FL=document.getElementById('folderList'); FL.innerHTML='';
   const r=await (await api('list',{path:currentDir})).json(); if(!r.ok){alert(r.error||'list failed');return;}
-  if(currentDir){ const up=currentDir.split('/').slice(0,-1).join('/'); const upName=up.split('/').pop() || '/'; const li=document.createElement('li'); li.textContent='⬆️ '+upName; li.onclick=()=>openDir(up); FL.appendChild(li); }
+  if(currentDir){ const up=currentDir.split('/').slice(0,-1).join('/'); const upName=up.split('/').pop() || '/'; const li=document.createElement('li'); li.textContent='↑ '+upName; li.onclick=()=>openDir(up); FL.appendChild(li); }
   r.items.filter(i=>i.type==='dir').sort((a,b)=>a.name.localeCompare(b.name)).forEach(d=>FL.appendChild(ent(d.name,d.rel,true,0,d.mtime)));
   const FI=document.getElementById('fileList'); FI.innerHTML='';
   r.items.filter(i=>i.type==='file').sort((a,b)=>a.name.localeCompare(b.name)).forEach(f=>FI.appendChild(ent(f.name,f.rel,false,f.size,f.mtime)));
