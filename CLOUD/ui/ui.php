@@ -271,7 +271,9 @@ if (isset($_GET['api'])) {
         $t = $c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
         $id = ($prefix==='') ? strval($i) : ($prefix.'/'.$i);
         $childs = $c->hasChildNodes() ? $walk($c,$id) : [];
-        $out[] = ['id'=>$id,'t'=>$t,'children'=>$childs];
+        $item = ['id'=>$id,'t'=>$t,'children'=>$childs];
+        if($c->hasAttribute('_note')) $item['note']=$c->getAttribute('_note');
+        $out[] = $item;
         $i++;
       } return $out;
     };
@@ -661,7 +663,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <!-- [NODE PATCH] List / Tree toggle -->
       <span style="margin-left:auto; display:flex; gap:6px">
         <button class="btn small" id="structListBtn" type="button">List</button>
-        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
+        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML ARK" disabled>ARK</button>
       </span>
     </div>
     <div class="body" style="position:relative">
@@ -1107,7 +1109,7 @@ function renderTree(nodes){
       row.dataset.id = n.id;
       row.onclick = (e)=>{
         if(has && e.target===caret){ child.style.display = child.style.display==='none' ? 'block':'none'; caret.textContent = child.style.display==='none' ? '▸':'▾'; }
-        selectNode(n.id, n.t);
+        selectNode(n.id, n.t, n.note);
       };
       li.appendChild(row);
       if(has){ const child=mk(n.children,n.id); child.style.display='none'; li.appendChild(child); }
@@ -1124,10 +1126,15 @@ async function loadTree(){
   renderTree(data.tree||[]);
 }
 
-async function selectNode(id, title){
+async function selectNode(id, title, note){
   selectedId = id;
   nodeEditor.style.display='block';
   nodeTitle.value = title || '';
+  if(note){
+    const ta=document.getElementById('ta');
+    ta.value=note; ta.disabled=false; btns(false);
+    fileName.textContent=title||''; fileSize.textContent=''; fileWhen.textContent='';
+  }
   await refreshLinks();
 }
 

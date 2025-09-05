@@ -170,6 +170,7 @@ if (isset($_GET['api'])) {
         if ($c->nodeType!==XML_ELEMENT_NODE || strtolower($c->nodeName)!=='outline') continue;
         $t = $c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
         $item = ['t'=>$t, 'children'=>[]];
+        if ($c->hasAttribute('_note')) $item['note']=$c->getAttribute('_note');
         if ($c->hasChildNodes()) $item['children']=$walk($c);
         $out[]=$item;
       } return $out;
@@ -260,7 +261,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <!-- [PATCH] List / Tree toggle -->
       <span style="margin-left:auto; display:flex; gap:6px">
         <button class="btn small" id="structListBtn" type="button">List</button>
-        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
+        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML ARK" disabled>ARK</button>
       </span>
     </div>
     <div class="body" style="position:relative">
@@ -465,9 +466,24 @@ function renderTree(nodes){
       const has=n.children && n.children.length;
       const caret=document.createElement('span'); caret.textContent=has?'▸':'•'; caret.style.cursor=has?'pointer':'default';
       const title=document.createElement('span'); title.textContent=n.t;
+
+      if(n.note){
+        title.style.cursor='pointer';
+        title.onclick=e=>{
+          e.stopPropagation();
+          const ta=document.getElementById('ta');
+          ta.value=n.note; ta.disabled=false; btns(false);
+          fileName.textContent=n.t; fileSize.textContent=''; fileWhen.textContent='';
+        };
+      }
+
       row.appendChild(caret); row.appendChild(title); li.appendChild(row);
-      if(has){ const child=ul(n.children); child.style.display='none'; li.appendChild(child);
-        row.onclick=()=>{ child.style.display=child.style.display==='none'?'block':'none'; caret.textContent=child.style.display==='none'?'▸':'▾'; };
+
+      if(has){
+        const child=ul(n.children); child.style.display='none'; li.appendChild(child);
+        const toggle=()=>{ child.style.display=child.style.display==='none'?'block':'none'; caret.textContent=child.style.display==='none'?'▸':'▾'; };
+        caret.onclick=toggle;
+        if(!n.note) row.onclick=toggle;
       }
       u.appendChild(li);
     }

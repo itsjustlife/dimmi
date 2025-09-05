@@ -178,7 +178,11 @@ app.get('/api/opml_tree', async (req,res)=>{
     const parsed = await xml2js.parseStringPromise(xml);
     const outlines = parsed.opml && parsed.opml.body && parsed.opml.body[0] && parsed.opml.body[0].outline || [];
     function walk(nodes){
-      return nodes.map(n=>({t: n.$?.text || '', children: n.outline?walk(n.outline):[]}));
+      return nodes.map(n=>({
+        t: n.$?.text || '',
+        note: n.$?._note,
+        children: n.outline?walk(n.outline):[]
+      }));
     }
     const tree = walk(outlines);
     res.json({ok:true, tree});

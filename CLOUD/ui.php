@@ -267,7 +267,9 @@ if (isset($_GET['api'])) {
         if($c->nodeType!==XML_ELEMENT_NODE || strtolower($c->nodeName)!=='outline') continue;
         $t = $c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
         $id = ($prefix===''? "$i" : "$prefix/$i");
-        $out[]=['id'=>$id,'t'=>$t,'children'=>$c->hasChildNodes()? $walk($c,$id):[]];
+        $item=['id'=>$id,'t'=>$t,'children'=>$c->hasChildNodes()? $walk($c,$id):[]];
+        if($c->hasAttribute('_note')) $item['note']=$c->getAttribute('_note');
+        $out[]=$item;
         $i++;
       }
       return $out;
@@ -548,7 +550,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
       <label class="btn" style="position:relative;overflow:hidden">Upload<input type="file" style="position:absolute;inset:0;opacity:0" onchange="uploadFile(this)"></label>
       <span style="margin-left:auto; display:flex; gap:6px">
         <button class="btn small" id="structListBtn" type="button">List</button>
-        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML tree" disabled>Tree</button>
+        <button class="btn small" id="structTreeBtn" type="button" title="Show OPML ARK" disabled>ARK</button>
       </span>
     </div>
     <div class="body" style="position:relative">
@@ -937,7 +939,7 @@ function renderTree(nodes){
       const title=document.createElement('span'); title.textContent=n.t; row.dataset.id = n.id;
       row.onclick = (e)=>{
         if(has && e.target===caret){ child.style.display = child.style.display==='none' ? 'block':'none'; caret.textContent = child.style.display==='none' ? '▸':'▾'; }
-        selectNode(n.id, n.t);
+        selectNode(n.id, n.t, n.note);
       };
       li.appendChild(row);
       if(has){ const child=mk(n.children); child.style.display='none'; li.appendChild(child); }
@@ -955,8 +957,16 @@ async function loadTree(){
     renderTree(r.tree||[]);
   } catch(e){ opmlTreeWrap.textContent = 'OPML load error.'; }
 }
-async function selectNode(id, title){
-  selectedId = id; nodeEditor.style.display='block'; nodeTitle.value = title || ''; await refreshLinks();
+async function selectNode(id, title, note){
+  selectedId = id;
+  nodeEditor.style.display='block';
+  nodeTitle.value = title || '';
+  if(note){
+    const ta=document.getElementById('ta');
+    ta.value=note; ta.disabled=false; btns(false);
+    fileName.textContent=title||''; fileSize.textContent=''; fileWhen.textContent='';
+  }
+  await refreshLinks();
 }
 async function nodeOp(op, extra={}){
   if(!currentFile || selectedId===null) return;
