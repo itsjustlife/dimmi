@@ -131,7 +131,7 @@ async function save(){
   if(!currentFile) return;
   const body=JSON.stringify({content:document.getElementById('ta').value});
   const r=await (await fetch('api/write?'+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF},body})).json();
-  if(!r.ok){alert(r.error||'Save failed');return;} alert('Saved');
+  if(!r.ok){alert(r.error||'Save failed');return;}
 }
 async function del(){
   if(!currentFile) return; if(!confirm('Delete this file?')) return;
