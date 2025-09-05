@@ -334,13 +334,18 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
   </div>
 </div>
 <footer><?=$TITLE?></footer>
+<div id="ctxMenu" style="position:absolute;display:none;z-index:1000;background:#fff;border:1px solid #ccc;padding:4px;">
+  <button onclick="ctxCopy()">Copy</button>
+  <button onclick="ctxCut()">Cut</button>
+  <button onclick="ctxPaste()">Paste</button>
+</div>
 
 <script>
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
 let clipPath='', clipMode='';
-let selectedPath='';
+let selectedPath='', ctxTarget='', ctxIsDir=false;
 const newExts=['.txt','.html','.md','.opml'];
 let newExtIndex=0;
 const listBtn=document.getElementById('structListBtn');
@@ -372,11 +377,11 @@ function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
   li.innerHTML=`<div class="row"><div>${isDir?'📁':'📄'} ${name}${isDir?'':' <small>'+fmtSize(size)+'</small>'}</div></div>`;
   li.onclick=()=>{ selectItem(li,rel); isDir? openDir(rel) : openFile(rel,name,size,mtime); };
-  li.oncontextmenu=(e)=>{ e.preventDefault(); selectItem(li,rel); };
+  li.oncontextmenu=(e)=>{ e.preventDefault(); selectItem(li,rel); showMenu(e,rel,isDir); };
   return li;
 }
 async function openDir(rel){
-  currentDir = rel || ''; crumb(currentDir);
+  currentDir = rel || ''; selectedPath=''; crumb(currentDir);
   const FL=document.getElementById('folderList'); FL.innerHTML='';
   const r=await (await api('list',{path:currentDir})).json(); if(!r.ok){alert(r.error||'list failed');return;}
   if(currentDir){ const up=currentDir.split('/').slice(0,-1).join('/'); const upName=up.split('/').pop() || '/'; const li=document.createElement('li'); li.textContent='⬆️ '+upName; li.onclick=()=>openDir(up); FL.appendChild(li); }
@@ -403,143 +408,4 @@ async function save(){
   if(!currentFile) return;
   const body=JSON.stringify({content:document.getElementById('ta').value});
   const r=await (await fetch(`?api=write&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF},body})).json();
-  if(!r.ok){alert(r.error||'Save failed');return;}
-}
-async function del(){
-  if(!currentFile) return; if(!confirm('Delete this file?')) return;
-  const r=await (await fetch(`?api=delete&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
-  if(!r.ok){alert(r.error||'Delete failed');return;} ta.value=''; ta.disabled=true; btns(false); openDir(currentDir);
-}
-async function mkdirPrompt(){
-  const name=prompt('New folder name:'); if(!name) return;
-  const r=await (await fetch(`?api=mkdir&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
-  if(!r.ok){alert(r.error||'mkdir failed');return;} openDir(currentDir);
-}
-function newFilePrompt(){
-  const m=document.getElementById('newFileModal');
-  const input=document.getElementById('newFileName');
-  m.style.display='flex';
-  newExtIndex=0;
-  updateExtBtns();
-  input.value='';
-  input.focus();
-}
-
-function updateExtBtns(){
-  document.querySelectorAll('#extBtns .ext').forEach((b,i)=>{
-    b.classList.toggle('selected', i===newExtIndex);
-  });
-}
-document.querySelectorAll('#extBtns .ext').forEach((btn,i)=>{
-  btn.addEventListener('click',()=>{ newExtIndex=i; updateExtBtns(); document.getElementById('newFileName').focus(); });
-});
-document.getElementById('newFileName').addEventListener('keydown',(e)=>{
-  if(e.key==='Tab'){ e.preventDefault(); newExtIndex=(newExtIndex+1)%newExts.length; updateExtBtns(); }
-  if(e.key==='Enter'){ e.preventDefault(); createNewFile(); }
-});
-document.getElementById('newFileCreateBtn').addEventListener('click', createNewFile);
-document.getElementById('newFileCancelBtn').addEventListener('click', ()=>{ document.getElementById('newFileModal').style.display='none'; });
-
-async function createNewFile(){
-  let name=document.getElementById('newFileName').value.trim();
-  if(!name) return;
-  if(!name.includes('.')) name+=newExts[newExtIndex];
-  const r=await (await fetch(`?api=newfile&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
-  if(!r.ok){ alert(r.error||'newfile failed'); return; }
-  document.getElementById('newFileModal').style.display='none';
-  openDir(currentDir);
-}
-async function uploadFile(inp){
-  if(!inp.files.length) return; const fd=new FormData(); fd.append('file',inp.files[0]);
-  const r=await (await fetch(`?api=upload&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
-  if(!r.ok){alert(r.error||'upload failed');return;} openDir(currentDir);
-}
-
-async function uploadFolder(inp){
-  if(!inp.files.length) return;
-  for(const f of inp.files){
-    const fd=new FormData(); fd.append('file',f);
-    const relPath=f.webkitRelativePath||f.name;
-    const subdir=relPath.split('/').slice(0,-1).join('/');
-    const target=currentDir+(subdir?`/${subdir}`:'');
-    const r=await (await fetch(`?api=upload&`+new URLSearchParams({path:target}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
-    if(!r.ok){alert(r.error||'upload failed');return;}
-  }
-  openDir(currentDir);
-}
-
-async function renameItem(ev,rel){
-  if(ev) ev.stopPropagation();
-  const name=prompt('Rename to:'); if(!name) return;
-  // [PATCH] send {to: newRel}
-  const dir = rel.split('/').slice(0,-1).join('/');
-  const target = (dir? dir+'/' : '') + name.replace(/^\/+/,'');
-  const r=await (await fetch(`?api=rename&`+new URLSearchParams({path:rel}),{
-    method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:target})
-  })).json();
-  if(!r.ok){alert(r.error||'rename failed');return;} openDir(currentDir);
-}
-
-async function deleteItem(ev,rel){
-  if(ev) ev.stopPropagation();
-  if(!confirm('Delete this item?')) return;
-  const r=await (await fetch(`?api=delete&`+new URLSearchParams({path:rel}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
-  if(!r.ok){alert(r.error||'delete failed');return;}
-  if(currentFile===rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); currentFile=''; }
-  openDir(currentDir);
-}
-function copyItem(ev,rel){ if(ev) ev.stopPropagation(); clipPath=rel; clipMode='copy'; }
-function cutItem(ev,rel){ if(ev) ev.stopPropagation(); clipPath=rel; clipMode='move'; }
-async function pasteIntoDir(ev,rel){
-  if(ev) ev.stopPropagation();
-  if(!clipPath){ alert('Clipboard empty'); return; }
-  const act=clipMode==='move'?'move':'copy';
-  const r=await (await fetch(`?api=${act}&`+new URLSearchParams({path:clipPath}),{
-    method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:rel})
-  })).json();
-  if(!r.ok){ alert(r.error||'paste failed'); return; }
-  clipPath=''; clipMode=''; openDir(currentDir);
-}
-function ctxCopy(){ if(!selectedPath){ alert('Select an item first'); return; } copyItem(null,selectedPath); }
-function ctxCut(){ if(!selectedPath){ alert('Select an item first'); return; } cutItem(null,selectedPath); }
-function ctxPaste(){ pasteIntoDir(null,currentDir); }
-function ctxRename(){ if(!selectedPath){ alert('Select an item first'); return; } renameItem(null,selectedPath); }
-function ctxDelete(){ if(!selectedPath){ alert('Select an item first'); return; } deleteItem(null,selectedPath); }
-// [PATCH] STRUCTURE Tree: render + toggle
-function hideTree(){ if(treeWrap) treeWrap.style.display='none'; if(fileList) fileList.style.visibility='visible'; }
-function showTree(){
-  if(treeBtn && treeBtn.disabled) return;
-  if(treeWrap) treeWrap.style.display='block';
-  if(fileList) fileList.style.visibility='hidden';
-  loadTree();
-}
-function renderTree(nodes){
-  const wrap=document.createElement('div'); wrap.style.lineHeight='1.35'; wrap.style.fontSize='14px';
-  const ul=(arr)=>{
-    const u=document.createElement('ul'); u.style.listStyle='none'; u.style.paddingLeft='14px'; u.style.margin='6px 0';
-    for(const n of arr){
-      const li=document.createElement('li');
-      const row=document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='.35rem';
-      const has=n.children && n.children.length;
-      const caret=document.createElement('span'); caret.textContent=has?'▸':'•'; caret.style.cursor=has?'pointer':'default';
-      const title=document.createElement('span'); title.textContent=n.t;
-      row.appendChild(caret); row.appendChild(title); li.appendChild(row);
-      if(has){ const child=ul(n.children); child.style.display='none'; li.appendChild(child);
-        row.onclick=()=>{ child.style.display=child.style.display==='none'?'block':'none'; caret.textContent=child.style.display==='none'?'▸':'▾'; };
-      }
-      u.appendChild(li);
-    }
-    return u;
-  };
-  wrap.appendChild(ul(nodes));
-  if(treeWrap) treeWrap.replaceChildren(wrap);
-}
-async function loadTree(){
-  try{
-    const r=await (await api('opml_tree',{ file: currentFile })).json();
-    if(!r.ok){ if(treeWrap) treeWrap.textContent=r.error||'OPML parse error.'; return; }
-    renderTree(r.tree||[]);
-  }catch(e){ if(treeWrap) treeWrap.textContent='OPML load error.'; }
-}
-init();
-</script>
+  if
