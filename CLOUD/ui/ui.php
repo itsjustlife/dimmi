@@ -583,6 +583,9 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 #ctx{position:fixed; z-index:30; display:none; min-width:160px; background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
 #ctx button{display:block; width:100%; text-align:left; padding:10px 12px; border:0; background:transparent; color:var(--text); cursor:pointer}
 #ctx button:hover{background:#181822}
+#newFileModal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.4); z-index:50}
+#newFileModal .box{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:10px; width:260px}
+#newFileModal .ext.selected{outline:2px solid var(--accent)}
 /* [UX PATCH] Pull hint */
 .pullHint{position:absolute; top:-34px; left:0; right:0; height:24px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:12px}
 /* [PALETTE] */
@@ -749,12 +752,29 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
   <button data-act="rename">Rename</button>
   <button data-act="delete">Delete</button>
 </div>
+<div id="newFileModal">
+  <div class="box">
+    <input id="newFileName" class="input" placeholder="new file name">
+    <div class="row" id="extBtns" style="gap:6px">
+      <button class="btn small ext" data-ext=".txt">.txt</button>
+      <button class="btn small ext" data-ext=".html">.html</button>
+      <button class="btn small ext" data-ext=".md">.md</button>
+      <button class="btn small ext" data-ext=".opml">.opml</button>
+    </div>
+    <div class="row" style="justify-content:flex-end; gap:6px">
+      <button class="btn small" id="newFileCreateBtn">Create</button>
+      <button class="btn small" id="newFileCancelBtn">Cancel</button>
+    </div>
+  </div>
+</div>
 <footer><?=$TITLE?></footer>
 <script>
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api = (act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
 let isMobile = window.matchMedia('(max-width: 900px)').matches;
+const newExts=['.txt','.html','.md','.opml'];
+let newExtIndex=0;
 const searchBtn = document.getElementById('searchBtn');
 const rootNote = document.getElementById('rootNote');
 function setPane(p){
@@ -984,10 +1004,42 @@ async function mkdirPrompt(){
   if(!r.ok){ toast(r.error||'mkdir failed','err'); return; } openDir(currentDir); toast('Folder created','ok');
 }
 
-async function newFilePrompt(){
-  const name=prompt('New file name:'); if(!name) return;
+function newFilePrompt(){
+  const m=document.getElementById('newFileModal');
+  const input=document.getElementById('newFileName');
+  m.style.display='flex';
+  newExtIndex=0;
+  updateExtBtns();
+  input.value='';
+  input.focus();
+}
+
+function updateExtBtns(){
+  document.querySelectorAll('#extBtns .ext').forEach((b,i)=>{
+    b.classList.toggle('selected', i===newExtIndex);
+  });
+}
+document.querySelectorAll('#extBtns .ext').forEach((btn,i)=>{
+  btn.addEventListener('click',()=>{ newExtIndex=i; updateExtBtns(); document.getElementById('newFileName').focus(); });
+});
+document.getElementById('newFileName').addEventListener('keydown',(e)=>{
+  if(e.key==='Tab'){ e.preventDefault(); newExtIndex=(newExtIndex+1)%newExts.length; updateExtBtns(); }
+  if(e.key==='Enter'){ e.preventDefault(); createNewFile(); }
+});
+document.getElementById('newFileCreateBtn').addEventListener('click', createNewFile);
+document.getElementById('newFileCancelBtn').addEventListener('click', ()=>{ document.getElementById('newFileModal').style.display='none'; });
+
+async function createNewFile(){
+  let name=document.getElementById('newFileName').value.trim();
+  if(!name) return;
+  if(!name.includes('.')) name+=newExts[newExtIndex];
   const r=await (await fetch(`?api=newfile&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
-  if(!r.ok){ toast(r.error||'newfile failed','err'); return; } openDir(currentDir); toast('File created','ok');
+  if(r.ok){
+    document.getElementById('newFileModal').style.display='none';
+    openDir(currentDir);
+  } else {
+    toast(r.error||'newfile failed','err');
+  }
 }
 
 async function uploadFile(inp){
