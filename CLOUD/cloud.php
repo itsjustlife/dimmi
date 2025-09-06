@@ -57,6 +57,19 @@ function audit($action,$rel,$ok=true,$extra=''){
   @file_put_contents($LOG_FILE, "$ts\t$ip\t$action\t$rel\t".($ok?'ok':'fail')."\t$extra\n", FILE_APPEND);
 }
 
+function rcopy($src,$dst){
+  if(is_dir($src)){
+    if(!is_dir($dst)) @mkdir($dst,0775,true);
+    foreach(scandir($src) as $f){
+      if($f==='.'||$f==='..') continue;
+      rcopy($src.'/'.$f,$dst.'/'.$f);
+    }
+    return true;
+  }
+  $dir=dirname($dst); if(!is_dir($dir)) @mkdir($dir,0775,true);
+  return @copy($src,$dst);
+}
+
 // ----- OPML helpers -----
 function opml_load_dom($abs){
   if (!class_exists('DOMDocument')) bad('DOM extension missing',500);
@@ -118,6 +131,14 @@ if (isset($_GET['api'])) {
 
   if ($action==='whereami') j(['ok'=>true,'root'=>$ROOT]);
 
+  if ($action==='get_file') {
+    if (!is_file($abs)) bad('Not a file');
+    $mime = mime_content_type($abs) ?: 'application/octet-stream';
+    header('Content-Type: '.$mime);
+    readfile($abs);
+    exit;
+  }
+
   if ($action==='list') {
     if (!is_dir($abs)) bad('Not a directory');
     $items = [];
@@ -173,6 +194,14 @@ if (isset($_GET['api'])) {
     $to=trim(($data['to'] ?? $data['name'] ?? ''),'/'); if($to==='') bad('Missing target');
     $dst=safe_abs($to); if($dst===false) bad('Invalid target');
     $ok = @rename($abs,$dst); audit('rename',$path,$ok,"-> ".rel_of($dst)); j(['ok'=>$ok]);
+  }
+
+  if ($action==='copy_item' && $method==='POST') {
+    $data=json_decode(file_get_contents('php://input'),true);
+    $src=safe_abs($data['src'] ?? '');
+    $dst=safe_abs($data['dst'] ?? '');
+    if($src===false || $dst===false) bad('Invalid path');
+    $ok=rcopy($src,$dst); audit('copy',rel_of($src),$ok,'-> '.rel_of($dst)); j(['ok'=>$ok]);
   }
 
   if ($action==='upload' && $method==='POST') {
@@ -365,6 +394,10 @@ if (isset($_GET['api'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?=$TITLE?> — Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .mobile-view li > div{padding:1rem;font-size:1.125rem;}
+    .mobile-view svg{width:1.5rem;height:1.5rem;}
+  </style>
 </head>
 <body class="min-h-screen bg-gray-100 flex items-center justify-center">
   <div class="bg-white p-6 rounded shadow w-80">
@@ -400,7 +433,15 @@ if (isset($_GET['api'])) {
       <button id="settingsBtn" class="p-2 rounded hover:bg-gray-100" title="Settings">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5M3.75 12h16.5m-16.5 6.75h16.5"/></svg>
       </button>
-      <div id="settingsMenu" class="hidden absolute right-0 mt-2 w-32 bg-white border rounded shadow-md">
+      <div id="settingsMenu" class="hidden absolute right-0 mt-2 w-40 bg-white border rounded shadow-md">
+        <div class="px-4 py-2 border-b">
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" id="mobileToggle" class="mr-1">
+            <span>Mobile View</span>
+          </label>
+        </div>
+        <button id="aboutBtn" class="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700">About</button>
+        <button id="versionBtn" class="block w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700">Version Log</button>
         <a href="?logout=1" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
       </div>
     </div>
@@ -443,6 +484,9 @@ if (isset($_GET['api'])) {
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
           <input type="file" class="hidden" onchange="uploadFile(this)">
         </label>
+        <button id="pasteBtn" class="p-2 text-gray-600 hover:text-gray-800 hidden" title="Paste">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5h7.5m-7.5 0A2.25 2.25 0 006 6.75v11.25A2.25 2.25 0 008.25 20.25h7.5A2.25 2.25 0 0018 18V6.75a2.25 2.25 0 00-2.25-2.25m-7.5 0V3.75A2.25 2.25 0 0110.5 1.5h3a2.25 2.25 0 012.25 2.25V4.5"/></svg>
+        </button>
         <div class="ml-auto flex gap-2">
           <button id="structListBtn" type="button" class="px-2 py-1 text-sm border rounded">List</button>
           <button id="structTreeBtn" type="button" class="px-2 py-1 text-sm border rounded" title="Show OPML ARK" disabled>ARK</button>
@@ -496,18 +540,13 @@ if (isset($_GET['api'])) {
     </section>
   </main>
 
-  <div id="newFileModal" class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-40">
-    <div class="bg-white rounded p-6 w-64 space-y-4">
-      <input id="newFileName" class="w-full border rounded px-2 py-1" placeholder="new file name">
-      <div id="extBtns" class="flex gap-2">
-        <button class="ext px-2 py-1 text-sm border rounded" data-ext=".txt">.txt</button>
-        <button class="ext px-2 py-1 text-sm border rounded" data-ext=".html">.html</button>
-        <button class="ext px-2 py-1 text-sm border rounded" data-ext=".md">.md</button>
-        <button class="ext px-2 py-1 text-sm border rounded" data-ext=".opml">.opml</button>
-      </div>
+  <div id="modalOverlay" class="fixed inset-0 hidden bg-black bg-opacity-40 flex items-center justify-center">
+    <div class="bg-white rounded p-6 w-80 max-w-full">
+      <h3 id="modalTitle" class="font-semibold mb-2"></h3>
+      <div id="modalBody" class="mb-4"></div>
       <div class="flex justify-end gap-2">
-        <button id="newFileCreateBtn" class="px-2 py-1 text-sm bg-blue-600 text-white rounded">Create</button>
-        <button id="newFileCancelBtn" class="px-2 py-1 text-sm border rounded">Cancel</button>
+        <button id="modalCancel" class="px-3 py-1 border rounded">Cancel</button>
+        <button id="modalOk" class="px-3 py-1 bg-blue-600 text-white rounded">OK</button>
       </div>
     </div>
   </div>
@@ -517,8 +556,7 @@ if (isset($_GET['api'])) {
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='', currentOutlinePath='', currentFileInfo=null;
-const newExts=['.txt','.html','.md','.opml'];
-let newExtIndex=0;
+let clipboardPath='';
 const icons={
   folder:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/></svg>',
   file:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>',
@@ -527,7 +565,8 @@ const icons={
   download:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 9l4.5 4.5 4.5-4.5M12 13.5V3"/></svg>',
   info:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
   addSame:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>',
-  addSub:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v7.5m0 0h7.5m-7.5 0v7.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 19.5L18 18l-1.5-1.5"/></svg>'
+  addSub:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v7.5m0 0h7.5m-7.5 0v7.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 19.5L18 18l-1.5-1.5"/></svg>',
+  kebab:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zm0 6a.75.75 0 110-1.5.75.75 0 010 1.5zm0 6a.75.75 0 110-1.5.75.75 0 010 1.5z"/></svg>'
 };
 const listBtn=document.getElementById('structListBtn');
 const treeBtn=document.getElementById('structTreeBtn');
@@ -545,6 +584,18 @@ if(settingsBtn && settingsMenu){
   settingsBtn.addEventListener('click',e=>{e.stopPropagation(); settingsMenu.classList.toggle('hidden');});
   document.addEventListener('click',e=>{ if(!settingsMenu.contains(e.target)) settingsMenu.classList.add('hidden'); });
 }
+document.addEventListener('click',e=>{ if(!e.target.closest('.itemMenu')) hideMenus(); });
+function toggleMenu(btn){ const m=btn.nextElementSibling; document.querySelectorAll('.itemMenu').forEach(el=>{ if(el!==m) el.classList.add('hidden');}); m.classList.toggle('hidden'); }
+function hideMenus(){ document.querySelectorAll('.itemMenu').forEach(el=>el.classList.add('hidden')); }
+
+const pasteBtn=document.getElementById('pasteBtn');
+if(pasteBtn) pasteBtn.addEventListener('click', pasteItem);
+const mobileToggle=document.getElementById('mobileToggle');
+if(mobileToggle) mobileToggle.addEventListener('change',()=>{ document.body.classList.toggle('mobile-view', mobileToggle.checked); });
+const aboutBtn=document.getElementById('aboutBtn');
+if(aboutBtn) aboutBtn.addEventListener('click',()=>{settingsMenu.classList.add('hidden'); modalInfo('About','<p>Simple file manager.</p>');});
+const versionBtn=document.getElementById('versionBtn');
+if(versionBtn) versionBtn.addEventListener('click',()=>{settingsMenu.classList.add('hidden'); modalInfo('Version Log','<p>v1.0</p>');});
 if(listBtn && treeBtn){
   listBtn.onclick=()=>hideTree();
   treeBtn.onclick=()=>showTree();
@@ -555,6 +606,84 @@ function toggleSection(id,btn){
   if(!el) return;
   el.classList.toggle('hidden');
   if(btn) btn.classList.toggle('rotate-180');
+}
+
+function modal(opts){
+  const overlay=document.getElementById('modalOverlay');
+  const {title='', body='', onOk=()=>{}, onCancel=()=>{}, okText='OK', cancelText='Cancel', showCancel=true} = opts;
+  document.getElementById('modalTitle').textContent=title;
+  const bodyEl=document.getElementById('modalBody');
+  if(typeof body==='string') bodyEl.innerHTML=body; else { bodyEl.innerHTML=''; bodyEl.appendChild(body); }
+  const ok=document.getElementById('modalOk'); ok.textContent=okText;
+  const cancel=document.getElementById('modalCancel'); cancel.textContent=cancelText; cancel.style.display=showCancel?'':'none';
+  ok.onclick=()=>{overlay.classList.add('hidden'); onOk();};
+  cancel.onclick=()=>{overlay.classList.add('hidden'); onCancel();};
+  overlay.classList.remove('hidden');
+}
+function modalPrompt(title,def,cb){
+  const input=document.createElement('input');
+  input.type='text'; input.className='w-full border rounded px-2 py-1'; input.value=def||'';
+  modal({title, body:input, onOk:()=>cb(input.value), onCancel:()=>cb(null)});
+  setTimeout(()=>input.focus(),0);
+}
+function modalInfo(title,html){
+  modal({title, body:html, showCancel:false});
+}
+function modalConfirm(title,msg,cb){
+  modal({title, body:msg, onOk:()=>cb(true), onCancel:()=>cb(false)});
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); }
+
+function copyItem(ev,rel){ if(ev) ev.stopPropagation(); clipboardPath=rel; if(pasteBtn) pasteBtn.classList.remove('hidden'); }
+async function pasteItem(){
+  if(!clipboardPath) return;
+  const name=clipboardPath.split('/').pop();
+  const dst=currentDir?(currentDir+'/'+name):name;
+  const r=await (await fetch('?api=copy_item',{method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body:JSON.stringify({src:clipboardPath,dst:dst})})).json();
+  if(!r.ok){modalInfo('Error',r.error||'Copy failed'); return;}
+  clipboardPath=''; if(pasteBtn) pasteBtn.classList.add('hidden');
+  openDir(currentDir);
+}
+let moveSrc='', moveDest=null;
+async function moveItem(ev,rel){
+  moveSrc=rel; moveDest=null;
+  const body=document.createElement('div');
+  body.className='max-h-64 overflow-auto';
+  const tree=document.createElement('ul');
+  body.appendChild(tree);
+  const rootLi=document.createElement('li');
+  rootLi.className='cursor-pointer px-2 py-1 hover:bg-gray-100';
+  rootLi.textContent='/';
+  rootLi.onclick=e=>{e.stopPropagation(); selectMoveDest('',rootLi);};
+  tree.appendChild(rootLi);
+  await renderMoveTree('',tree);
+  modal({title:'Move to...', body, onOk:async()=>{
+    if(moveDest===null) return;
+    const name=moveSrc.split('/').pop();
+    const dst=(moveDest?moveDest+'/':'')+name;
+    const r=await (await fetch(`?api=rename&`+new URLSearchParams({path:moveSrc}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:dst})})).json();
+    if(!r.ok){modalInfo('Error',r.error||'Move failed'); return;}
+    openDir(currentDir);
+  }});
+}
+async function renderMoveTree(path,el){
+  const r=await (await api('list',{path})).json();
+  if(!r.ok) return;
+  r.items.filter(i=>i.type==='dir').forEach(d=>{
+    const li=document.createElement('li');
+    li.className='cursor-pointer px-2 py-1 hover:bg-gray-100';
+    li.textContent=d.name||'/';
+    li.onclick=e=>{e.stopPropagation(); selectMoveDest(d.rel,li);};
+    const sub=document.createElement('ul'); sub.className='ml-4';
+    li.appendChild(sub);
+    el.appendChild(li);
+    renderMoveTree(d.rel,sub);
+  });
+}
+function selectMoveDest(rel,el){
+  moveDest=rel;
+  document.querySelectorAll('#modalBody li').forEach(li=>li.classList.remove('bg-blue-100'));
+  el.classList.add('bg-blue-100');
 }
 
 function crumb(rel){
@@ -575,14 +704,34 @@ async function init(){
 }
 function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
-  const ico=isDir?icons.folder:icons.file;
-  const nameEsc=name.replace(/'/g,"\\'");
-  const infoHtml=isDir?'':`<button class="text-gray-500 hover:text-gray-800" onclick="event.stopPropagation(); showInfo('${nameEsc}',${size},${mtime});" title="Info">${icons.info}</button>`;
-  const dlHtml=isDir?`<button class="text-gray-500 hover:text-green-600" onclick="downloadFolder(event,'${rel}')" title="Download">${icons.download}</button>`:`<button class="text-gray-500 hover:text-green-600" onclick="downloadItem(event,'${rel}','${nameEsc}')" title="Download">${icons.download}</button>`;
-  li.innerHTML=`<div class="flex items-center justify-between px-2 py-2 hover:bg-gray-100 rounded">
-    <div class="flex items-center gap-2">${ico}<span>${name}</span></div>
-    <div class="flex items-center gap-2">${infoHtml}${dlHtml}<button class="text-gray-500 hover:text-blue-600" onclick="renameItem(event,'${rel}')" title="Rename">${icons.edit}</button><button class="text-gray-500 hover:text-red-600" onclick="deleteItem(event,'${rel}')" title="Delete">${icons.trash}</button></div>
-  </div>`;
+  const row=document.createElement('div');
+  row.className='flex items-center justify-between px-2 py-2 hover:bg-gray-100 rounded cursor-pointer';
+  const left=document.createElement('div');
+  left.className='flex items-center gap-2';
+  left.innerHTML=(isDir?icons.folder:icons.file)+`<span>${name}</span>`;
+  const wrap=document.createElement('div');
+  wrap.className='relative';
+  const btn=document.createElement('button');
+  btn.className='p-1 text-gray-500 hover:text-gray-800';
+  btn.innerHTML=icons.kebab;
+  btn.onclick=e=>{e.stopPropagation(); toggleMenu(btn);};
+  const menu=document.createElement('div');
+  menu.className='itemMenu hidden absolute right-0 mt-1 w-32 bg-white border rounded shadow-md z-10 text-sm';
+  const makeItem=(label,fn)=>{
+    const a=document.createElement('a');
+    a.href='#'; a.textContent=label; a.className='block px-4 py-2 hover:bg-gray-100';
+    a.onclick=ev=>{ev.stopPropagation(); fn(); hideMenus();};
+    menu.appendChild(a);
+  };
+  makeItem('Info',()=>showInfo(rel,name,size,mtime));
+  makeItem('Download',()=>{isDir?downloadFolder(null,rel):downloadItem(null,rel,name);});
+  makeItem('Rename',()=>renameItem(null,rel));
+  makeItem('Delete',()=>deleteItem(null,rel));
+  makeItem('Copy',()=>copyItem(null,rel));
+  makeItem('Move',()=>moveItem(null,rel));
+  wrap.appendChild(btn); wrap.appendChild(menu);
+  row.appendChild(left); row.appendChild(wrap);
+  li.appendChild(row);
   li.onclick=()=> isDir? openDir(rel) : openFile(rel,name,size,mtime);
   return li;
 }
@@ -592,7 +741,7 @@ async function openDir(rel){
   document.getElementById('fileRenameBtn').classList.add('hidden');
   btns(false); infoBtn.disabled=true; currentFileInfo=null; document.getElementById('imgPreviewWrap').classList.add('hidden'); ta.classList.remove('hidden');
   const FL=document.getElementById('folderList'); FL.innerHTML='';
-  const r=await (await api('list',{path:currentDir})).json(); if(!r.ok){alert(r.error||'list failed');return;}
+  const r=await (await api('list',{path:currentDir})).json(); if(!r.ok){modalInfo('Error',r.error||'list failed');return;}
   if(currentDir){
     const up=currentDir.split('/').slice(0,-1).join('/');
     const upName=up.split('/').pop() || '/';
@@ -608,8 +757,17 @@ async function openDir(rel){
 }
 function jump(){ const p=document.getElementById('pathInput').value.trim(); openDir(p); }
 function fmtSize(b){ if(b<1024) return b+' B'; let u=['KB','MB','GB']; let i=-1; do{b/=1024;i++;}while(b>=1024&&i<2); return b.toFixed(1)+' '+u[i]; }
-function showInfo(name,size,mtime){ alert(`Name: ${name}\nSize: ${fmtSize(size)}\nModified: ${new Date(mtime*1000).toLocaleString()}`); }
-function showCurrentInfo(){ if(currentFileInfo) showInfo(currentFileInfo.name,currentFileInfo.size,currentFileInfo.mtime); }
+function showInfo(rel,name,size,mtime){
+  const parts=rel.split('/');
+  const file=parts.pop();
+  let acc='';
+  let crumbs='<a href="#" onclick="closeModal(); openDir(\'\'); return false;">root</a>';
+  parts.forEach((p,i)=>{ acc+=(i?'/':'')+p; const esc=acc.replace(/'/g,"\\'"); crumbs += ' / <a href="#" onclick="closeModal(); openDir(\''+esc+'\'); return false;">'+p+'</a>'; });
+  crumbs += ' / '+file;
+  const html=`<div class="space-y-1"><div>${crumbs}</div><div>Name: ${name}</div><div>Size: ${fmtSize(size)}</div><div>Modified: ${new Date(mtime*1000).toLocaleString()}</div></div>`;
+  modalInfo('Info', html);
+}
+function showCurrentInfo(){ if(currentFileInfo) showInfo(currentFile,currentFileInfo.name,currentFileInfo.size,currentFileInfo.mtime); }
 async function openFile(rel,name,size,mtime){
   currentFile=rel; currentOutlinePath=''; selectedId=null; currentFileInfo={name,size,mtime};
   document.getElementById('nodeTitleRow').classList.add('hidden');
@@ -626,7 +784,7 @@ async function openFile(rel,name,size,mtime){
   if(isImg){
     ta.classList.add('hidden');
     imgWrap.classList.remove('hidden');
-    img.src=rel;
+    img.src='?api=get_file&path='+encodeURIComponent(rel);
     ta.value=''; ta.disabled=true;
     btns(false); delBtn.disabled=false; downloadBtn.disabled=false;
     document.getElementById('structTreeBtn').disabled=true;
@@ -649,20 +807,24 @@ async function save(){
     const r=await (await fetch(`?api=set_note&`+new URLSearchParams({file:currentFile,path:currentOutlinePath}),{
       method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({note:content})
     })).json();
-    if(!r.ok){alert(r.error||'Save failed');return;}
+    if(!r.ok){modalInfo('Error',r.error||'Save failed');return;}
     loadTree(getExpanded());
   }else{
     const body=JSON.stringify({content});
     const r=await (await fetch(`?api=write&`+new URLSearchParams({path:currentFile}),{
       method:'POST',headers:{'X-CSRF':CSRF},body
     })).json();
-    if(!r.ok){alert(r.error||'Save failed');return;}
+    if(!r.ok){modalInfo('Error',r.error||'Save failed');return;}
   }
 }
 async function del(){
-  if(!currentFile) return; if(!confirm('Delete this file?')) return;
-  const r=await (await fetch(`?api=delete&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
-  if(!r.ok){alert(r.error||'Delete failed');return;} ta.value=''; ta.disabled=true; btns(false); openDir(currentDir);
+  if(!currentFile) return;
+  modalConfirm('Delete','Delete this file?',async ok=>{
+    if(!ok) return;
+    const r=await (await fetch(`?api=delete&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
+    if(!r.ok){modalInfo('Error',r.error||'Delete failed');return;}
+    ta.value=''; ta.disabled=true; btns(false); openDir(currentDir);
+  });
 }
 async function renameCurrent(){
   if(!currentFile) return;
@@ -673,7 +835,7 @@ async function renameCurrent(){
   const r=await (await fetch(`?api=rename&`+new URLSearchParams({path:currentFile}),{
     method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:target})
   })).json();
-  if(!r.ok){alert(r.error||'rename failed');return;}
+  if(!r.ok){modalInfo('Error',r.error||'rename failed');return;}
   currentFile=target;
   await openDir(currentDir);
   openFile(target,name,0,0);
@@ -683,48 +845,25 @@ function downloadFile(){
   downloadItem(null,currentFile,document.getElementById('fileTitle').value || 'download');
 }
 async function mkdirPrompt(){
-  const name=prompt('New folder name:'); if(!name) return;
-  const r=await (await fetch(`?api=mkdir&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
-  if(!r.ok){alert(r.error||'mkdir failed');return;} openDir(currentDir);
-}
-function newFilePrompt(){
-  const m=document.getElementById('newFileModal');
-  const input=document.getElementById('newFileName');
-  m.classList.remove('hidden');
-  newExtIndex=0;
-  updateExtBtns();
-  input.value='';
-  input.focus();
-}
-function updateExtBtns(){
-  document.querySelectorAll('#extBtns .ext').forEach((b,i)=>{
-    b.classList.toggle('ring', i===newExtIndex);
-    b.classList.toggle('ring-blue-500', i===newExtIndex);
+  modalPrompt('New folder name','',async name=>{
+    if(!name) return;
+    const r=await (await fetch(`?api=mkdir&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
+    if(!r.ok){modalInfo('Error',r.error||'mkdir failed');return;}
+    openDir(currentDir);
   });
 }
-document.querySelectorAll('#extBtns .ext').forEach((btn,i)=>{
-  btn.addEventListener('click',()=>{ newExtIndex=i; updateExtBtns(); document.getElementById('newFileName').focus(); });
-});
-document.getElementById('newFileName').addEventListener('keydown',(e)=>{
-  if(e.key==='Tab'){ e.preventDefault(); newExtIndex=(newExtIndex+1)%newExts.length; updateExtBtns(); }
-  if(e.key==='Enter'){ e.preventDefault(); createNewFile(); }
-});
-document.getElementById('newFileCreateBtn').addEventListener('click', createNewFile);
-document.getElementById('newFileCancelBtn').addEventListener('click', ()=>{ document.getElementById('newFileModal').classList.add('hidden'); });
-
-async function createNewFile(){
-  let name=document.getElementById('newFileName').value.trim();
-  if(!name) return;
-  if(!name.includes('.')) name+=newExts[newExtIndex];
-  const r=await (await fetch(`?api=newfile&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
-  if(!r.ok){ alert(r.error||'newfile failed'); return; }
-  document.getElementById('newFileModal').classList.add('hidden');
-  openDir(currentDir);
+function newFilePrompt(){
+  modalPrompt('New file name','',async name=>{
+    if(!name) return;
+    const r=await (await fetch(`?api=newfile&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({name})})).json();
+    if(!r.ok){modalInfo('Error',r.error||'newfile failed');return;}
+    openDir(currentDir);
+  });
 }
 async function uploadFile(inp){
   if(!inp.files.length) return; const fd=new FormData(); fd.append('file',inp.files[0]);
   const r=await (await fetch(`?api=upload&`+new URLSearchParams({path:currentDir}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
-  if(!r.ok){alert(r.error||'upload failed');return;} openDir(currentDir);
+  if(!r.ok){modalInfo('Error',r.error||'upload failed');return;} openDir(currentDir);
 }
 
 async function uploadFolder(inp){
@@ -735,13 +874,13 @@ async function uploadFolder(inp){
     const subdir=relPath.split('/').slice(0,-1).join('/');
     const target=currentDir+(subdir?`/${subdir}`:'');
     const r=await (await fetch(`?api=upload&`+new URLSearchParams({path:target}),{method:'POST',headers:{'X-CSRF':CSRF},body:fd})).json();
-    if(!r.ok){alert(r.error||'upload failed');return;}
+    if(!r.ok){modalInfo('Error',r.error||'upload failed');return;}
   }
   openDir(currentDir);
 }
 
 function downloadFolder(ev,rel){
-  ev.stopPropagation();
+  if(ev) ev.stopPropagation();
   const a=document.createElement('a');
   a.href='?api=download_folder&'+new URLSearchParams({path:rel});
   document.body.appendChild(a);
@@ -752,7 +891,7 @@ function downloadFolder(ev,rel){
 function downloadItem(ev,rel,name){
   if(ev) ev.stopPropagation();
   const a=document.createElement('a');
-  a.href='?api=read&'+new URLSearchParams({path:rel});
+  a.href='?api=get_file&'+new URLSearchParams({path:rel});
   a.download=name;
   document.body.appendChild(a);
   a.click();
@@ -760,25 +899,29 @@ function downloadItem(ev,rel,name){
 }
 
 async function renameItem(ev,rel){
-  ev.stopPropagation();
+  if(ev) ev.stopPropagation();
   const oldName = rel.split('/').pop();
-  const name = prompt('Rename to:', oldName);
-  if(!name || name === oldName) return;
-  const dir = rel.split('/').slice(0,-1).join('/');
-  const target = (dir? dir+'/' : '') + name.replace(/^\\+/,'');
-  const r=await (await fetch(`?api=rename&`+new URLSearchParams({path:rel}),{
-    method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:target})
-  })).json();
-  if(!r.ok){alert(r.error||'rename failed');return;} openDir(currentDir);
+  modalPrompt('Rename',oldName,async name=>{
+    if(!name || name===oldName) return;
+    const dir = rel.split('/').slice(0,-1).join('/');
+    const target = (dir? dir+'/' : '') + name.replace(/^\\+/,'');
+    const r=await (await fetch(`?api=rename&`+new URLSearchParams({path:rel}),{
+      method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:target})
+    })).json();
+    if(!r.ok){modalInfo('Error',r.error||'rename failed');return;}
+    openDir(currentDir);
+  });
 }
 
 async function deleteItem(ev,rel){
-  ev.stopPropagation();
-  if(!confirm('Delete this item?')) return;
-  const r=await (await fetch(`?api=delete&`+new URLSearchParams({path:rel}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
-  if(!r.ok){alert(r.error||'delete failed');return;}
-  if(currentFile===rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); currentFile=''; }
-  openDir(currentDir);
+  if(ev) ev.stopPropagation();
+  modalConfirm('Delete','Delete this item?',async ok=>{
+    if(!ok) return;
+    const r=await (await fetch(`?api=delete&`+new URLSearchParams({path:rel}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
+    if(!r.ok){modalInfo('Error',r.error||'delete failed');return;}
+    if(currentFile===rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); currentFile=''; }
+    openDir(currentDir);
+  });
 }
 
 function getExpanded(){
@@ -797,10 +940,10 @@ function restoreExpanded(set){
     }
   });
 }
-function addChild(id){ const title=prompt('Enter title for new node:'); if(title!==null) nodeOp('add_child',{title},id); }
-function addSibling(id){ const title=prompt('Enter title for new node:'); if(title!==null) nodeOp('add_sibling',{title},id); }
-function deleteNode(id){ if(confirm('Delete this node?')) nodeOp('delete',{},id); }
-function renameNode(id,oldTitle){ const newTitle=prompt('Rename node:',oldTitle); if(newTitle!==null) nodeOp('set_title',{title:newTitle},id); }
+function addChild(id){ modalPrompt('Enter title for new node','',t=>{ if(t!==null) nodeOp('add_child',{title:t},id); }); }
+function addSibling(id){ modalPrompt('Enter title for new node','',t=>{ if(t!==null) nodeOp('add_sibling',{title:t},id); }); }
+function deleteNode(id){ modalConfirm('Delete node','Delete this node?',ok=>{ if(ok) nodeOp('delete',{},id); }); }
+function renameNode(id,oldTitle){ modalPrompt('Rename node',oldTitle,t=>{ if(t!==null) nodeOp('set_title',{title:t},id); }); }
 function hideTree(){
   treeWrap.classList.add('hidden');
   fileList.classList.remove('hidden');
@@ -913,7 +1056,7 @@ async function nodeOp(op,extra={},id=selectedId){
   if(op==='add_child') expanded.add(id);
   const body=JSON.stringify({file:currentFile,op,id,...extra});
   const r=await (await fetch(`?api=opml_node`,{method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body})).json();
-  if(!r.ok){ alert(r.error||'node op failed'); return; }
+  if(!r.ok){ modalInfo('Error',r.error||'node op failed'); return; }
   selectedId=r.id ?? id;
   await loadTree(expanded);
   const sel=treeWrap.querySelector(`div[data-id="${selectedId}"]`);
