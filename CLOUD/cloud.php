@@ -712,42 +712,106 @@ function mdLinks(str){
   return str.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
 }
 function renderOpmlPreview(nodes){
-  function walk(arr){
+  const usedIds=new Set();
+  function slug(str){
+    const base=(str||'section').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')||'section';
+    let id=base, i=1; while(usedIds.has(id)) id=base+'-'+(i++); usedIds.add(id); return id;
+  }
+  function walk(arr,level){
     const ul=document.createElement('ul');
-    ul.className='list-disc ml-4';
-    arr.forEach(n=>{
+    ul.className='list-none space-y-2'+(level?' ml-4 pl-4 border-l border-gray-300':'');
+    arr.forEach((n,i)=>{
       const li=document.createElement('li');
+      li.className='mt-2';
+      if(level===0){ li.id=n._id || (n._id=slug(n.t)); }
       const title=document.createElement('div');
-      title.innerHTML='<strong>'+escapeHtml(n.t||'')+'</strong>';
-      li.appendChild(title);
-      if(n.note){
-        const note=document.createElement('div');
-        note.className='ml-2';
-        note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
-        li.appendChild(note);
-      }
-      if(n.links && n.links.length){
-        const linkDiv=document.createElement('div');
-        linkDiv.className='ml-2 flex flex-wrap gap-2 text-sm';
-        n.links.forEach(l=>{
-          const a=document.createElement('a');
-          a.textContent=l.title||l.target;
-          a.href=l.target;
-          a.dataset.link=JSON.stringify(l);
-          a.className='text-blue-600 underline';
-          linkDiv.appendChild(a);
-        });
-        li.appendChild(linkDiv);
-      }
+      title.className=(level===0?'font-bold text-lg ':'')+(level===1?'font-semibold ':'')+'flex items-center cursor-pointer';
+      const titleSpan=document.createElement('span');
+      titleSpan.innerHTML='<strong>'+escapeHtml(n.t||'')+'</strong>';
       if(n.children && n.children.length){
-        li.appendChild(walk(n.children));
+        const caret=document.createElement('span');
+        caret.textContent='▸';
+        caret.className='mr-1 select-none';
+        title.appendChild(caret);
+        title.appendChild(titleSpan);
+        const childUl=walk(n.children,level+1);
+        childUl.style.display='none';
+        const toggle=()=>{
+          const open=childUl.style.display==='none';
+          childUl.style.display=open?'block':'none';
+          caret.textContent=open?'▾':'▸';
+        };
+        title.addEventListener('click',toggle);
+        li.appendChild(title);
+        if(n.note){
+          const note=document.createElement('div');
+          note.className='ml-2 text-gray-600 text-sm';
+          note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
+          li.appendChild(note);
+        }
+        if(n.links && n.links.length){
+          const linkDiv=document.createElement('div');
+          linkDiv.className='ml-2 flex flex-wrap gap-2 text-sm';
+          n.links.forEach(l=>{
+            const a=document.createElement('a');
+            a.textContent=l.title||l.target;
+            a.href=l.target;
+            a.dataset.link=JSON.stringify(l);
+            a.className='text-blue-600 hover:underline';
+            linkDiv.appendChild(a);
+          });
+          li.appendChild(linkDiv);
+        }
+        li.appendChild(childUl);
+      }else{
+        title.appendChild(titleSpan);
+        li.appendChild(title);
+        if(n.note){
+          const note=document.createElement('div');
+          note.className='ml-2 text-gray-600 text-sm';
+          note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
+          li.appendChild(note);
+        }
+        if(n.links && n.links.length){
+          const linkDiv=document.createElement('div');
+          linkDiv.className='ml-2 flex flex-wrap gap-2 text-sm';
+          n.links.forEach(l=>{
+            const a=document.createElement('a');
+            a.textContent=l.title||l.target;
+            a.href=l.target;
+            a.dataset.link=JSON.stringify(l);
+            a.className='text-blue-600 hover:underline';
+            linkDiv.appendChild(a);
+          });
+          li.appendChild(linkDiv);
+        }
       }
       ul.appendChild(li);
     });
     return ul;
   }
   opmlPreview.innerHTML='';
-  opmlPreview.appendChild(walk(nodes));
+  const toc=document.createElement('div');
+  toc.className='mb-4';
+  const tocTitle=document.createElement('div');
+  tocTitle.className='font-bold mb-2';
+  tocTitle.textContent='Table of Contents';
+  const tocList=document.createElement('ul');
+  tocList.className='flex flex-wrap gap-4 text-sm';
+  nodes.forEach((n,i)=>{
+    if(!n._id) n._id=slug(n.t);
+    const a=document.createElement('a');
+    a.href='#'+n._id;
+    a.textContent=n.t||('Section '+(i+1));
+    a.className='text-blue-600 hover:underline';
+    const li=document.createElement('li');
+    li.appendChild(a);
+    tocList.appendChild(li);
+  });
+  toc.appendChild(tocTitle);
+  toc.appendChild(tocList);
+  opmlPreview.appendChild(toc);
+  opmlPreview.appendChild(walk(nodes,0));
   attachPreviewLinks();
 }
 function attachPreviewLinks(){
