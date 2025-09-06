@@ -278,12 +278,38 @@ if (isset($_GET['api'])) {
         $id = $path===''? (string)$i : $path.'/'.$i;
         $item = ['t'=>$t, 'id'=>$id, 'children'=>[]];
         if ($c->hasAttribute('_note')) $item['note']=$c->getAttribute('_note');
+        if ($c->hasAttribute('ark:id')) $item['arkid']=$c->getAttribute('ark:id');
+        if ($c->hasAttribute('ark:links')){
+          $ln=json_decode($c->getAttribute('ark:links'),true);
+          if(is_array($ln)) $item['links']=$ln;
+        }
         if ($c->hasChildNodes()) $item['children']=$walk($c,$id);
         $out[]=$item; $i++;
       } return $out;
     };
     $tree = $body? $walk($body) : [];
     j(['ok'=>true,'tree'=>$tree]);
+  }
+
+  if ($action==='get_all_nodes') {
+    $file = $_GET['file'] ?? '';
+    $fileAbs = safe_abs($file);
+    if ($fileAbs===false || !is_file($fileAbs)) bad('Bad file');
+    $ext = strtolower(pathinfo($fileAbs, PATHINFO_EXTENSION));
+    if (!in_array($ext, ['opml','xml'])) bad('Not OPML/XML',415);
+    $dom = opml_load_dom($fileAbs); $body = opml_body($dom);
+    $nodes = [];
+    $walk = function($node) use (&$walk,&$nodes){
+      foreach($node->childNodes as $c){
+        if($c->nodeType!==XML_ELEMENT_NODE || strtolower($c->nodeName)!=='outline') continue;
+        $id=$c->getAttribute('ark:id');
+        $text=$c->getAttribute('text') ?: $c->getAttribute('title') ?: '';
+        if($id!=='') $nodes[]=['id'=>$id,'text'=>$text];
+        if($c->hasChildNodes()) $walk($c);
+      }
+    };
+    $walk($body);
+    j(['ok'=>true,'nodes'=>$nodes]);
   }
 
   // [PATCH] update single outline note in OPML
@@ -374,6 +400,29 @@ if (isset($_GET['api'])) {
           $gp=$par->parentNode;
           if($par->nextSibling) $gp->insertBefore($cur,$par->nextSibling); else $gp->appendChild($cur);
         }
+        $sel = $cur;
+      } break;
+      case 'add_link': {
+        $cur = opml_node_by_id($dom,$id);
+        $link = $data['link'] ?? null;
+        if(!is_array($link)) bad('Missing link',400);
+        $linksAttr = $cur->getAttribute('ark:links');
+        $links = $linksAttr ? json_decode($linksAttr,true) : [];
+        if(!is_array($links)) $links=[];
+        $links[] = $link;
+        $cur->setAttribute('ark:links', json_encode($links, JSON_UNESCAPED_SLASHES));
+        $sel = $cur;
+      } break;
+      case 'delete_link': {
+        $cur = opml_node_by_id($dom,$id);
+        $target = (string)($data['target'] ?? '');
+        $linksAttr = $cur->getAttribute('ark:links');
+        $links = $linksAttr ? json_decode($linksAttr,true) : [];
+        if(is_array($links)){
+          $links = array_values(array_filter($links,function($l) use ($target){ return ($l['target'] ?? '') !== $target; }));
+        } else $links=[];
+        if(empty($links)) $cur->removeAttribute('ark:links');
+        else $cur->setAttribute('ark:links', json_encode($links, JSON_UNESCAPED_SLASHES));
         $sel = $cur;
       } break;
       default: bad('Unknown op',400);
@@ -536,6 +585,7 @@ if (isset($_GET['api'])) {
         </div>
         <div id="imgPreviewWrap" class="hidden flex-1 overflow-auto items-center justify-center min-h-[16rem]"><img id="imgPreview" class="max-w-full" /></div>
         <textarea id="ta" class="flex-1 w-full p-4 resize-none border-0 outline-none overflow-auto min-h-[16rem]" placeholder="Open a text file…" disabled></textarea>
+        <div id="linkList" class="hidden p-4 border-t space-y-1 text-sm"></div>
       </div>
     </section>
   </main>
@@ -566,6 +616,7 @@ const icons={
   info:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
   addSame:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>',
   addSub:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v7.5m0 0h7.5m-7.5 0v7.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 19.5L18 18l-1.5-1.5"/></svg>',
+  link:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 015.657 5.657l-3 3a4 4 0 01-5.657-5.657m-1.414-1.414a4 4 0 010-5.657l3-3a4 4 0 015.657 5.657"/></svg>',
   kebab:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zm0 6a.75.75 0 110-1.5.75.75 0 010 1.5zm0 6a.75.75 0 110-1.5.75.75 0 010 1.5z"/></svg>'
 };
 const listBtn=document.getElementById('structListBtn');
@@ -577,7 +628,7 @@ const delBtn=document.getElementById('delBtn');
 const downloadBtn=document.getElementById('downloadBtn');
 const infoBtn=document.getElementById('infoBtn');
 const ta=document.getElementById('ta');
-let selectedId=null;
+let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[];
 const settingsBtn=document.getElementById('settingsBtn');
 const settingsMenu=document.getElementById('settingsMenu');
 if(settingsBtn && settingsMenu){
@@ -998,6 +1049,7 @@ function showTree(){
   loadTree();
 }
 function renderTree(nodes){
+  nodeMap={}; arkMap={};
   const wrap=document.createElement('div');
   wrap.className='text-base leading-relaxed';
   function walk(arr,level,parent){
@@ -1017,6 +1069,8 @@ function renderTree(nodes){
       title.textContent=n.t;
       title.className='title flex-1';
       row.append(caret,title);
+      nodeMap[n.id]=n;
+      if(n.arkid) arkMap[n.arkid]=n.id;
       const actions=document.createElement('div');
       actions.className='ml-auto flex items-center gap-1';
       const addChildBtn=document.createElement('button');
@@ -1029,6 +1083,11 @@ function renderTree(nodes){
       addSiblingBtn.className='text-gray-500 hover:text-blue-600';
       addSiblingBtn.title='Add Same';
       addSiblingBtn.onclick=(e)=>{e.stopPropagation(); addSibling(n.id);};
+      const linkBtn=document.createElement('button');
+      linkBtn.innerHTML=icons.link;
+      linkBtn.className='text-gray-500 hover:text-blue-600';
+      linkBtn.title='Add Link';
+      linkBtn.onclick=(e)=>{e.stopPropagation(); openLinkModal(n.id);};
       const editBtn=document.createElement('button');
       editBtn.innerHTML=icons.edit;
       editBtn.className='text-gray-500 hover:text-blue-600';
@@ -1039,9 +1098,9 @@ function renderTree(nodes){
       delBtn.className='text-gray-500 hover:text-red-600';
       delBtn.title='Delete';
       delBtn.onclick=(e)=>{e.stopPropagation(); deleteNode(n.id);};
-      actions.append(addChildBtn,addSiblingBtn,editBtn,delBtn);
+      actions.append(addChildBtn,addSiblingBtn,linkBtn,editBtn,delBtn);
       row.append(actions);
-      row.addEventListener('click',()=>selectNode(n.id,n.t,n.note));
+      row.addEventListener('click',()=>selectNode(n.id,n.t,n.note,n.links||[]));
       if(has){
         row.addEventListener('dblclick',e=>{e.stopPropagation(); toggleChildren(n.id);});
       }
@@ -1081,15 +1140,17 @@ async function loadTree(expanded=null){
     if(expanded) restoreExpanded(expanded);
   }catch(e){ treeWrap.textContent='OPML load error.'; }
 }
-function selectNode(id,title,note){
+function selectNode(id,title,note,links=[]){
   selectedId=id;
   currentOutlinePath=id;
+  currentLinks=links||[];
   ta.value=note||''; ta.disabled=false;
   saveBtn.disabled=false; delBtn.disabled=true;
   const titleRow=document.getElementById('nodeTitleRow');
   const titleInput=document.getElementById('nodeTitle');
   titleInput.value=title||'';
   titleRow.classList.remove('hidden');
+  renderLinks();
 }
 async function nodeOp(op,extra={},id=selectedId){
   if(!currentFile || id===null) return;
@@ -1101,11 +1162,133 @@ async function nodeOp(op,extra={},id=selectedId){
   selectedId=r.id ?? id;
   await loadTree(expanded);
   const sel=treeWrap.querySelector(`div[data-id="${selectedId}"]`);
-  if(sel){
-    sel.scrollIntoView({block:'nearest'});
-    const t=sel.querySelector('.title')?.textContent;
-    selectNode(selectedId,t);
+  if(sel){ sel.scrollIntoView({block:'nearest'}); }
+  const n=nodeMap[selectedId];
+  if(n){ selectNode(selectedId,n.t,n.note,n.links||[]); }
+}
+
+function renderLinks(){
+  const wrap=document.getElementById('linkList');
+  if(!currentLinks || currentLinks.length===0){ wrap.classList.add('hidden'); wrap.innerHTML=''; return; }
+  wrap.innerHTML='';
+  currentLinks.forEach(l=>{
+    const row=document.createElement('div');
+    row.className='flex items-center justify-between';
+    const a=document.createElement('a');
+    a.href='#'; a.textContent=l.title||l.target; a.className='text-blue-600 hover:underline';
+    a.onclick=(e)=>{e.preventDefault(); followLink(l);};
+    const x=document.createElement('button');
+    x.textContent='✕'; x.className='text-red-600 hover:text-red-800';
+    x.onclick=(e)=>{e.preventDefault(); deleteLink(l);};
+    row.append(a,x);
+    wrap.appendChild(row);
+  });
+  wrap.classList.remove('hidden');
+}
+
+function gotoNodeByPath(path){
+  const parts=path.split('/');
+  let acc='';
+  for(const p of parts){
+    acc=acc?acc+'/'+p:p;
+    const row=treeWrap.querySelector(`div[data-id="${acc}"]`);
+    if(row){
+      const caret=row.querySelector('.caret');
+      if(caret && caret.textContent==='▸') toggleChildren(acc);
+    }
   }
+  const row=treeWrap.querySelector(`div[data-id="${path}"]`);
+  if(row){ row.click(); row.scrollIntoView({block:'nearest'}); }
+}
+
+function followLink(l){
+  switch(l.type){
+    case 'node':
+      const id=arkMap[l.target];
+      if(id!==undefined) gotoNodeByPath(id);
+      break;
+    case 'folder':
+      openDir(l.target);
+      break;
+    case 'file':
+      openFile(l.target);
+      break;
+    case 'url':
+      window.open(l.target,'_blank');
+      break;
+  }
+}
+
+async function deleteLink(l){
+  if(selectedId===null) return;
+  await nodeOp('delete_link',{target:l.target});
+}
+
+async function pickPath(cb){
+  let cur=''; let dest='';
+  const body=document.createElement('div'); body.className='h-64 overflow-auto border rounded';
+  const list=document.createElement('ul'); body.appendChild(list);
+  function highlight(li){ list.querySelectorAll('li').forEach(x=>x.classList.remove('bg-blue-100')); li.classList.add('bg-blue-100'); }
+  async function load(){
+    const r=await (await api('list',{path:cur})).json();
+    list.innerHTML='';
+    if(cur){ const up=document.createElement('li'); up.textContent='..'; up.className='px-2 py-1 cursor-pointer hover:bg-gray-100'; up.onclick=()=>{cur=cur.split('/').slice(0,-1).join('/'); dest=cur; load();}; list.appendChild(up); }
+    r.items.sort((a,b)=> a.type===b.type? a.name.localeCompare(b.name) : (a.type==='dir'?-1:1));
+    r.items.forEach(d=>{
+      const li=document.createElement('li'); li.textContent=d.name; li.className='px-2 py-1 cursor-pointer hover:bg-gray-100';
+      li.onclick=()=>{ dest=d.rel; highlight(li); };
+      if(d.type==='dir') li.ondblclick=()=>{ cur=d.rel; dest=cur; load(); };
+      list.appendChild(li);
+    });
+  }
+  await load();
+  modal({title:'Select path', body, onOk:()=>cb(dest)});
+}
+
+async function openLinkModal(id){
+  const wrap=document.createElement('div');
+  const typeSel=document.createElement('select');
+  typeSel.className='w-full border rounded mb-2 px-2 py-1';
+  ['node','folder','file','url'].forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t.charAt(0).toUpperCase()+t.slice(1); typeSel.appendChild(o); });
+  const targetDiv=document.createElement('div'); targetDiv.className='mb-2';
+  const titleInput=document.createElement('input'); titleInput.className='w-full border rounded px-2 py-1'; titleInput.placeholder='Title';
+  wrap.append(typeSel,targetDiv,titleInput);
+  let targetInput=null;
+  async function refresh(){
+    targetDiv.innerHTML='';
+    const type=typeSel.value;
+    if(type==='node'){
+      const sel=document.createElement('select'); sel.className='w-full border rounded px-2 py-1';
+      const r=await (await api('get_all_nodes',{file:currentFile})).json();
+      if(r.ok){ r.nodes.forEach(n=>{ const o=document.createElement('option'); o.value=n.id; o.textContent=n.text; sel.appendChild(o); }); }
+      sel.onchange=()=>{ titleInput.value=sel.options[sel.selectedIndex]?.textContent || ''; };
+      targetDiv.appendChild(sel); targetInput=sel;
+      if(sel.options.length) titleInput.value=sel.options[sel.selectedIndex].textContent;
+    }else if(type==='folder' || type==='file'){
+      const inp=document.createElement('input'); inp.className='w-full border rounded px-2 py-1 mb-2'; inp.readOnly=true;
+      const btn=document.createElement('button'); btn.className='px-3 py-1 border rounded bg-gray-100 hover:bg-gray-200'; btn.textContent='Choose...';
+      btn.onclick=()=>{ pickPath(p=>{ if(p){ inp.value=p; if(!titleInput.value) titleInput.value=p.split('/').pop(); }}); };
+      targetDiv.append(inp,btn); targetInput=inp;
+    }else if(type==='url'){
+      const inp=document.createElement('input'); inp.className='w-full border rounded px-2 py-1'; inp.placeholder='https://';
+      inp.addEventListener('input',()=>{ if(!titleInput.value) titleInput.value=inp.value; });
+      targetDiv.appendChild(inp); targetInput=inp;
+    }
+  }
+  typeSel.onchange=refresh; await refresh();
+  modal({title:'Add Link', body:wrap, okText:'Add Link', onOk:async()=>{
+    const type=typeSel.value;
+    const target=targetInput ? targetInput.value.trim() : '';
+    if(!target){ modalInfo('Error','Target required'); return; }
+    let title=titleInput.value.trim();
+    if(!title){
+      if(type==='node' && targetInput.options) title=targetInput.options[targetInput.selectedIndex]?.textContent||'';
+      else if(type==='url') title=target;
+      else title=target.split('/').pop();
+    }
+    const link={title,type,target,direction:'one-way'};
+    await nodeOp('add_link',{link},id);
+  }});
 }
 document.getElementById('fileRenameBtn').addEventListener('click', renameCurrent);
 document.getElementById('fileTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); renameCurrent(); }});
