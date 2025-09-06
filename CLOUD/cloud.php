@@ -304,7 +304,7 @@ if (isset($_GET['api'])) {
         if($c->nodeType!==XML_ELEMENT_NODE || strtolower($c->nodeName)!=='outline') continue;
         $id=$c->getAttribute('ark:id');
         $text=$c->getAttribute('text') ?: $c->getAttribute('title') ?: '';
-        if($id!=='') $nodes[]=['id'=>$id,'text'=>$text];
+        if($id!=='') $nodes[]=['arkid'=>$id,'title'=>$text];
         if($c->hasChildNodes()) $walk($c);
       }
     };
@@ -759,7 +759,7 @@ function crumb(rel){
   const c=document.getElementById('crumb'); c.innerHTML='';
   const parts = rel? rel.split('/') : [];
   let acc='';
-  const cls='px-2 py-1 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200';
+  const cls='px-2 py-1 bg-gray-100 rounded-md hover:bg-gray-200';
   parts.forEach((p,i)=>{
     acc+=(i?'/':'')+p;
     const a=document.createElement('a'); a.textContent=p; a.href='#'; a.className=cls;
@@ -1173,14 +1173,21 @@ function renderLinks(){
   wrap.innerHTML='';
   currentLinks.forEach(l=>{
     const row=document.createElement('div');
-    row.className='flex items-center justify-between';
+    row.className='flex items-center justify-between p-1 rounded hover:bg-gray-100';
     const a=document.createElement('a');
-    a.href='#'; a.textContent=l.title||l.target; a.className='text-blue-600 hover:underline';
+    a.href='#'; a.textContent=l.title||l.target; a.className='flex-1 text-blue-600 hover:underline';
     a.onclick=(e)=>{e.preventDefault(); followLink(l);};
-    const x=document.createElement('button');
-    x.textContent='✕'; x.className='text-red-600 hover:text-red-800';
-    x.onclick=(e)=>{e.preventDefault(); deleteLink(l);};
-    row.append(a,x);
+    const btns=document.createElement('div'); btns.className='flex items-center gap-1';
+    const edit=document.createElement('button');
+    edit.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6-6 3 3-6 6H9v-3z"/></svg>';
+    edit.className='p-1 text-gray-600 hover:text-gray-800';
+    edit.onclick=(e)=>{e.preventDefault(); openLinkModal(selectedId,l);};
+    const del=document.createElement('button');
+    del.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7V4h6v3m2 0h2v2H5V7h2m1 0l1 10a2 2 0 002 2h6a2 2 0 002-2l1-10"/></svg>';
+    del.className='p-1 text-red-600 hover:text-red-800';
+    del.onclick=(e)=>{e.preventDefault(); deleteLink(l);};
+    btns.append(edit,del);
+    row.append(a,btns);
     wrap.appendChild(row);
   });
   wrap.classList.remove('hidden');
@@ -1203,19 +1210,21 @@ function gotoNodeByPath(path){
 
 function followLink(l){
   switch(l.type){
-    case 'node':
-      const id=arkMap[l.target];
-      if(id!==undefined) gotoNodeByPath(id);
-      break;
+    case 'node':{
+      const path=arkMap[l.target];
+      if(path!==undefined) gotoNodeByPath(path);
+      break; }
     case 'folder':
       openDir(l.target);
       break;
     case 'file':
       openFile(l.target);
       break;
-    case 'url':
-      window.open(l.target,'_blank');
-      break;
+    case 'url':{
+      let url=l.target||'';
+      if(!/^https?:\/\//i.test(url)) url='https://'+url;
+      window.open(url,'_blank');
+      break; }
   }
 }
 
@@ -1245,7 +1254,7 @@ async function pickPath(cb){
   modal({title:'Select path', body, onOk:()=>cb(dest)});
 }
 
-async function openLinkModal(id){
+async function openLinkModal(id, existing=null){
   const wrap=document.createElement('div');
   const typeSel=document.createElement('select');
   typeSel.className='w-full border rounded mb-2 px-2 py-1';
@@ -1253,30 +1262,35 @@ async function openLinkModal(id){
   const targetDiv=document.createElement('div'); targetDiv.className='mb-2';
   const titleInput=document.createElement('input'); titleInput.className='w-full border rounded px-2 py-1'; titleInput.placeholder='Title';
   wrap.append(typeSel,targetDiv,titleInput);
-  let targetInput=null;
+  let targetInput=null; const editing=!!existing;
+  if(editing){ typeSel.value=existing.type; }
   async function refresh(){
     targetDiv.innerHTML='';
     const type=typeSel.value;
     if(type==='node'){
       const sel=document.createElement('select'); sel.className='w-full border rounded px-2 py-1';
       const r=await (await api('get_all_nodes',{file:currentFile})).json();
-      if(r.ok){ r.nodes.forEach(n=>{ const o=document.createElement('option'); o.value=n.id; o.textContent=n.text; sel.appendChild(o); }); }
+      if(r.ok){ r.nodes.forEach(n=>{ const o=document.createElement('option'); o.value=n.arkid; o.textContent=n.title; sel.appendChild(o); }); }
       sel.onchange=()=>{ titleInput.value=sel.options[sel.selectedIndex]?.textContent || ''; };
       targetDiv.appendChild(sel); targetInput=sel;
-      if(sel.options.length) titleInput.value=sel.options[sel.selectedIndex].textContent;
+      if(editing){ sel.value=existing.target; }
+      if(sel.options.length && !titleInput.value) titleInput.value=sel.options[sel.selectedIndex].textContent;
     }else if(type==='folder' || type==='file'){
       const inp=document.createElement('input'); inp.className='w-full border rounded px-2 py-1 mb-2'; inp.readOnly=true;
       const btn=document.createElement('button'); btn.className='px-3 py-1 border rounded bg-gray-100 hover:bg-gray-200'; btn.textContent='Choose...';
       btn.onclick=()=>{ pickPath(p=>{ if(p){ inp.value=p; if(!titleInput.value) titleInput.value=p.split('/').pop(); }}); };
       targetDiv.append(inp,btn); targetInput=inp;
+      if(editing){ inp.value=existing.target; }
     }else if(type==='url'){
       const inp=document.createElement('input'); inp.className='w-full border rounded px-2 py-1'; inp.placeholder='https://';
       inp.addEventListener('input',()=>{ if(!titleInput.value) titleInput.value=inp.value; });
       targetDiv.appendChild(inp); targetInput=inp;
+      if(editing){ inp.value=existing.target; }
     }
   }
   typeSel.onchange=refresh; await refresh();
-  modal({title:'Add Link', body:wrap, okText:'Add Link', onOk:async()=>{
+  if(editing && existing.title) titleInput.value=existing.title;
+  modal({title: editing?'Edit Link':'Add Link', body:wrap, okText:editing?'Save Link':'Add Link', onOk:async()=>{
     const type=typeSel.value;
     const target=targetInput ? targetInput.value.trim() : '';
     if(!target){ modalInfo('Error','Target required'); return; }
@@ -1286,7 +1300,8 @@ async function openLinkModal(id){
       else if(type==='url') title=target;
       else title=target.split('/').pop();
     }
-    const link={title,type,target,direction:'one-way'};
+    const link={title,type,target,direction: existing?.direction || 'one-way'};
+    if(editing) await nodeOp('delete_link',{target:existing.target},id);
     await nodeOp('add_link',{link},id);
   }});
 }
