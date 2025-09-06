@@ -271,7 +271,18 @@ if (isset($_GET['api'])) {
     $dom=new DOMDocument('1.0','UTF-8'); $dom->preserveWhiteSpace=false;
     if (!$dom->loadXML($xml, LIBXML_NONET)) bad('Invalid OPML/XML',422);
     $body = $dom->getElementsByTagName('body')->item(0);
-    $walk = function($node,$path='') use (&$walk){
+    $idMap=[];
+    $mapWalk=function($node) use (&$mapWalk,&$idMap){
+      foreach($node->childNodes as $c){
+        if ($c->nodeType!==XML_ELEMENT_NODE || strtolower($c->nodeName)!=='outline') continue;
+        $ark=$c->getAttribute('ark:id');
+        $txt=$c->getAttribute('title') ?: $c->getAttribute('text') ?: '';
+        if($ark!=='') $idMap[$ark]=$txt;
+        if($c->hasChildNodes()) $mapWalk($c);
+      }
+    };
+    if($body) $mapWalk($body);
+    $walk = function($node,$path='') use (&$walk,&$idMap){
       $out=[]; $i=0; foreach($node->childNodes as $c){
         if ($c->nodeType!==XML_ELEMENT_NODE || strtolower($c->nodeName)!=='outline') continue;
         $t = $c->getAttribute('title') ?: $c->getAttribute('text') ?: '•';
@@ -281,7 +292,19 @@ if (isset($_GET['api'])) {
         if ($c->hasAttribute('ark:id')) $item['arkid']=$c->getAttribute('ark:id');
         if ($c->hasAttribute('ark:links')){
           $ln=json_decode($c->getAttribute('ark:links'),true);
-          if(is_array($ln)) $item['links']=$ln;
+          if(is_array($ln)){
+            $links=[];
+            foreach($ln as $l){
+              if(!is_array($l)) continue;
+              if(!isset($l['title']) && isset($l['to'])){
+                $l['target']=$l['to'];
+                $l['title']=$idMap[$l['to']] ?? '';
+                unset($l['to']);
+              }
+              $links[]=$l;
+            }
+            if($links) $item['links']=$links;
+          }
         }
         if ($c->hasChildNodes()) $item['children']=$walk($c,$id);
         $out[]=$item; $i++;
@@ -585,7 +608,7 @@ if (isset($_GET['api'])) {
         </div>
         <div id="imgPreviewWrap" class="hidden flex-1 overflow-auto items-center justify-center min-h-[16rem]"><img id="imgPreview" class="max-w-full" /></div>
         <textarea id="ta" class="flex-1 w-full p-4 resize-none border-0 outline-none overflow-auto min-h-[16rem]" placeholder="Open a text file…" disabled></textarea>
-        <div id="linkList" class="hidden p-4 border-t space-y-1 text-sm"></div>
+        <div id="linkList" class="hidden border-t p-2 space-y-1 text-sm"></div>
       </div>
     </section>
   </main>
@@ -1083,11 +1106,14 @@ function renderTree(nodes){
       addSiblingBtn.className='text-gray-500 hover:text-blue-600';
       addSiblingBtn.title='Add Same';
       addSiblingBtn.onclick=(e)=>{e.stopPropagation(); addSibling(n.id);};
-      const linkBtn=document.createElement('button');
-      linkBtn.innerHTML=icons.link;
-      linkBtn.className='text-gray-500 hover:text-blue-600';
-      linkBtn.title='Add Link';
-      linkBtn.onclick=(e)=>{e.stopPropagation(); openLinkModal(n.id);};
+      let linkBtn=null;
+      if(n.links && n.links.length){
+        linkBtn=document.createElement('button');
+        linkBtn.innerHTML=icons.link;
+        linkBtn.className='text-gray-500 hover:text-blue-600';
+        linkBtn.title='Links';
+        linkBtn.onclick=(e)=>{e.stopPropagation(); openLinkModal(n.id);};
+      }
       const editBtn=document.createElement('button');
       editBtn.innerHTML=icons.edit;
       editBtn.className='text-gray-500 hover:text-blue-600';
@@ -1098,7 +1124,9 @@ function renderTree(nodes){
       delBtn.className='text-gray-500 hover:text-red-600';
       delBtn.title='Delete';
       delBtn.onclick=(e)=>{e.stopPropagation(); deleteNode(n.id);};
-      actions.append(addChildBtn,addSiblingBtn,linkBtn,editBtn,delBtn);
+      actions.append(addChildBtn,addSiblingBtn);
+      if(linkBtn) actions.append(linkBtn);
+      actions.append(editBtn,delBtn);
       row.append(actions);
       row.addEventListener('click',()=>selectNode(n.id,n.t,n.note,n.links||[]));
       if(has){
@@ -1173,18 +1201,18 @@ function renderLinks(){
   wrap.innerHTML='';
   currentLinks.forEach(l=>{
     const row=document.createElement('div');
-    row.className='flex items-center justify-between p-1 rounded hover:bg-gray-100';
+    row.className='flex items-center justify-between px-2 py-2 hover:bg-gray-100 rounded';
     const a=document.createElement('a');
-    a.href='#'; a.textContent=l.title||l.target; a.className='flex-1 text-blue-600 hover:underline';
+    a.href='#'; a.textContent=l.title||l.target; a.className='text-blue-600 hover:underline flex-1';
     a.onclick=(e)=>{e.preventDefault(); followLink(l);};
     const btns=document.createElement('div'); btns.className='flex items-center gap-1';
     const edit=document.createElement('button');
-    edit.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6-6 3 3-6 6H9v-3z"/></svg>';
-    edit.className='p-1 text-gray-600 hover:text-gray-800';
+    edit.innerHTML=icons.edit;
+    edit.className='text-gray-500 hover:text-blue-600';
     edit.onclick=(e)=>{e.preventDefault(); openLinkModal(selectedId,l);};
     const del=document.createElement('button');
-    del.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7V4h6v3m2 0h2v2H5V7h2m1 0l1 10a2 2 0 002 2h6a2 2 0 002-2l1-10"/></svg>';
-    del.className='p-1 text-red-600 hover:text-red-800';
+    del.innerHTML=icons.trash;
+    del.className='text-gray-500 hover:text-red-600';
     del.onclick=(e)=>{e.preventDefault(); deleteLink(l);};
     btns.append(edit,del);
     row.append(a,btns);
