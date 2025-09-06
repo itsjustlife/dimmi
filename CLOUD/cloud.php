@@ -608,7 +608,7 @@ if (isset($_GET['api'])) {
         </div>
         <div id="imgPreviewWrap" class="hidden flex-1 overflow-auto items-center justify-center min-h-[16rem]"><img id="imgPreview" class="max-w-full" /></div>
         <textarea id="ta" class="flex-1 w-full p-4 resize-none border-0 outline-none overflow-auto min-h-[16rem]" placeholder="Open a text file…" disabled></textarea>
-        <div id="linkList" class="hidden border-t p-2 space-y-1 text-sm"></div>
+        <div id="linkList" class="hidden border-t p-2 flex flex-wrap text-sm"></div>
       </div>
     </section>
   </main>
@@ -617,9 +617,12 @@ if (isset($_GET['api'])) {
     <div class="bg-white rounded p-6 w-80 max-w-full">
       <h3 id="modalTitle" class="font-semibold mb-2"></h3>
       <div id="modalBody" class="mb-4"></div>
-      <div class="flex justify-end gap-2">
-        <button id="modalCancel" class="px-3 py-1 border rounded">Cancel</button>
-        <button id="modalOk" class="px-3 py-1 bg-blue-600 text-white rounded">OK</button>
+      <div class="flex justify-between items-center">
+        <button id="modalExtra" class="hidden px-3 py-1 border rounded text-red-600 border-red-600 hover:bg-red-50"></button>
+        <div class="flex gap-2">
+          <button id="modalCancel" class="px-3 py-1 border rounded">Cancel</button>
+          <button id="modalOk" class="px-3 py-1 bg-blue-600 text-white rounded">OK</button>
+        </div>
       </div>
     </div>
   </div>
@@ -684,12 +687,21 @@ function toggleSection(id,btn){
 
 function modal(opts){
   const overlay=document.getElementById('modalOverlay');
-  const {title='', body='', onOk=()=>{}, onCancel=()=>{}, okText='OK', cancelText='Cancel', showCancel=true} = opts;
+  const {title='', body='', onOk=()=>{}, onCancel=()=>{}, okText='OK', cancelText='Cancel', showCancel=true, extra=null} = opts;
   document.getElementById('modalTitle').textContent=title;
   const bodyEl=document.getElementById('modalBody');
   if(typeof body==='string') bodyEl.innerHTML=body; else { bodyEl.innerHTML=''; bodyEl.appendChild(body); }
   const ok=document.getElementById('modalOk'); ok.textContent=okText;
   const cancel=document.getElementById('modalCancel'); cancel.textContent=cancelText; cancel.style.display=showCancel?'':'none';
+  const extraBtn=document.getElementById('modalExtra');
+  if(extra){
+    extraBtn.textContent=extra.text || '';
+    extraBtn.onclick=()=>{overlay.classList.add('hidden'); extra.onClick();};
+    extraBtn.classList.remove('hidden');
+  }else{
+    extraBtn.classList.add('hidden');
+    extraBtn.onclick=null;
+  }
   ok.onclick=()=>{overlay.classList.add('hidden'); onOk();};
   cancel.onclick=()=>{overlay.classList.add('hidden'); onCancel();};
   overlay.classList.remove('hidden');
@@ -1106,14 +1118,11 @@ function renderTree(nodes){
       addSiblingBtn.className='text-gray-500 hover:text-blue-600';
       addSiblingBtn.title='Add Same';
       addSiblingBtn.onclick=(e)=>{e.stopPropagation(); addSibling(n.id);};
-      let linkBtn=null;
-      if(n.links && n.links.length){
-        linkBtn=document.createElement('button');
-        linkBtn.innerHTML=icons.link;
-        linkBtn.className='text-gray-500 hover:text-blue-600';
-        linkBtn.title='Links';
-        linkBtn.onclick=(e)=>{e.stopPropagation(); openLinkModal(n.id);};
-      }
+      const addLinkBtn=document.createElement('button');
+      addLinkBtn.innerHTML=icons.link;
+      addLinkBtn.className='text-gray-500 hover:text-blue-600';
+      addLinkBtn.title='Add Link';
+      addLinkBtn.onclick=(e)=>{e.stopPropagation(); openLinkModal(n.id);};
       const editBtn=document.createElement('button');
       editBtn.innerHTML=icons.edit;
       editBtn.className='text-gray-500 hover:text-blue-600';
@@ -1124,10 +1133,27 @@ function renderTree(nodes){
       delBtn.className='text-gray-500 hover:text-red-600';
       delBtn.title='Delete';
       delBtn.onclick=(e)=>{e.stopPropagation(); deleteNode(n.id);};
-      actions.append(addChildBtn,addSiblingBtn);
-      if(linkBtn) actions.append(linkBtn);
-      actions.append(editBtn,delBtn);
+      actions.append(addChildBtn,addSiblingBtn,addLinkBtn,editBtn,delBtn);
       row.append(actions);
+      if(n.links && n.links.length){
+        const direct=document.createElement('div');
+        direct.className='flex items-center gap-1 ml-2';
+        n.links.forEach((l,i)=>{
+          const btn=document.createElement('button');
+          btn.innerHTML=icons.link;
+          if(i>0){
+            const sup=document.createElement('sup');
+            sup.className='text-xs';
+            sup.textContent=i+1;
+            btn.appendChild(sup);
+          }
+          btn.className='text-gray-500 hover:text-blue-600';
+          btn.title=l.title || l.target;
+          btn.onclick=(e)=>{e.stopPropagation(); followLink(l);};
+          direct.appendChild(btn);
+        });
+        row.append(direct);
+      }
       row.addEventListener('click',()=>selectNode(n.id,n.t,n.note,n.links||[]));
       if(has){
         row.addEventListener('dblclick',e=>{e.stopPropagation(); toggleChildren(n.id);});
@@ -1200,23 +1226,18 @@ function renderLinks(){
   if(!currentLinks || currentLinks.length===0){ wrap.classList.add('hidden'); wrap.innerHTML=''; return; }
   wrap.innerHTML='';
   currentLinks.forEach(l=>{
-    const row=document.createElement('div');
-    row.className='flex items-center justify-between px-2 py-2 hover:bg-gray-100 rounded';
-    const a=document.createElement('a');
-    a.href='#'; a.textContent=l.title||l.target; a.className='text-blue-600 hover:underline flex-1';
-    a.onclick=(e)=>{e.preventDefault(); followLink(l);};
-    const btns=document.createElement('div'); btns.className='flex items-center gap-1';
+    const item=document.createElement('div');
+    item.className='flex items-center bg-gray-100 border rounded-md px-2 py-1 mr-2 mb-2 cursor-pointer';
+    item.onclick=()=>followLink(l);
+    const title=document.createElement('span');
+    title.textContent=l.title||l.target;
+    item.appendChild(title);
     const edit=document.createElement('button');
     edit.innerHTML=icons.edit;
-    edit.className='text-gray-500 hover:text-blue-600';
-    edit.onclick=(e)=>{e.preventDefault(); openLinkModal(selectedId,l);};
-    const del=document.createElement('button');
-    del.innerHTML=icons.trash;
-    del.className='text-gray-500 hover:text-red-600';
-    del.onclick=(e)=>{e.preventDefault(); deleteLink(l);};
-    btns.append(edit,del);
-    row.append(a,btns);
-    wrap.appendChild(row);
+    edit.className='ml-2 text-gray-500 hover:text-blue-600';
+    edit.onclick=(e)=>{e.stopPropagation(); openLinkModal(selectedId,l);};
+    item.appendChild(edit);
+    wrap.appendChild(item);
   });
   wrap.classList.remove('hidden');
 }
@@ -1254,11 +1275,6 @@ function followLink(l){
       window.open(url,'_blank');
       break; }
   }
-}
-
-async function deleteLink(l){
-  if(selectedId===null) return;
-  await nodeOp('delete_link',{target:l.target});
 }
 
 async function pickPath(cb){
@@ -1318,7 +1334,7 @@ async function openLinkModal(id, existing=null){
   }
   typeSel.onchange=refresh; await refresh();
   if(editing && existing.title) titleInput.value=existing.title;
-  modal({title: editing?'Edit Link':'Add Link', body:wrap, okText:editing?'Save Link':'Add Link', onOk:async()=>{
+  modal({title: editing?'Edit Link':'Add Link', body:wrap, okText:editing?'Save Link':'Add Link', extra: editing?{text:'Delete Link', onClick:async()=>{ await nodeOp('delete_link',{target:existing.target},id); }}:null, onOk:async()=>{
     const type=typeSel.value;
     const target=targetInput ? targetInput.value.trim() : '';
     if(!target){ modalInfo('Error','Target required'); return; }
