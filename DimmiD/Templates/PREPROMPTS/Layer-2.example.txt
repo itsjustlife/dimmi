@@ -1,3 +1,11 @@
 # PREPROMPT L2 (Arkhive orientation)
 - Favor structures exportable as JSON/OPML/HTML.
 - End substantial replies with a 2-line recap.
+
+!!TODO :: todo?
+
+!!LINK :: link
+
+!!LINK :: ads
+
+!!LINK :: asfs

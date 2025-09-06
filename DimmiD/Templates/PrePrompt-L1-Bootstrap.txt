@@ -6,3 +6,5 @@
 2. Follow the read → analyze → act loop.
 3. After this block, expect a Layer-2 preprompt.
 [END]
+
+!!ASK :: ask
