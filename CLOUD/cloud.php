@@ -405,9 +405,9 @@ if (isset($_GET['api'])) {
       </div>
     </div>
   </header>
-  <main class="flex-1 overflow-auto md:overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:h-[calc(100vh-64px)]">
+  <main class="flex-1 overflow-auto md:overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:h-[calc(100vh-64px)] min-h-0">
     <!-- FIND -->
-    <section class="bg-white rounded shadow flex flex-col overflow-hidden">
+    <section class="bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
       <div class="flex items-center gap-2 p-4 border-b">
         <h2 class="font-semibold flex-1">FIND</h2>
         <button onclick="mkdirPrompt()" class="p-2 text-gray-600 hover:text-gray-800" title="New Folder">
@@ -421,19 +421,19 @@ if (isset($_GET['api'])) {
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
         </button>
       </div>
-      <div id="findBody" class="flex-1 flex flex-col">
+      <div id="findBody" class="flex-1 flex flex-col overflow-hidden min-h-0">
         <div class="flex gap-2 p-4">
           <input id="pathInput" class="flex-1 border rounded px-2 py-1" placeholder="jump to path (rel)">
           <button onclick="jump()" class="p-2 text-blue-600 hover:text-blue-800" title="Open">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12l-7.5 7.5M21 12H3"/></svg>
           </button>
         </div>
-        <ul id="folderList" class="flex-1 overflow-auto divide-y text-sm"></ul>
+        <ul id="folderList" class="flex-1 overflow-auto divide-y text-sm min-h-0"></ul>
       </div>
     </section>
 
     <!-- STRUCTURE -->
-    <section class="bg-white rounded shadow flex flex-col">
+    <section class="bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
       <div class="flex items-center gap-2 p-4 border-b">
         <h2 class="font-semibold flex-1">STRUCTURE</h2>
         <button onclick="newFilePrompt()" class="p-2 text-gray-600 hover:text-gray-800" title="New File">
@@ -451,24 +451,24 @@ if (isset($_GET['api'])) {
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
         </button>
       </div>
-      <div id="structBody" class="p-4 flex-1 overflow-y-auto flex flex-col">
-        <ul id="fileList" class="divide-y text-sm"></ul>
-        <div id="opmlTreeWrap" class="hidden"></div>
+      <div id="structBody" class="p-4 flex-1 flex flex-col overflow-hidden min-h-0">
+        <ul id="fileList" class="flex-1 overflow-auto divide-y text-sm min-h-0"></ul>
+        <div id="opmlTreeWrap" class="hidden flex-1 overflow-auto min-h-0"></div>
       </div>
     </section>
 
     <!-- CONTENT -->
-    <section class="bg-white rounded shadow flex flex-col">
-      <div class="flex items-center gap-2 p-4 border-b">
+    <section class="bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
+      <div class="flex flex-wrap items-center gap-2 p-4 border-b">
         <h2 class="font-semibold">CONTENT</h2>
         <input id="fileTitle" class="hidden text-sm bg-gray-100 rounded px-2 py-1" />
         <button id="fileRenameBtn" class="hidden p-2 text-green-600 hover:text-green-800" title="Rename">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
         </button>
-        <button class="p-2 text-gray-600 hover:text-gray-800" title="Info">
+        <button onclick="showCurrentInfo()" id="infoBtn" disabled class="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Info">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </button>
-        <div class="ml-auto flex gap-2">
+        <div class="ml-auto flex gap-2 flex-wrap">
           <button onclick="downloadFile()" id="downloadBtn" disabled class="p-2 rounded text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Download">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 9l4.5 4.5 4.5-4.5M12 13.5V3"/></svg>
           </button>
@@ -483,14 +483,15 @@ if (isset($_GET['api'])) {
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
         </button>
       </div>
-      <div id="contentBody" class="flex-1 flex flex-col">
+      <div id="contentBody" class="flex-1 flex flex-col overflow-hidden min-h-0">
         <div id="nodeTitleRow" class="hidden flex items-center gap-2 p-4 border-b">
           <input id="nodeTitle" type="text" class="flex-1 border rounded px-2 py-1" placeholder="Title">
           <button id="titleSaveBtn" class="p-2 text-green-600 hover:text-green-800" title="Save Title">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
           </button>
         </div>
-        <textarea id="ta" class="flex-1 w-full p-4 resize-none border-0 outline-none" placeholder="Open a text file…" disabled></textarea>
+        <div id="imgPreviewWrap" class="hidden flex-1 overflow-auto items-center justify-center min-h-[16rem]"><img id="imgPreview" class="max-w-full" /></div>
+        <textarea id="ta" class="flex-1 w-full p-4 resize-none border-0 outline-none overflow-auto min-h-[16rem]" placeholder="Open a text file…" disabled></textarea>
       </div>
     </section>
   </main>
@@ -515,7 +516,7 @@ if (isset($_GET['api'])) {
   <script>
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
-let currentDir='', currentFile='', currentOutlinePath='';
+let currentDir='', currentFile='', currentOutlinePath='', currentFileInfo=null;
 const newExts=['.txt','.html','.md','.opml'];
 let newExtIndex=0;
 const icons={
@@ -524,6 +525,7 @@ const icons={
   edit:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>',
   trash:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>',
   download:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 9l4.5 4.5 4.5-4.5M12 13.5V3"/></svg>',
+  info:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
   addSame:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>',
   addSub:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v7.5m0 0h7.5m-7.5 0v7.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 19.5L18 18l-1.5-1.5"/></svg>'
 };
@@ -534,6 +536,8 @@ const fileList=document.getElementById('fileList');
 const saveBtn=document.getElementById('saveBtn');
 const delBtn=document.getElementById('delBtn');
 const downloadBtn=document.getElementById('downloadBtn');
+const infoBtn=document.getElementById('infoBtn');
+const ta=document.getElementById('ta');
 let selectedId=null;
 const settingsBtn=document.getElementById('settingsBtn');
 const settingsMenu=document.getElementById('settingsMenu');
@@ -572,11 +576,12 @@ async function init(){
 function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
   const ico=isDir?icons.folder:icons.file;
-  const sizeHtml=isDir?'':`<span class="text-xs text-gray-500">${fmtSize(size)}</span>`;
-  const dlHtml=isDir?`<button class="text-gray-500 hover:text-green-600" onclick="downloadFolder(event,'${rel}')" title="Download">${icons.download}</button>`:'';
+  const nameEsc=name.replace(/'/g,"\\'");
+  const infoHtml=isDir?'':`<button class="text-gray-500 hover:text-gray-800" onclick="event.stopPropagation(); showInfo('${nameEsc}',${size},${mtime});" title="Info">${icons.info}</button>`;
+  const dlHtml=isDir?`<button class="text-gray-500 hover:text-green-600" onclick="downloadFolder(event,'${rel}')" title="Download">${icons.download}</button>`:`<button class="text-gray-500 hover:text-green-600" onclick="downloadItem(event,'${rel}','${nameEsc}')" title="Download">${icons.download}</button>`;
   li.innerHTML=`<div class="flex items-center justify-between px-2 py-2 hover:bg-gray-100 rounded">
     <div class="flex items-center gap-2">${ico}<span>${name}</span></div>
-    <div class="flex items-center gap-2">${sizeHtml}${dlHtml}<button class="text-gray-500 hover:text-blue-600" onclick="renameItem(event,'${rel}')" title="Rename">${icons.edit}</button><button class="text-gray-500 hover:text-red-600" onclick="deleteItem(event,'${rel}')" title="Delete">${icons.trash}</button></div>
+    <div class="flex items-center gap-2">${infoHtml}${dlHtml}<button class="text-gray-500 hover:text-blue-600" onclick="renameItem(event,'${rel}')" title="Rename">${icons.edit}</button><button class="text-gray-500 hover:text-red-600" onclick="deleteItem(event,'${rel}')" title="Delete">${icons.trash}</button></div>
   </div>`;
   li.onclick=()=> isDir? openDir(rel) : openFile(rel,name,size,mtime);
   return li;
@@ -585,7 +590,7 @@ async function openDir(rel){
   currentDir = rel || ''; crumb(currentDir);
   document.getElementById('fileTitle').classList.add('hidden');
   document.getElementById('fileRenameBtn').classList.add('hidden');
-  btns(false);
+  btns(false); infoBtn.disabled=true; currentFileInfo=null; document.getElementById('imgPreviewWrap').classList.add('hidden'); ta.classList.remove('hidden');
   const FL=document.getElementById('folderList'); FL.innerHTML='';
   const r=await (await api('list',{path:currentDir})).json(); if(!r.ok){alert(r.error||'list failed');return;}
   if(currentDir){
@@ -603,18 +608,36 @@ async function openDir(rel){
 }
 function jump(){ const p=document.getElementById('pathInput').value.trim(); openDir(p); }
 function fmtSize(b){ if(b<1024) return b+' B'; let u=['KB','MB','GB']; let i=-1; do{b/=1024;i++;}while(b>=1024&&i<2); return b.toFixed(1)+' '+u[i]; }
+function showInfo(name,size,mtime){ alert(`Name: ${name}\nSize: ${fmtSize(size)}\nModified: ${new Date(mtime*1000).toLocaleString()}`); }
+function showCurrentInfo(){ if(currentFileInfo) showInfo(currentFileInfo.name,currentFileInfo.size,currentFileInfo.mtime); }
 async function openFile(rel,name,size,mtime){
-  currentFile=rel; currentOutlinePath=''; selectedId=null;
+  currentFile=rel; currentOutlinePath=''; selectedId=null; currentFileInfo={name,size,mtime};
   document.getElementById('nodeTitleRow').classList.add('hidden');
   const titleInput=document.getElementById('fileTitle');
   const renameBtn=document.getElementById('fileRenameBtn');
+  const imgWrap=document.getElementById('imgPreviewWrap');
+  const img=document.getElementById('imgPreview');
   titleInput.classList.remove('hidden');
   renameBtn.classList.remove('hidden');
   titleInput.value=name;
-  const r=await (await api('read',{path:rel})).json(); const ta=document.getElementById('ta');
-  if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); titleInput.classList.add('hidden'); renameBtn.classList.add('hidden'); return; }
-  ta.value=r.content; ta.disabled=false; btns(true);
+  infoBtn.disabled=false;
   const ext=name.toLowerCase().split('.').pop();
+  const isImg=['png','jpg','jpeg','gif','webp','svg'].includes(ext);
+  if(isImg){
+    ta.classList.add('hidden');
+    imgWrap.classList.remove('hidden');
+    img.src=rel;
+    ta.value=''; ta.disabled=true;
+    btns(false); delBtn.disabled=false; downloadBtn.disabled=false;
+    document.getElementById('structTreeBtn').disabled=true;
+    hideTree();
+    return;
+  }else{
+    imgWrap.classList.add('hidden'); img.src=''; ta.classList.remove('hidden');
+  }
+  const r=await (await api('read',{path:rel})).json();
+  if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); titleInput.classList.add('hidden'); renameBtn.classList.add('hidden'); infoBtn.disabled=true; return; }
+  ta.value=r.content; ta.disabled=false; btns(true);
   document.getElementById('structTreeBtn').disabled = !['opml','xml'].includes(ext);
   hideTree();
 }
@@ -657,12 +680,7 @@ async function renameCurrent(){
 }
 function downloadFile(){
   if(!currentFile) return;
-  const a=document.createElement('a');
-  a.href='?api=read&'+new URLSearchParams({path:currentFile});
-  a.download=document.getElementById('fileTitle').value || 'download';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  downloadItem(null,currentFile,document.getElementById('fileTitle').value || 'download');
 }
 async function mkdirPrompt(){
   const name=prompt('New folder name:'); if(!name) return;
@@ -726,6 +744,16 @@ function downloadFolder(ev,rel){
   ev.stopPropagation();
   const a=document.createElement('a');
   a.href='?api=download_folder&'+new URLSearchParams({path:rel});
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function downloadItem(ev,rel,name){
+  if(ev) ev.stopPropagation();
+  const a=document.createElement('a');
+  a.href='?api=read&'+new URLSearchParams({path:rel});
+  a.download=name;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -872,7 +900,6 @@ async function loadTree(expanded=null){
 function selectNode(id,title,note){
   selectedId=id;
   currentOutlinePath=id;
-  const ta=document.getElementById('ta');
   ta.value=note||''; ta.disabled=false;
   saveBtn.disabled=false; delBtn.disabled=true;
   const titleRow=document.getElementById('nodeTitleRow');
