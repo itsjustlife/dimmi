@@ -70,6 +70,13 @@ function rcopy($src,$dst){
   return @copy($src,$dst);
 }
 
+function uuidv4(){
+  $data=random_bytes(16);
+  $data[6]=chr(ord($data[6])&0x0f|0x40);
+  $data[8]=chr(ord($data[8])&0x3f|0x80);
+  return vsprintf('%s%s-%s-%s-%s-%s%s%s',str_split(bin2hex($data),4));
+}
+
 // ----- OPML helpers -----
 function opml_load_dom($abs){
   if (!class_exists('DOMDocument')) bad('DOM extension missing',500);
@@ -256,6 +263,57 @@ if (isset($_GET['api'])) {
       j(['ok'=>true,'content'=>$dom->saveXML()]);
     }
     bad('Unsupported for format',400);
+  }
+
+  if ($action==='standardize_opml' && $method==='POST') {
+    if (!is_file($abs)) bad('Not a file');
+    $ext=strtolower(pathinfo($abs, PATHINFO_EXTENSION));
+    if (!in_array($ext,['opml','xml'])) bad('Not OPML/XML',415);
+    $dom=opml_load_dom($abs); $body=opml_body($dom);
+    $idMap=[];
+    $map=function($node) use (&$map,&$idMap){
+      foreach($node->childNodes as $c){
+        if($c->nodeType!==XML_ELEMENT_NODE||strtolower($c->nodeName)!=='outline') continue;
+        $id=$c->getAttribute('ark:id');
+        $txt=$c->getAttribute('text')?:$c->getAttribute('title')?:'';
+        if($id!=='') $idMap[$id]=$txt;
+        if($c->hasChildNodes()) $map($c);
+      }
+    };
+    $map($body);
+    $walk=function($node) use (&$walk,&$idMap){
+      foreach($node->childNodes as $c){
+        if($c->nodeType!==XML_ELEMENT_NODE||strtolower($c->nodeName)!=='outline') continue;
+        if(!$c->hasAttribute('ark:id')||trim($c->getAttribute('ark:id'))==='')
+          $c->setAttribute('ark:id',uuidv4());
+        if(!$c->hasAttribute('text')||$c->getAttribute('text')===''){
+          $t=$c->getAttribute('title');
+          if($t!=='') $c->setAttribute('text',$t);
+        }
+        if($c->hasAttribute('ark:links')){
+          $ln=json_decode($c->getAttribute('ark:links'),true);
+          if(is_array($ln)){
+            $clean=[];
+            foreach($ln as $l){
+              if(!is_array($l)) continue;
+              if(isset($l['to'])){
+                $l['target']=$l['to'];
+                $l['title']=$idMap[$l['to']] ?? '';
+                unset($l['to']);
+              }
+              if(isset($l['title'],$l['type'],$l['target']) && $l['title']!=='' && $l['type']!=='' && $l['target']!=='')
+                $clean[]=$l;
+            }
+            if($clean) $c->setAttribute('ark:links',json_encode($clean,JSON_UNESCAPED_SLASHES));
+            else $c->removeAttribute('ark:links');
+          } else $c->removeAttribute('ark:links');
+        }
+        if($c->hasChildNodes()) $walk($c);
+      }
+    };
+    $walk($body);
+    $dom->formatOutput=true; $ok=$dom->save($abs)!==false; audit('standardize_opml',$path,$ok);
+    j(['ok'=>$ok,'size'=>filesize($abs),'mtime'=>filemtime($abs)]);
   }
 
   // [PATCH] OPML → JSON tree for STRUCTURE panel
@@ -989,6 +1047,17 @@ function ent(name,rel,isDir,size,mtime){
   makeItem('Delete',()=>deleteItem(null,rel));
   makeItem('Copy',()=>copyItem(null,rel));
   makeItem('Move',()=>moveItem(null,rel));
+  if(!isDir && name.toLowerCase().endsWith('.opml'))
+    makeItem('Clean & Standardize File',()=>{
+      modalConfirm('Standardize','Clean & standardize this OPML file?',async ok=>{
+        if(!ok) return;
+        const r=await (await fetch(`?api=standardize_opml&path=`+encodeURIComponent(rel),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
+        if(!r.ok){ modalInfo('Error',r.error||'Standardize failed'); return; }
+        modalInfo('Success','File standardized');
+        await openDir(currentDir);
+        if(currentFile===rel){ await openFile(rel,name,r.size||size,r.mtime||mtime); await loadTree(); }
+      });
+    });
   if(isDir && clipboardPath) makeItem('Paste',()=>pasteTo(rel));
   wrap.appendChild(btn); wrap.appendChild(menu);
   row.appendChild(left); row.appendChild(wrap);
