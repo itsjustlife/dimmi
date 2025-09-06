@@ -584,6 +584,10 @@ if (isset($_GET['api'])) {
         <button onclick="showCurrentInfo()" id="infoBtn" disabled class="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Info">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </button>
+        <div id="contentTabs" class="hidden flex gap-2">
+          <button id="codeTab" class="px-2 py-1 text-sm border rounded bg-gray-200">Code</button>
+          <button id="previewTab" class="px-2 py-1 text-sm border rounded">Preview</button>
+        </div>
         <div class="ml-auto flex gap-2 flex-wrap">
           <button onclick="downloadFile()" id="downloadBtn" disabled class="p-2 rounded text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Download">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 9l4.5 4.5 4.5-4.5M12 13.5V3"/></svg>
@@ -607,6 +611,7 @@ if (isset($_GET['api'])) {
           </button>
         </div>
         <div id="imgPreviewWrap" class="hidden flex-1 overflow-auto items-center justify-center min-h-[16rem]"><img id="imgPreview" class="max-w-full" /></div>
+        <div id="opmlPreview" class="p-4 flex-1 overflow-auto hidden"></div>
         <textarea id="ta" class="flex-1 w-full p-4 resize-none border-0 outline-none overflow-auto min-h-[16rem]" placeholder="Open a text file…" disabled></textarea>
         <div id="linkList" class="hidden border-t p-2 flex flex-wrap text-sm"></div>
       </div>
@@ -654,6 +659,10 @@ const delBtn=document.getElementById('delBtn');
 const downloadBtn=document.getElementById('downloadBtn');
 const infoBtn=document.getElementById('infoBtn');
 const ta=document.getElementById('ta');
+const contentTabs=document.getElementById('contentTabs');
+const codeTab=document.getElementById('codeTab');
+const previewTab=document.getElementById('previewTab');
+const opmlPreview=document.getElementById('opmlPreview');
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[];
 const settingsBtn=document.getElementById('settingsBtn');
 const settingsMenu=document.getElementById('settingsMenu');
@@ -676,6 +685,89 @@ if(versionBtn) versionBtn.addEventListener('click',()=>{settingsMenu.classList.a
 if(listBtn && treeBtn){
   listBtn.onclick=()=>hideTree();
   treeBtn.onclick=()=>showTree();
+}
+
+if(codeTab && previewTab){
+  codeTab.addEventListener('click', showCodeView);
+  previewTab.addEventListener('click', showPreviewView);
+}
+
+function showCodeView(){
+  codeTab.classList.add('bg-gray-200');
+  previewTab.classList.remove('bg-gray-200');
+  ta.classList.remove('hidden');
+  opmlPreview.classList.add('hidden');
+}
+function showPreviewView(){
+  previewTab.classList.add('bg-gray-200');
+  codeTab.classList.remove('bg-gray-200');
+  ta.classList.add('hidden');
+  opmlPreview.classList.remove('hidden');
+}
+
+function escapeHtml(str){
+  return str.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+}
+function mdLinks(str){
+  return str.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
+}
+function renderOpmlPreview(nodes){
+  function walk(arr){
+    const ul=document.createElement('ul');
+    ul.className='list-disc ml-4';
+    arr.forEach(n=>{
+      const li=document.createElement('li');
+      const title=document.createElement('div');
+      title.innerHTML='<strong>'+escapeHtml(n.t||'')+'</strong>';
+      li.appendChild(title);
+      if(n.note){
+        const note=document.createElement('div');
+        note.className='ml-2';
+        note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
+        li.appendChild(note);
+      }
+      if(n.links && n.links.length){
+        const linkDiv=document.createElement('div');
+        linkDiv.className='ml-2 flex flex-wrap gap-2 text-sm';
+        n.links.forEach(l=>{
+          const a=document.createElement('a');
+          a.textContent=l.title||l.target;
+          a.href=l.target;
+          a.dataset.link=JSON.stringify(l);
+          a.className='text-blue-600 underline';
+          linkDiv.appendChild(a);
+        });
+        li.appendChild(linkDiv);
+      }
+      if(n.children && n.children.length){
+        li.appendChild(walk(n.children));
+      }
+      ul.appendChild(li);
+    });
+    return ul;
+  }
+  opmlPreview.innerHTML='';
+  opmlPreview.appendChild(walk(nodes));
+  attachPreviewLinks();
+}
+function attachPreviewLinks(){
+  opmlPreview.querySelectorAll('a').forEach(a=>{
+    a.addEventListener('click',e=>{
+      e.preventDefault();
+      const data=a.dataset.link;
+      if(data){
+        try{ followLink(JSON.parse(data)); return; }catch{}
+      }
+      const href=a.getAttribute('href')||'';
+      if(/^https?:\/\//i.test(href)){
+        window.open(href,'_blank');
+      }else if(href.endsWith('/')){
+        openDir(href.replace(/\/$/,''));
+      }else{
+        openFile(href, href.split('/').pop(),0,0);
+      }
+    });
+  });
 }
 
 function toggleSection(id,btn){
@@ -893,16 +985,30 @@ async function openFile(rel,name,size,mtime){
     ta.value=''; ta.disabled=true;
     btns(false); delBtn.disabled=false; downloadBtn.disabled=false;
     document.getElementById('structTreeBtn').disabled=true;
+    contentTabs.classList.add('hidden');
+    opmlPreview.classList.add('hidden');
     hideTree();
     return;
   }else{
     imgWrap.classList.add('hidden'); img.src=''; ta.classList.remove('hidden');
   }
   const r=await (await api('read',{path:rel})).json();
-  if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); titleInput.classList.add('hidden'); renameBtn.classList.add('hidden'); infoBtn.disabled=true; return; }
+  if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); titleInput.classList.add('hidden'); renameBtn.classList.add('hidden'); infoBtn.disabled=true; contentTabs.classList.add('hidden'); opmlPreview.classList.add('hidden'); return; }
   ta.value=r.content; ta.disabled=false; btns(true);
-  document.getElementById('structTreeBtn').disabled = !['opml','xml'].includes(ext);
+  const isOpml=['opml','xml'].includes(ext);
+  document.getElementById('structTreeBtn').disabled = !isOpml;
   hideTree();
+  if(isOpml){
+    contentTabs.classList.remove('hidden');
+    showCodeView();
+    try{
+      const p=await (await api('opml_tree',{file:rel})).json();
+      if(p.ok) renderOpmlPreview(p.tree||[]); else opmlPreview.textContent=p.error||'OPML parse error.';
+    }catch{ opmlPreview.textContent='OPML load error.'; }
+  }else{
+    contentTabs.classList.add('hidden');
+    opmlPreview.classList.add('hidden');
+  }
 }
 function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; downloadBtn.disabled=!on; }
 async function save(){
