@@ -184,6 +184,32 @@ if (isset($_GET['api'])) {
     $ok=move_uploaded_file($tmp,$dst); audit('upload',rel_of($dst),$ok); j(['ok'=>$ok,'name'=>$name]);
   }
 
+  if ($action==='download_folder') {
+    if (!is_dir($abs)) bad('Not a directory');
+    if (!class_exists('ZipArchive')) bad('ZipArchive not available',500);
+    $zip=new ZipArchive();
+    $tmp=tempnam(sys_get_temp_dir(),'zip');
+    if($zip->open($tmp,ZipArchive::OVERWRITE)!==true) bad('Zip create failed',500);
+    $srcLen=strlen($abs)+1;
+    $add=function($dir) use (&$add,$zip,$srcLen){
+      foreach(scandir($dir) as $f){
+        if($f==='.'||$f==='..') continue;
+        $p="$dir/$f"; $local=substr($p,$srcLen);
+        if(is_dir($p)){ $zip->addEmptyDir($local); $add($p); }
+        else $zip->addFile($p,$local);
+      }
+    };
+    $add($abs);
+    $zip->close();
+    $base=basename($abs);
+    header('Content-Type: application/zip');
+    header('Content-Disposition: attachment; filename="'.($base?:'folder').'.zip"');
+    header('Content-Length: '.filesize($tmp));
+    readfile($tmp);
+    unlink($tmp);
+    exit;
+  }
+
   if ($action==='format' && $method==='POST') {
     if (!is_file($abs)) bad('Not a file');
     $data=json_decode(file_get_contents('php://input'),true);
@@ -381,7 +407,7 @@ if (isset($_GET['api'])) {
   </header>
   <main class="flex-1 overflow-auto md:overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:h-[calc(100vh-64px)]">
     <!-- FIND -->
-    <section class="bg-white rounded shadow flex flex-col">
+    <section class="bg-white rounded shadow flex flex-col overflow-hidden">
       <div class="flex items-center gap-2 p-4 border-b">
         <h2 class="font-semibold flex-1">FIND</h2>
         <button onclick="mkdirPrompt()" class="p-2 text-gray-600 hover:text-gray-800" title="New Folder">
@@ -425,9 +451,9 @@ if (isset($_GET['api'])) {
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
         </button>
       </div>
-      <div id="structBody" class="p-4 flex-1 flex flex-col overflow-hidden">
-        <ul id="fileList" class="flex-1 overflow-auto divide-y text-sm"></ul>
-        <div id="opmlTreeWrap" class="hidden flex-1 overflow-auto"></div>
+      <div id="structBody" class="p-4 flex-1 overflow-y-auto flex flex-col">
+        <ul id="fileList" class="divide-y text-sm"></ul>
+        <div id="opmlTreeWrap" class="hidden"></div>
       </div>
     </section>
 
@@ -435,10 +461,17 @@ if (isset($_GET['api'])) {
     <section class="bg-white rounded shadow flex flex-col">
       <div class="flex items-center gap-2 p-4 border-b">
         <h2 class="font-semibold">CONTENT</h2>
-        <span id="fileName" class="text-sm bg-gray-100 rounded px-2 py-1">—</span>
-        <span id="fileSize" class="text-xs text-gray-500"></span>
-        <span id="fileWhen" class="text-xs text-gray-500"></span>
+        <input id="fileTitle" class="hidden text-sm bg-gray-100 rounded px-2 py-1" />
+        <button id="fileRenameBtn" class="hidden p-2 text-green-600 hover:text-green-800" title="Rename">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+        </button>
+        <button class="p-2 text-gray-600 hover:text-gray-800" title="Info">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </button>
         <div class="ml-auto flex gap-2">
+          <button onclick="downloadFile()" id="downloadBtn" disabled class="p-2 rounded text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Download">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 9l4.5 4.5 4.5-4.5M12 13.5V3"/></svg>
+          </button>
           <button onclick="save()" id="saveBtn" disabled class="p-2 rounded text-blue-600 hover:text-blue-800 disabled:opacity-50" title="Save">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 11.25l4.5 4.5 4.5-4.5M12 15.75V3"/></svg>
           </button>
@@ -490,6 +523,7 @@ const icons={
   file:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>',
   edit:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>',
   trash:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>',
+  download:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 9l4.5 4.5 4.5-4.5M12 13.5V3"/></svg>',
   addSame:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>',
   addSub:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v7.5m0 0h7.5m-7.5 0v7.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 19.5L18 18l-1.5-1.5"/></svg>'
 };
@@ -499,6 +533,7 @@ const treeWrap=document.getElementById('opmlTreeWrap');
 const fileList=document.getElementById('fileList');
 const saveBtn=document.getElementById('saveBtn');
 const delBtn=document.getElementById('delBtn');
+const downloadBtn=document.getElementById('downloadBtn');
 let selectedId=null;
 const settingsBtn=document.getElementById('settingsBtn');
 const settingsMenu=document.getElementById('settingsMenu');
@@ -538,15 +573,19 @@ function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
   const ico=isDir?icons.folder:icons.file;
   const sizeHtml=isDir?'':`<span class="text-xs text-gray-500">${fmtSize(size)}</span>`;
+  const dlHtml=isDir?`<button class="text-gray-500 hover:text-green-600" onclick="downloadFolder(event,'${rel}')" title="Download">${icons.download}</button>`:'';
   li.innerHTML=`<div class="flex items-center justify-between px-2 py-2 hover:bg-gray-100 rounded">
     <div class="flex items-center gap-2">${ico}<span>${name}</span></div>
-    <div class="flex items-center gap-2">${sizeHtml}<button class="text-gray-500 hover:text-blue-600" onclick="renameItem(event,'${rel}')" title="Rename">${icons.edit}</button><button class="text-gray-500 hover:text-red-600" onclick="deleteItem(event,'${rel}')" title="Delete">${icons.trash}</button></div>
+    <div class="flex items-center gap-2">${sizeHtml}${dlHtml}<button class="text-gray-500 hover:text-blue-600" onclick="renameItem(event,'${rel}')" title="Rename">${icons.edit}</button><button class="text-gray-500 hover:text-red-600" onclick="deleteItem(event,'${rel}')" title="Delete">${icons.trash}</button></div>
   </div>`;
   li.onclick=()=> isDir? openDir(rel) : openFile(rel,name,size,mtime);
   return li;
 }
 async function openDir(rel){
   currentDir = rel || ''; crumb(currentDir);
+  document.getElementById('fileTitle').classList.add('hidden');
+  document.getElementById('fileRenameBtn').classList.add('hidden');
+  btns(false);
   const FL=document.getElementById('folderList'); FL.innerHTML='';
   const r=await (await api('list',{path:currentDir})).json(); if(!r.ok){alert(r.error||'list failed');return;}
   if(currentDir){
@@ -564,20 +603,22 @@ async function openDir(rel){
 }
 function jump(){ const p=document.getElementById('pathInput').value.trim(); openDir(p); }
 function fmtSize(b){ if(b<1024) return b+' B'; let u=['KB','MB','GB']; let i=-1; do{b/=1024;i++;}while(b>=1024&&i<2); return b.toFixed(1)+' '+u[i]; }
-function fmtWhen(s){ try{return new Date(s*1000).toLocaleString();}catch{return ''; } }
-
 async function openFile(rel,name,size,mtime){
   currentFile=rel; currentOutlinePath=''; selectedId=null;
   document.getElementById('nodeTitleRow').classList.add('hidden');
-  fileName.textContent=name; fileSize.textContent=size?fmtSize(size):''; fileWhen.textContent=mtime?fmtWhen(mtime):'';
+  const titleInput=document.getElementById('fileTitle');
+  const renameBtn=document.getElementById('fileRenameBtn');
+  titleInput.classList.remove('hidden');
+  renameBtn.classList.remove('hidden');
+  titleInput.value=name;
   const r=await (await api('read',{path:rel})).json(); const ta=document.getElementById('ta');
-  if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); return; }
+  if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); titleInput.classList.add('hidden'); renameBtn.classList.add('hidden'); return; }
   ta.value=r.content; ta.disabled=false; btns(true);
   const ext=name.toLowerCase().split('.').pop();
   document.getElementById('structTreeBtn').disabled = !['opml','xml'].includes(ext);
   hideTree();
 }
-function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; }
+function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; downloadBtn.disabled=!on; }
 async function save(){
   if(!currentFile) return;
   const content=document.getElementById('ta').value;
@@ -599,6 +640,29 @@ async function del(){
   if(!currentFile) return; if(!confirm('Delete this file?')) return;
   const r=await (await fetch(`?api=delete&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
   if(!r.ok){alert(r.error||'Delete failed');return;} ta.value=''; ta.disabled=true; btns(false); openDir(currentDir);
+}
+async function renameCurrent(){
+  if(!currentFile) return;
+  const name=document.getElementById('fileTitle').value.trim();
+  if(!name) return;
+  const dir=currentFile.split('/').slice(0,-1).join('/');
+  const target=(dir? dir+'/' : '')+name.replace(/^\/+/,'');
+  const r=await (await fetch(`?api=rename&`+new URLSearchParams({path:currentFile}),{
+    method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({to:target})
+  })).json();
+  if(!r.ok){alert(r.error||'rename failed');return;}
+  currentFile=target;
+  await openDir(currentDir);
+  openFile(target,name,0,0);
+}
+function downloadFile(){
+  if(!currentFile) return;
+  const a=document.createElement('a');
+  a.href='?api=read&'+new URLSearchParams({path:currentFile});
+  a.download=document.getElementById('fileTitle').value || 'download';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 async function mkdirPrompt(){
   const name=prompt('New folder name:'); if(!name) return;
@@ -656,6 +720,15 @@ async function uploadFolder(inp){
     if(!r.ok){alert(r.error||'upload failed');return;}
   }
   openDir(currentDir);
+}
+
+function downloadFolder(ev,rel){
+  ev.stopPropagation();
+  const a=document.createElement('a');
+  a.href='?api=download_folder&'+new URLSearchParams({path:rel});
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 async function renameItem(ev,rel){
@@ -802,7 +875,6 @@ function selectNode(id,title,note){
   const ta=document.getElementById('ta');
   ta.value=note||''; ta.disabled=false;
   saveBtn.disabled=false; delBtn.disabled=true;
-  fileName.textContent=title||''; fileSize.textContent=''; fileWhen.textContent='';
   const titleRow=document.getElementById('nodeTitleRow');
   const titleInput=document.getElementById('nodeTitle');
   titleInput.value=title||'';
@@ -824,6 +896,8 @@ async function nodeOp(op,extra={},id=selectedId){
     selectNode(selectedId,t);
   }
 }
+document.getElementById('fileRenameBtn').addEventListener('click', renameCurrent);
+document.getElementById('fileTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); renameCurrent(); }});
 document.getElementById('titleSaveBtn').addEventListener('click', saveTitle);
 document.getElementById('nodeTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); saveTitle(); }});
 async function saveTitle(){
