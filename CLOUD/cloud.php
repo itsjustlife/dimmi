@@ -365,15 +365,19 @@ if (isset($_GET['api'])) {
 </head>
 <body class="h-screen flex flex-col bg-gray-50 text-gray-800 overflow-x-hidden">
   <header class="flex items-center gap-4 p-4 bg-white shadow">
-    <div id="rootNote" class="text-xs text-gray-500"></div>
-    <button onclick="openDir('')" class="text-gray-600 hover:text-gray-800">
+    <button onclick="openDir('')" class="px-2 py-1 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 text-gray-600 hover:text-gray-800">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
       <span class="sr-only">Home</span>
     </button>
-    <nav id="crumb" class="flex items-center text-sm text-gray-600"></nav>
-    <a href="?logout=1" class="ml-auto text-gray-600 hover:text-gray-800" title="Logout">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
-    </a>
+    <nav id="crumb" class="flex items-center gap-2 text-sm text-gray-600"></nav>
+    <div class="ml-auto relative">
+      <button id="settingsBtn" class="p-2 rounded hover:bg-gray-100" title="Settings">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5M3.75 12h16.5m-16.5 6.75h16.5"/></svg>
+      </button>
+      <div id="settingsMenu" class="hidden absolute right-0 mt-2 w-32 bg-white border rounded shadow-md">
+        <a href="?logout=1" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
+      </div>
+    </div>
   </header>
   <main class="flex-1 overflow-auto md:overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:h-[calc(100vh-64px)]">
     <!-- FIND -->
@@ -436,7 +440,7 @@ if (isset($_GET['api'])) {
         <span id="fileWhen" class="text-xs text-gray-500"></span>
         <div class="ml-auto flex gap-2">
           <button onclick="save()" id="saveBtn" disabled class="p-2 rounded text-blue-600 hover:text-blue-800 disabled:opacity-50" title="Save">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 11.25l4.5 4.5 4.5-4.5M12 15.75V3"/></svg>
           </button>
           <button onclick="del()" id="delBtn" disabled class="p-2 rounded text-red-600 hover:text-red-800 disabled:opacity-50" title="Delete">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
@@ -447,6 +451,12 @@ if (isset($_GET['api'])) {
         </button>
       </div>
       <div id="contentBody" class="flex-1 flex flex-col">
+        <div id="nodeTitleRow" class="hidden flex items-center gap-2 p-4 border-b">
+          <input id="nodeTitle" type="text" class="flex-1 border rounded px-2 py-1" placeholder="Title">
+          <button id="titleSaveBtn" class="p-2 text-green-600 hover:text-green-800" title="Save Title">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          </button>
+        </div>
         <textarea id="ta" class="flex-1 w-full p-4 resize-none border-0 outline-none" placeholder="Open a text file…" disabled></textarea>
       </div>
     </section>
@@ -480,7 +490,8 @@ const icons={
   file:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>',
   edit:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>',
   trash:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>',
-  plus:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>'
+  addSame:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>',
+  addSub:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v7.5m0 0h7.5m-7.5 0v7.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 19.5L18 18l-1.5-1.5"/></svg>'
 };
 const listBtn=document.getElementById('structListBtn');
 const treeBtn=document.getElementById('structTreeBtn');
@@ -489,6 +500,12 @@ const fileList=document.getElementById('fileList');
 const saveBtn=document.getElementById('saveBtn');
 const delBtn=document.getElementById('delBtn');
 let selectedId=null;
+const settingsBtn=document.getElementById('settingsBtn');
+const settingsMenu=document.getElementById('settingsMenu');
+if(settingsBtn && settingsMenu){
+  settingsBtn.addEventListener('click',e=>{e.stopPropagation(); settingsMenu.classList.toggle('hidden');});
+  document.addEventListener('click',e=>{ if(!settingsMenu.contains(e.target)) settingsMenu.classList.add('hidden'); });
+}
 if(listBtn && treeBtn){
   listBtn.onclick=()=>hideTree();
   treeBtn.onclick=()=>showTree();
@@ -504,13 +521,18 @@ function toggleSection(id,btn){
 function crumb(rel){
   const c=document.getElementById('crumb'); c.innerHTML='';
   const parts = rel? rel.split('/') : [];
-  let acc=''; const root=document.createElement('a'); root.textContent='/'; root.href='#'; root.onclick=(e)=>{e.preventDefault(); openDir('');};
-  c.appendChild(root);
-  parts.forEach((p,i)=>{ acc+=(i?'/':'')+p; const a=document.createElement('a'); a.textContent=p; a.href='#'; a.onclick=(e)=>{e.preventDefault(); openDir(acc);}; c.appendChild(a); });
+  let acc='';
+  const cls='px-2 py-1 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200';
+  parts.forEach((p,i)=>{
+    acc+=(i?'/':'')+p;
+    const a=document.createElement('a'); a.textContent=p; a.href='#'; a.className=cls;
+    a.onclick=(e)=>{e.preventDefault(); openDir(acc);};
+    c.appendChild(a);
+  });
   document.getElementById('pathInput').value = rel || '';
 }
 async function init(){
-  const info=await (await api('whereami')).json(); rootNote.textContent='root: '+(info.root||'(unset)'); openDir('');
+  openDir('');
 }
 function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');
@@ -545,7 +567,8 @@ function fmtSize(b){ if(b<1024) return b+' B'; let u=['KB','MB','GB']; let i=-1;
 function fmtWhen(s){ try{return new Date(s*1000).toLocaleString();}catch{return ''; } }
 
 async function openFile(rel,name,size,mtime){
-  currentFile=rel; currentOutlinePath='';
+  currentFile=rel; currentOutlinePath=''; selectedId=null;
+  document.getElementById('nodeTitleRow').classList.add('hidden');
   fileName.textContent=name; fileSize.textContent=size?fmtSize(size):''; fileWhen.textContent=mtime?fmtWhen(mtime):'';
   const r=await (await api('read',{path:rel})).json(); const ta=document.getElementById('ta');
   if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); return; }
@@ -669,7 +692,7 @@ function restoreExpanded(set){
   treeWrap.querySelectorAll('div[data-id]').forEach(row=>{
     if(set.has(row.dataset.id)){
       const caret=row.querySelector('.caret');
-      if(caret && caret.textContent==='▸') caret.click();
+      if(caret && caret.textContent==='▸') toggleChildren(row.dataset.id);
     }
   });
 }
@@ -692,64 +715,78 @@ function showTree(){
 function renderTree(nodes){
   const wrap=document.createElement('div');
   wrap.className='text-base leading-relaxed';
-  const mk=(arr)=>{
-    const ul=document.createElement('ul');
-    ul.className='list-none pl-4 my-1';
+  function walk(arr,level,parent){
     for(const n of arr){
-      const li=document.createElement('li');
       const row=document.createElement('div');
       row.className='flex items-center gap-2 px-2 py-2 hover:bg-gray-100 rounded cursor-pointer';
       const has=n.children && n.children.length;
+      if(has) row.classList.add('bg-gray-50');
+      row.style.marginLeft=(level*20)+'px';
+      row.dataset.id=n.id;
+      row.dataset.parent=parent||'';
+      if(level>0) row.classList.add('hidden');
       const caret=document.createElement('span');
       caret.textContent=has?'▸':'•';
-      caret.className=has?'caret text-lg w-5 select-none cursor-pointer':'text-gray-400 w-5';
+      caret.className=has?'caret text-lg w-5 select-none':'text-gray-400 w-5';
       const title=document.createElement('span');
       title.textContent=n.t;
       title.className='title flex-1';
       row.append(caret,title);
-      row.dataset.id=n.id;
-
       const actions=document.createElement('div');
       actions.className='ml-auto flex items-center gap-1';
       const addChildBtn=document.createElement('button');
-      addChildBtn.innerHTML=icons.plus;
+      addChildBtn.innerHTML=icons.addSub;
       addChildBtn.className='text-gray-500 hover:text-blue-600';
       addChildBtn.title='Add Sub';
-      addChildBtn.onclick=(e)=>{ e.stopPropagation(); addChild(n.id); };
+      addChildBtn.onclick=(e)=>{e.stopPropagation(); addChild(n.id);};
       const addSiblingBtn=document.createElement('button');
-      addSiblingBtn.innerHTML=icons.plus;
+      addSiblingBtn.innerHTML=icons.addSame;
       addSiblingBtn.className='text-gray-500 hover:text-blue-600';
       addSiblingBtn.title='Add Same';
-      addSiblingBtn.onclick=(e)=>{ e.stopPropagation(); addSibling(n.id); };
+      addSiblingBtn.onclick=(e)=>{e.stopPropagation(); addSibling(n.id);};
       const editBtn=document.createElement('button');
       editBtn.innerHTML=icons.edit;
       editBtn.className='text-gray-500 hover:text-blue-600';
       editBtn.title='Rename';
-      editBtn.onclick=(e)=>{ e.stopPropagation(); renameNode(n.id,n.t); };
+      editBtn.onclick=(e)=>{e.stopPropagation(); renameNode(n.id,n.t);};
       const delBtn=document.createElement('button');
       delBtn.innerHTML=icons.trash;
       delBtn.className='text-gray-500 hover:text-red-600';
       delBtn.title='Delete';
-      delBtn.onclick=(e)=>{ e.stopPropagation(); deleteNode(n.id); };
+      delBtn.onclick=(e)=>{e.stopPropagation(); deleteNode(n.id);};
       actions.append(addChildBtn,addSiblingBtn,editBtn,delBtn);
       row.append(actions);
-
-      let child=null;
-      if(has){ child=mk(n.children); child.classList.add('hidden'); li.appendChild(child); }
-      row.onclick=(e)=>{
-        if(has && e.target===caret){
-          child.classList.toggle('hidden');
-          caret.textContent = child.classList.contains('hidden') ? '▸' : '▾';
-        }
-        selectNode(n.id,n.t,n.note);
-      };
-      li.appendChild(row);
-      ul.appendChild(li);
+      row.addEventListener('click',()=>selectNode(n.id,n.t,n.note));
+      if(has){
+        row.addEventListener('dblclick',e=>{e.stopPropagation(); toggleChildren(n.id);});
+      }
+      wrap.appendChild(row);
+      if(has) walk(n.children,level+1,n.id);
     }
-    return ul;
-  };
-  wrap.appendChild(mk(nodes));
+  }
+  walk(nodes,0,'');
   treeWrap.replaceChildren(wrap);
+}
+
+function toggleChildren(id){
+  const row=treeWrap.querySelector(`div[data-id="${id}"]`);
+  const caret=row.querySelector('.caret');
+  const expand=caret.textContent==='▸';
+  caret.textContent=expand?'▾':'▸';
+  if(expand) showChildren(id); else hideChildren(id);
+}
+function showChildren(id){
+  treeWrap.querySelectorAll(`div[data-parent="${id}"]`).forEach(ch=>{
+    ch.classList.remove('hidden');
+    const caret=ch.querySelector('.caret');
+    if(caret && caret.textContent==='▾') showChildren(ch.dataset.id);
+  });
+}
+function hideChildren(id){
+  treeWrap.querySelectorAll(`div[data-parent="${id}"]`).forEach(ch=>{
+    ch.classList.add('hidden');
+    hideChildren(ch.dataset.id);
+  });
 }
 async function loadTree(expanded=null){
   try{
@@ -762,12 +799,14 @@ async function loadTree(expanded=null){
 function selectNode(id,title,note){
   selectedId=id;
   currentOutlinePath=id;
-  if(note!==undefined){
-    const ta=document.getElementById('ta');
-    ta.value=note||''; ta.disabled=false;
-    saveBtn.disabled=false; delBtn.disabled=true;
-    fileName.textContent=title||''; fileSize.textContent=''; fileWhen.textContent='';
-  }
+  const ta=document.getElementById('ta');
+  ta.value=note||''; ta.disabled=false;
+  saveBtn.disabled=false; delBtn.disabled=true;
+  fileName.textContent=title||''; fileSize.textContent=''; fileWhen.textContent='';
+  const titleRow=document.getElementById('nodeTitleRow');
+  const titleInput=document.getElementById('nodeTitle');
+  titleInput.value=title||'';
+  titleRow.classList.remove('hidden');
 }
 async function nodeOp(op,extra={},id=selectedId){
   if(!currentFile || id===null) return;
@@ -784,6 +823,13 @@ async function nodeOp(op,extra={},id=selectedId){
     const t=sel.querySelector('.title')?.textContent;
     selectNode(selectedId,t);
   }
+}
+document.getElementById('titleSaveBtn').addEventListener('click', saveTitle);
+document.getElementById('nodeTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); saveTitle(); }});
+async function saveTitle(){
+  if(selectedId===null) return;
+  const title=document.getElementById('nodeTitle').value.trim();
+  await nodeOp('set_title',{title});
 }
 init();
 </script>
