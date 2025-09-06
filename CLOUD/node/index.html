@@ -61,20 +61,25 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
     </div>
   </div>
   <div class="panel">
-    <div class="editorbar">
-      <strong>CONTENT</strong>
-      <span class="tag" id="fileName">—</span>
-      <span class="tag mono" id="fileSize"></span>
-      <span class="tag" id="fileWhen"></span>
-      <div style="margin-left:auto"></div>
-      <button class="btn" onclick="save()" id="saveBtn" disabled>Save</button>
-      <button class="btn" onclick="del()" id="delBtn" disabled>Delete</button>
-    </div>
-    <div class="body" style="padding:0;display:flex;flex-direction:column">
-      <textarea id="ta" placeholder="Open a text file…" disabled></textarea>
+      <div class="editorbar">
+        <strong>CONTENT</strong>
+        <span class="tag" id="fileName">—</span>
+        <span class="tag mono" id="fileSize"></span>
+        <span class="tag" id="fileWhen"></span>
+        <div id="contentTabs" style="margin-left:16px; display:none; gap:6px">
+          <button id="codeTab" class="btn small selected">Code</button>
+          <button id="previewTab" class="btn small">Preview</button>
+        </div>
+        <div style="margin-left:auto"></div>
+        <button class="btn" onclick="save()" id="saveBtn" disabled>Save</button>
+        <button class="btn" onclick="del()" id="delBtn" disabled>Delete</button>
+      </div>
+      <div class="body" style="padding:0;display:flex;flex-direction:column">
+        <div id="opmlPreview" style="display:none; padding:8px; overflow:auto; flex:1"></div>
+        <textarea id="ta" placeholder="Open a text file…" disabled></textarea>
+      </div>
     </div>
   </div>
-</div>
 <div id="newFileModal">
   <div class="box">
     <input id="newFileName" class="input" placeholder="new file name">
@@ -102,9 +107,91 @@ const listBtn=document.getElementById('structListBtn');
 const treeBtn=document.getElementById('structTreeBtn');
 const treeWrap=document.getElementById('opmlTreeWrap');
 const fileList=document.getElementById('fileList');
+const saveBtn=document.getElementById('saveBtn');
+const delBtn=document.getElementById('delBtn');
+const ta=document.getElementById('ta');
+const contentTabs=document.getElementById('contentTabs');
+const codeTab=document.getElementById('codeTab');
+const previewTab=document.getElementById('previewTab');
+const opmlPreview=document.getElementById('opmlPreview');
 if(listBtn && treeBtn){
   listBtn.onclick=()=>hideTree();
   treeBtn.onclick=()=>showTree();
+}
+
+if(codeTab && previewTab){
+  codeTab.onclick=showCodeView;
+  previewTab.onclick=showPreviewView;
+}
+
+function showCodeView(){
+  codeTab.classList.add('selected');
+  previewTab.classList.remove('selected');
+  ta.style.display='';
+  opmlPreview.style.display='none';
+}
+function showPreviewView(){
+  previewTab.classList.add('selected');
+  codeTab.classList.remove('selected');
+  ta.style.display='none';
+  opmlPreview.style.display='block';
+}
+function escapeHtml(str){return str.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function mdLinks(str){return str.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');}
+function renderOpmlPreview(nodes){
+  function walk(arr){
+    const ul=document.createElement('ul');
+    arr.forEach(n=>{
+      const li=document.createElement('li');
+      const title=document.createElement('div');
+      title.innerHTML='<strong>'+escapeHtml(n.t||'')+'</strong>';
+      li.appendChild(title);
+      if(n.note){
+        const note=document.createElement('div');
+        note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
+        li.appendChild(note);
+      }
+      if(n.links && n.links.length){
+        const linkDiv=document.createElement('div');
+        n.links.forEach(l=>{
+          const a=document.createElement('a');
+          a.textContent=l.title||l.target;
+          a.href=l.target;
+          a.dataset.link=JSON.stringify(l);
+          linkDiv.appendChild(a);
+          linkDiv.appendChild(document.createTextNode(' '));
+        });
+        li.appendChild(linkDiv);
+      }
+      if(n.children && n.children.length) li.appendChild(walk(n.children));
+      ul.appendChild(li);
+    });
+    return ul;
+  }
+  opmlPreview.innerHTML='';
+  opmlPreview.appendChild(walk(nodes));
+  attachPreviewLinks();
+}
+function attachPreviewLinks(){
+  opmlPreview.querySelectorAll('a').forEach(a=>{
+    a.addEventListener('click',e=>{
+      e.preventDefault();
+      const data=a.dataset.link;
+      if(data){
+        try{
+          const l=JSON.parse(data);
+          if(l.type==='folder') openDir(l.target);
+          else if(l.type==='file') openFile(l.target,l.target.split('/').pop(),0,0);
+          else if(l.type==='url'){ let u=l.target||''; if(!/^https?:\/\//i.test(u)) u='https://'+u; window.open(u,'_blank'); }
+        }catch{}
+        return;
+      }
+      const href=a.getAttribute('href')||'';
+      if(/^https?:\/\//i.test(href)) window.open(href,'_blank');
+      else if(href.endsWith('/')) openDir(href.replace(/\/$/,''));
+      else openFile(href, href.split('/').pop(),0,0);
+    });
+  });
 }
 
 function crumb(rel){
@@ -139,12 +226,25 @@ function fmtWhen(s){ try{return new Date(s*1000).toLocaleString();}catch{return 
 
 async function openFile(rel,name,size,mtime){
   currentFile=rel; fileName.textContent=name; fileSize.textContent=size?fmtSize(size):''; fileWhen.textContent=mtime?fmtWhen(mtime):'';
-  const r=await (await api('read',{path:rel})).json(); const ta=document.getElementById('ta');
-  if(!r.ok){ alert(r.error||'Cannot open'); ta.value=''; ta.disabled=true; btns(false); return; }
+  const r=await (await api('read',{path:rel})).json();
+  if(!r.ok){ alert(r.error||'Cannot open'); ta.value=''; ta.disabled=true; btns(false); contentTabs.style.display='none'; opmlPreview.style.display='none'; return; }
   ta.value=r.content; ta.disabled=false; btns(true);
   const ext=name.toLowerCase().split('.').pop();
-  document.getElementById('structTreeBtn').disabled = !['opml','xml'].includes(ext);
+  const isOpml=['opml','xml'].includes(ext);
+  document.getElementById('structTreeBtn').disabled = !isOpml;
   hideTree();
+  if(isOpml){
+    contentTabs.style.display='flex';
+    showCodeView();
+    try{
+      const p=await (await api('opml_tree',{file:rel})).json();
+      if(p.ok) renderOpmlPreview(p.tree||[]); else opmlPreview.textContent=p.error||'OPML parse error.';
+    }catch{ opmlPreview.textContent='OPML load error.'; }
+  }else{
+    contentTabs.style.display='none';
+    opmlPreview.style.display='none';
+    ta.style.display='';
+  }
 }
 function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; }
 async function save(){
