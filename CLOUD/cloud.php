@@ -91,14 +91,15 @@ function uuidv5($ns,$name){
 
 function cjsf_to_ark($items){
   $map=function($node) use (&$map){
-    $out=['t'=>$node['title']??'', 'id'=>$node['id']??'', 'arkid'=>$node['id']??'', 'children'=>[]];
+    $title=$node['metadata']['title']??($node['content']??'');
+    $out=['t'=>$title, 'id'=>$node['id']??'', 'arkid'=>$node['id']??'', 'children'=>[]];
     if(isset($node['content'])) $out['note']=$node['content'];
     if(!empty($node['links']) && is_array($node['links'])){
       $links=[];
       foreach($node['links'] as $l){
         $links[]=[
           'title'=>$l['metadata']['title']??'',
-          'type'=>($l['type']??'')==='relation' ? 'node' : ($l['type']??''),
+          'type'=>$l['type']??'',
           'target'=>$l['target']??'',
           'direction'=>$l['metadata']['direction']??null
         ];
@@ -936,19 +937,27 @@ const contentTabs=document.getElementById('contentTabs');
 const codeTab=document.getElementById('codeTab');
 const previewTab=document.getElementById('previewTab');
 const opmlPreview=document.getElementById('opmlPreview');
-let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[];
+let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[];
 function cjsf_to_ark(items){
   function walk(arr){
     const out=[];
     for(const it of arr||[]){
       if(!it || typeof it!=='object') continue;
+      const title=(it.metadata&&it.metadata.title)||it.content||'•';
       const n={
-        t: it.title || '•',
-        id: it.id || '',
-        arkid: it.id || '',
-        note: it.content || ''
+        t:title,
+        id:it.id||'',
+        arkid:it.id||'',
+        note:it.content||''
       };
-      if(Array.isArray(it.links) && it.links.length) n.links=it.links;
+      if(Array.isArray(it.links) && it.links.length){
+        n.links=it.links.map(l=>({
+          title:(l.metadata&&l.metadata.title)||'',
+          type:l.type||'',
+          target:l.target||'',
+          direction:l.metadata&&l.metadata.direction||null
+        }));
+      }
       if(Array.isArray(it.children) && it.children.length) n.children=walk(it.children);
       else n.children=[];
       out.push(n);
@@ -956,6 +965,17 @@ function cjsf_to_ark(items){
     return out;
   }
   return walk(items);
+}
+function getAllJsonNodes(){
+  const out=[];
+  (function walk(arr){
+    for(const it of arr||[]){
+      if(!it || typeof it!=='object') continue;
+      out.push({id:it.id||'', title:(it.metadata&&it.metadata.title)||it.content||''});
+      if(Array.isArray(it.children) && it.children.length) walk(it.children);
+    }
+  })(currentJsonRoot);
+  return out;
 }
 const settingsBtn=document.getElementById('settingsBtn');
 const settingsMenu=document.getElementById('settingsMenu');
@@ -1684,7 +1704,8 @@ async function loadTree(expanded=null){
     const endpoint=isJson?'json_tree':'opml_tree';
     const r=await (await api(endpoint,{file:currentFile})).json();
     if(!r.ok){ treeWrap.textContent=r.error||'Structure parse error.'; return; }
-    const tree=isJson? cjsf_to_ark(r.root||[]) : (r.tree||[]);
+    if(isJson){ currentJsonRoot=r.root||[]; }
+    const tree=isJson? cjsf_to_ark(currentJsonRoot) : (r.tree||[]);
     renderTree(tree);
     if(expanded) restoreExpanded(expanded);
   }catch(e){ treeWrap.textContent='Structure load error.'; }
@@ -1755,9 +1776,22 @@ function gotoNodeByPath(path){
 
 function followLink(l){
   switch(l.type){
+    case 'relation':
     case 'node':{
-      const path=arkMap[l.target];
-      if(path!==undefined) gotoNodeByPath(path);
+      const row=treeWrap.querySelector(`div[data-id="${l.target}"]`);
+      if(row){
+        let parent=row.dataset.parent;
+        while(parent){
+          const pr=treeWrap.querySelector(`div[data-id="${parent}"]`);
+          if(pr){
+            const caret=pr.querySelector('.caret');
+            if(caret && caret.textContent==='▸') toggleChildren(parent);
+            parent=pr.dataset.parent;
+          }else break;
+        }
+        row.click();
+        row.scrollIntoView({block:'nearest'});
+      }
       break; }
     case 'folder':
       openDir(l.target);
@@ -1803,15 +1837,18 @@ async function openLinkModal(id, existing=null){
   const titleInput=document.createElement('input'); titleInput.className='w-full border rounded px-2 py-1'; titleInput.placeholder='Title';
   wrap.append(typeSel,targetDiv,titleInput);
   let targetInput=null; const editing=!!existing;
-  if(editing){ typeSel.value=existing.type; }
+  if(editing){ typeSel.value=existing.type==='relation'?'node':existing.type; }
   async function refresh(){
     targetDiv.innerHTML='';
     const type=typeSel.value;
     if(type==='node'){
       const sel=document.createElement('select'); sel.className='w-full border rounded px-2 py-1';
-      const endpoint=currentFile.toLowerCase().endsWith('.json')?'get_all_json_nodes':'get_all_nodes';
-      const r=await (await api(endpoint,{file:currentFile})).json();
-      if(r.ok){ r.nodes.forEach(n=>{ const o=document.createElement('option'); o.value=n.arkid; o.textContent=n.title; sel.appendChild(o); }); }
+      if(currentFile.toLowerCase().endsWith('.json')){
+        getAllJsonNodes().forEach(n=>{ const o=document.createElement('option'); o.value=n.id; o.textContent=n.title; sel.appendChild(o); });
+      }else{
+        const r=await (await api('get_all_nodes',{file:currentFile})).json();
+        if(r.ok){ r.nodes.forEach(n=>{ const o=document.createElement('option'); o.value=n.arkid; o.textContent=n.title; sel.appendChild(o); }); }
+      }
       sel.onchange=()=>{ titleInput.value=sel.options[sel.selectedIndex]?.textContent || ''; };
       targetDiv.appendChild(sel); targetInput=sel;
       if(editing){ sel.value=existing.target; }
@@ -1832,12 +1869,13 @@ async function openLinkModal(id, existing=null){
   typeSel.onchange=refresh; await refresh();
   if(editing && existing.title) titleInput.value=existing.title;
   modal({title: editing?'Edit Link':'Add Link', body:wrap, okText:editing?'Save Link':'Add Link', extra: editing?{text:'Delete Link', onClick:async()=>{ await nodeOp('delete_link',{target:existing.target},id); }}:null, onOk:async()=>{
-    const type=typeSel.value;
+    const selected=typeSel.value;
+    const type=selected==='node'?'relation':selected;
     const target=targetInput ? targetInput.value.trim() : '';
     if(!target){ modalInfo('Error','Target required'); return; }
     let title=titleInput.value.trim();
     if(!title){
-      if(type==='node' && targetInput.options) title=targetInput.options[targetInput.selectedIndex]?.textContent||'';
+      if(selected==='node' && targetInput.options) title=targetInput.options[targetInput.selectedIndex]?.textContent||'';
       else if(type==='url') title=target;
       else title=target.split('/').pop();
     }
