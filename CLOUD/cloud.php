@@ -121,6 +121,20 @@ function cjsf_find_item_ref(&$items,$id,&$out){
   return false;
 }
 
+function cjsf_find_parent(&$items,$id,&$parent,&$index,&$parentItem=null){
+  foreach($items as $i=>&$it){
+    if(($it['id']??'')===$id){
+      $parent=&$items; $index=$i; return true;
+    }
+    if(isset($it['children']) && is_array($it['children'])){
+      if(cjsf_find_parent($it['children'],$id,$parent,$index,$parentItem)){
+        $parentItem=&$it; return true;
+      }
+    }
+  }
+  return false;
+}
+
 // ----- OPML helpers -----
 function opml_load_dom($abs){
   if (!class_exists('DOMDocument')) bad('DOM extension missing',500);
@@ -360,6 +374,32 @@ if (isset($_GET['api'])) {
     j(['ok'=>$ok,'size'=>filesize($abs),'mtime'=>filemtime($abs)]);
   }
 
+  if ($action==='standardize_json' && $method==='POST') {
+    if (!is_file($abs)) bad('Not a file');
+    $ext=strtolower(pathinfo($abs, PATHINFO_EXTENSION));
+    if ($ext!=='json') bad('Not JSON',415);
+    $raw=@file_get_contents($abs); if($raw===false) bad('Read error',500);
+    $doc=json_decode($raw,true);
+    if(isset($doc['root']) && is_array($doc['root'])){
+      $root=$doc['root'];
+      $id=$doc['id'] ?? uuidv4();
+      $title=$doc['metadata']['title'] ?? pathinfo($abs,PATHINFO_FILENAME);
+    }elseif(is_array($doc)){
+      $root=$doc;
+      $id=uuidv4();
+      $title=pathinfo($abs,PATHINFO_FILENAME);
+    }else bad('Invalid JSON',422);
+    $wrapped=[
+      'schemaVersion'=>'1.0.0',
+      'id'=>$id,
+      'metadata'=>['title'=>$title],
+      'root'=>$root
+    ];
+    $ok=file_put_contents($abs,json_encode($wrapped,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES))!==false;
+    audit('standardize_json',$path,$ok);
+    j(['ok'=>$ok,'size'=>filesize($abs),'mtime'=>filemtime($abs)]);
+  }
+
   // [PATCH] OPML → JSON tree for STRUCTURE panel
   if ($action==='opml_tree') {
     $file = $_GET['file'] ?? $_POST['file'] ?? '';
@@ -424,8 +464,7 @@ if (isset($_GET['api'])) {
     if ($ext !== 'json') bad('Not JSON',415);
     $raw = @file_get_contents($fileAbs); if($raw===false) bad('Read error',500);
     $doc = json_decode($raw,true);
-    if(!is_array($doc) || (($doc['schemaVersion'] ?? '') !== '1.0.0')) bad('Invalid schema',422);
-    if(!isset($doc['root']) || !is_array($doc['root'])) $doc['root']=[];
+    if(!isset($doc['root']) || !is_array($doc['root'])) bad('Invalid document',422);
     $tree = cjsf_to_ark($doc['root']);
     j(['ok'=>true,'tree'=>$tree]);
   }
@@ -583,9 +622,64 @@ if (isset($_GET['api'])) {
     $doc = json_decode($raw,true);
     if(!is_array($doc) || (($doc['schemaVersion'] ?? '') !== '1.0.0')) bad('Invalid schema',422);
     if(!isset($doc['root']) || !is_array($doc['root'])) $doc['root']=[];
-    $item=null; if(!cjsf_find_item_ref($doc['root'],$id,$item)) bad('Node not found',404);
     $now=gmdate('Y-m-d\TH:i:s\Z');
+    $selId=$id;
+    $parentList=$index=$parentItem=null;
+    if(in_array($op,['add_sibling','delete','move'])){
+      if(!cjsf_find_parent($doc['root'],$id,$parentList,$index,$parentItem)) bad('Node not found',404);
+      $item=&$parentList[$index];
+    }else{
+      $item=null; if(!cjsf_find_item_ref($doc['root'],$id,$item)) bad('Node not found',404);
+    }
     switch($op){
+      case 'set_title': {
+        $title=(string)($data['title'] ?? '');
+        $item['title']=$title;
+        $item['modified']=$now;
+      } break;
+      case 'add_child': {
+        $title=trim($data['title'] ?? 'New');
+        $new=[ 'id'=>uuidv4(), 'title'=>$title!==''?$title:'New', 'children'=>[], 'created'=>$now, 'modified'=>$now ];
+        if(!isset($item['children']) || !is_array($item['children'])) $item['children']=[];
+        $item['children'][]=$new;
+        $item['modified']=$now;
+        $selId=$new['id'];
+      } break;
+      case 'add_sibling': {
+        $title=trim($data['title'] ?? 'New');
+        $new=[ 'id'=>uuidv4(), 'title'=>$title!==''?$title:'New', 'children'=>[], 'created'=>$now, 'modified'=>$now ];
+        array_splice($parentList,$index+1,0,[$new]);
+        if($parentItem) $parentItem['modified']=$now;
+        $selId=$new['id'];
+      } break;
+      case 'delete': {
+        array_splice($parentList,$index,1);
+        if($parentItem){ $parentItem['modified']=$now; $selId=$parentItem['id'] ?? ($doc['root'][0]['id'] ?? null); }
+        else { $selId=$doc['root'][0]['id'] ?? null; }
+      } break;
+      case 'move': {
+        $dir=$data['dir'] ?? '';
+        if($dir==='up' && $index>0){
+          $tmp=$parentList[$index-1]; $parentList[$index-1]=$parentList[$index]; $parentList[$index]=$tmp;
+        }elseif($dir==='down' && $index<count($parentList)-1){
+          $tmp=$parentList[$index+1]; $parentList[$index+1]=$parentList[$index]; $parentList[$index]=$tmp;
+        }elseif($dir==='in' && $index>0){
+          $prev=&$parentList[$index-1];
+          if(!isset($prev['children']) || !is_array($prev['children'])) $prev['children']=[];
+          $node=$parentList[$index];
+          array_splice($parentList,$index,1);
+          $prev['children'][]=$node;
+          $prev['modified']=$now;
+        }elseif($dir==='out' && $parentItem){
+          $gpList=$gpIndex=$gpParent=null;
+          if(!cjsf_find_parent($doc['root'],$parentItem['id'],$gpList,$gpIndex,$gpParent)) bad('Cannot outdent root-level',400);
+          $node=$parentList[$index];
+          array_splice($parentList,$index,1);
+          array_splice($gpList,$gpIndex+1,0,[$node]);
+          if($gpParent) $gpParent['modified']=$now;
+        }
+        $item['modified']=$now;
+      } break;
       case 'add_link': {
         $link=$data['link'] ?? null; if(!is_array($link)) bad('Missing link',400);
         if(empty($link['id'])) $link['id']=uuidv5($id,($link['type']??'').'|'.($link['target']??''));
@@ -608,7 +702,7 @@ if (isset($_GET['api'])) {
     }
     $ok=file_put_contents($fileAbs,json_encode($doc,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES))!==false;
     if(!$ok) bad('Write failed',500);
-    j(['ok'=>true,'id'=>$id]);
+    j(['ok'=>true,'id'=>$selId]);
   }
 
   bad('Unknown action',404);
@@ -1152,6 +1246,17 @@ function ent(name,rel,isDir,size,mtime){
       modalConfirm('Standardize','Clean & standardize this OPML file?',async ok=>{
         if(!ok) return;
         const r=await (await fetch(`?api=standardize_opml&path=`+encodeURIComponent(rel),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
+        if(!r.ok){ modalInfo('Error',r.error||'Standardize failed'); return; }
+        modalInfo('Success','File standardized');
+        await openDir(currentDir);
+        if(currentFile===rel){ await openFile(rel,name,r.size||size,r.mtime||mtime); await loadTree(); }
+      });
+    });
+  if(!isDir && name.toLowerCase().endsWith('.json'))
+    makeItem('Clean & Standardize JSON',()=>{
+      modalConfirm('Standardize','Clean & standardize this JSON file?',async ok=>{
+        if(!ok) return;
+        const r=await (await fetch(`?api=standardize_json&path=`+encodeURIComponent(rel),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
         if(!r.ok){ modalInfo('Error',r.error||'Standardize failed'); return; }
         modalInfo('Success','File standardized');
         await openDir(currentDir);
