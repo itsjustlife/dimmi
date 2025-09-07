@@ -136,7 +136,19 @@ app.post('/api/newfile', async (req,res)=>{
   const abs = safeAbs(path.join(req.query.path||'', name));
   if(!abs) return bad(res,400,'Invalid target');
   if(fs.existsSync(abs)) return bad(res,400,'Exists already');
-  try{ await fsp.writeFile(abs,''); res.json({ok:true}); }catch(e){ bad(res,500,'newfile failed'); }
+  try{
+    let content='';
+    if(name.toLowerCase().endsWith('.json')){
+      content=JSON.stringify({
+        schemaVersion:'1.0.0',
+        id:crypto.randomUUID(),
+        metadata:{title:'New File Title'},
+        root:[]
+      }, null, 2);
+    }
+    await fsp.writeFile(abs,content);
+    res.json({ok:true});
+  }catch(e){ bad(res,500,'newfile failed'); }
 });
 
 app.post('/api/delete', async (req,res)=>{

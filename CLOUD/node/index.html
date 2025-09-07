@@ -84,6 +84,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
   <div class="box">
     <input id="newFileName" class="input" placeholder="new file name">
     <div class="row" id="extBtns" style="gap:6px">
+      <button class="btn small ext" data-ext=".json">.json</button>
       <button class="btn small ext" data-ext=".txt">.txt</button>
       <button class="btn small ext" data-ext=".html">.html</button>
       <button class="btn small ext" data-ext=".md">.md</button>
@@ -101,7 +102,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 const CSRF = '{{CSRF}}';
 const api=(act,params)=>fetch('api/'+act+'?'+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
-const newExts=['.txt','.html','.md','.opml'];
+const newExts=['.json','.txt','.html','.md','.opml'];
 let newExtIndex=0;
 const listBtn=document.getElementById('structListBtn');
 const treeBtn=document.getElementById('structTreeBtn');
@@ -156,14 +157,17 @@ function renderOpmlPreview(nodes){
       title.style.display='flex';
       title.style.alignItems='center';
       title.style.cursor='pointer';
-      if(level===0) title.style.fontWeight='700';
-      else if(level===1) title.style.fontWeight='600';
       const titleSpan=document.createElement('span');
-      titleSpan.innerHTML='<strong>'+escapeHtml(n.t||'')+'</strong>';
+      titleSpan.textContent=n.t||'';
+      if(level===0){ titleSpan.style.fontWeight='700'; titleSpan.style.fontSize='1.125rem'; }
+      else if(level===1){ titleSpan.style.fontWeight='600'; }
       if(n.children && n.children.length){
         const caret=document.createElement('span');
-        caret.textContent='▸';
+        caret.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>';
         caret.style.marginRight='4px';
+        caret.firstChild.style.width='16px';
+        caret.firstChild.style.height='16px';
+        caret.firstChild.style.transition='transform .2s';
         title.appendChild(caret);
         title.appendChild(titleSpan);
         const childUl=walk(n.children,level+1);
@@ -171,7 +175,7 @@ function renderOpmlPreview(nodes){
         const toggle=()=>{
           const open=childUl.style.display==='none';
           childUl.style.display=open?'block':'none';
-          caret.textContent=open?'▾':'▸';
+          caret.firstChild.style.transform=open?'rotate(90deg)':'rotate(0deg)';
         };
         title.addEventListener('click',toggle);
         li.appendChild(title);
@@ -189,8 +193,11 @@ function renderOpmlPreview(nodes){
             a.textContent=l.title||l.target;
             a.href=l.target;
             a.dataset.link=JSON.stringify(l);
-            a.style.color='var(--accent)';
-            a.style.textDecoration='underline';
+            a.style.background='#f3f4f6';
+            a.style.padding='2px 6px';
+            a.style.borderRadius='4px';
+            a.style.color='inherit';
+            a.style.textDecoration='none';
             linkDiv.appendChild(a);
             linkDiv.appendChild(document.createTextNode(' '));
           });
@@ -214,8 +221,11 @@ function renderOpmlPreview(nodes){
             a.textContent=l.title||l.target;
             a.href=l.target;
             a.dataset.link=JSON.stringify(l);
-            a.style.color='var(--accent)';
-            a.style.textDecoration='underline';
+            a.style.background='#f3f4f6';
+            a.style.padding='2px 6px';
+            a.style.borderRadius='4px';
+            a.style.color='inherit';
+            a.style.textDecoration='none';
             linkDiv.appendChild(a);
             linkDiv.appendChild(document.createTextNode(' '));
           });
@@ -242,7 +252,11 @@ function renderOpmlPreview(nodes){
     const a=document.createElement('a');
     a.href='#'+n._id;
     a.textContent=n.t||('Section '+(i+1));
-    a.style.color='var(--accent)';
+    a.style.background='#f3f4f6';
+    a.style.padding='2px 6px';
+    a.style.borderRadius='4px';
+    a.style.color='inherit';
+    a.style.textDecoration='none';
     const li=document.createElement('li');
     li.appendChild(a);
     tocList.appendChild(li);

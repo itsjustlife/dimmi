@@ -245,7 +245,17 @@ if (isset($_GET['api'])) {
     if ($name==='') bad('Missing name');
     $dst=safe_abs($path.'/'.$name); if($dst===false) bad('Invalid target');
     if (file_exists($dst)) bad('Exists already');
-    $ok=file_put_contents($dst,"")!==false; audit('newfile',rel_of($dst),$ok); j(['ok'=>$ok]);
+    $ext=strtolower(pathinfo($name,PATHINFO_EXTENSION));
+    $content='';
+    if($ext==='json'){
+      $content=json_encode([
+        'schemaVersion'=>'1.0.0',
+        'id'=>uuidv4(),
+        'metadata'=>['title'=>'New File Title'],
+        'root'=>[]
+      ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+    }
+    $ok=file_put_contents($dst,$content)!==false; audit('newfile',rel_of($dst),$ok); j(['ok'=>$ok]);
   }
 
   if ($action==='delete' && $method==='POST') {
@@ -1038,21 +1048,23 @@ function renderOpmlPreview(nodes){
       li.className='mt-2';
       if(level===0){ li.id=n._id || (n._id=slug(n.t)); }
       const title=document.createElement('div');
-      title.className=(level===0?'font-bold text-lg ':'')+(level===1?'font-semibold ':'')+'flex items-center cursor-pointer';
+      title.className='flex items-center cursor-pointer';
       const titleSpan=document.createElement('span');
-      titleSpan.innerHTML='<strong>'+escapeHtml(n.t||'')+'</strong>';
+      titleSpan.textContent=n.t||'';
+      if(level===0) titleSpan.className='font-bold text-lg';
+      else if(level===1) titleSpan.className='font-semibold';
       if(n.children && n.children.length){
         const caret=document.createElement('span');
-        caret.textContent='▸';
-        caret.className='mr-1 select-none';
-        title.appendChild(caret);
-        title.appendChild(titleSpan);
+        caret.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-4 h-4 text-gray-500 transform transition-transform"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>';
+        caret.className='mr-1';
+        title.append(caret,titleSpan);
         const childUl=walk(n.children,level+1);
         childUl.style.display='none';
         const toggle=()=>{
           const open=childUl.style.display==='none';
           childUl.style.display=open?'block':'none';
-          caret.textContent=open?'▾':'▸';
+          const svg=caret.querySelector('svg');
+          if(svg) svg.classList.toggle('rotate-90',open);
         };
         title.addEventListener('click',toggle);
         li.appendChild(title);
@@ -1070,7 +1082,7 @@ function renderOpmlPreview(nodes){
             a.textContent=l.title||l.target;
             a.href=l.target;
             a.dataset.link=JSON.stringify(l);
-            a.className='text-blue-600 hover:underline';
+            a.className='inline-block px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-700';
             linkDiv.appendChild(a);
           });
           li.appendChild(linkDiv);
@@ -1093,7 +1105,7 @@ function renderOpmlPreview(nodes){
             a.textContent=l.title||l.target;
             a.href=l.target;
             a.dataset.link=JSON.stringify(l);
-            a.className='text-blue-600 hover:underline';
+            a.className='inline-block px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-700';
             linkDiv.appendChild(a);
           });
           li.appendChild(linkDiv);
@@ -1116,7 +1128,7 @@ function renderOpmlPreview(nodes){
     const a=document.createElement('a');
     a.href='#'+n._id;
     a.textContent=n.t||('Section '+(i+1));
-    a.className='text-blue-600 hover:underline';
+    a.className='inline-block px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-700';
     const li=document.createElement('li');
     li.appendChild(a);
     tocList.appendChild(li);
@@ -1476,7 +1488,8 @@ async function newFilePrompt(){
   input.type='text'; input.className='w-full border rounded px-2 py-1';
   const select=document.createElement('select');
   select.className='w-full border rounded px-2 py-1';
-  ['.txt','.md','.opml','.html'].forEach(ext=>{ const o=document.createElement('option'); o.value=ext; o.textContent=ext; select.appendChild(o);});
+  ['.json','.txt','.md','.opml','.html'].forEach(ext=>{ const o=document.createElement('option'); o.value=ext; o.textContent=ext; select.appendChild(o);});
+  select.value='.json';
   wrap.append(input,select);
   modal({title:'New file name', body:wrap, onOk:async()=>{
     let name=input.value.trim();
@@ -1721,15 +1734,8 @@ function selectNode(id,title,note,links=[]){
 }
 async function nodeOp(op,extra={},id=selectedId){
   if(!currentFile || id===null) return;
-  const lower=currentFile.toLowerCase();
-  let endpoint;
-  if(lower.endsWith('.json')){
-    endpoint='json_node';
-  }else if(lower.endsWith('.opml') || lower.endsWith('.xml')){
-    endpoint='opml_node';
-  }else{
-    endpoint='opml_node';
-  }
+  const isJson=currentFile.toLowerCase().endsWith('.json');
+  const endpoint=isJson?'json_node':'opml_node';
   const expanded=getExpanded();
   if(op==='add_child') expanded.add(id);
   const body=JSON.stringify({file:currentFile,op,id,...extra});
