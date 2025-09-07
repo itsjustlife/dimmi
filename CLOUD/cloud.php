@@ -868,7 +868,16 @@ if (isset($_GET['api'])) {
         <div class="ml-auto flex gap-2">
           <button id="structListBtn" type="button" class="px-2 py-1 text-sm border rounded">List</button>
           <button id="structTreeBtn" type="button" class="px-2 py-1 text-sm border rounded" title="Show OPML ARK" disabled>ARK</button>
-          <button id="sort-btn" class="icon-sort hidden px-2 py-1 text-sm border rounded" title="Sort"></button>
+          <div class="relative">
+            <button id="sort-btn" class="hidden px-2 py-1 text-sm border rounded" title="Sort">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9M3 12h5m4 0l4 4m0 0l4-4m-4 4V4"/></svg>
+            </button>
+            <div id="sort-menu" class="hidden absolute right-0 mt-1 bg-white border rounded shadow text-sm z-10">
+              <button data-sort="name" class="block w-full text-left px-3 py-1 hover:bg-gray-100">Name</button>
+              <button data-sort="size" class="block w-full text-left px-3 py-1 hover:bg-gray-100">Size</button>
+              <button data-sort="date" class="block w-full text-left px-3 py-1 hover:bg-gray-100">Date</button>
+            </div>
+          </div>
         </div>
         <button class="ml-2 md:hidden" onclick="toggleSection('structBody', this)">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
@@ -974,13 +983,14 @@ const codeTab=document.getElementById('codeTab');
 const previewTab=document.getElementById('previewTab');
 const opmlPreview=document.getElementById('opmlPreview');
 const sortBtn=document.getElementById('sort-btn');
+const sortMenu=document.getElementById('sort-menu');
 const contentPreview=document.getElementById('content-preview');
 const contentEditor=document.getElementById('content-editor');
 const editModeBtn=document.getElementById('edit-mode-btn');
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null;
-let sortState={criteria:'title',direction:'asc'};
+let fileSort={criterion:'name',direction:'asc'};
 let originalRootOrder=[];
-let saveContentTimer=null;
+let saveContentTimer=null, saveTitleTimer=null;
 
 function findJsonNode(items,id){
   for(const it of items||[]){
@@ -1089,8 +1099,12 @@ if(editModeBtn){
 }
 
 function toggleContentMode(mode){
-  const modes={preview:contentPreview, code:ta, edit:contentEditor};
-  Object.entries(modes).forEach(([k,el])=>{ if(el) el.style.display=(k===mode)?'':'none'; });
+  const isStruct=currentFile && ['opml','xml','json'].includes(currentFile.split('.').pop().toLowerCase());
+  const previewEl=isStruct?opmlPreview:contentPreview;
+  [ta,contentEditor,contentPreview,opmlPreview].forEach(el=>{ if(el) el.style.display='none'; });
+  if(mode==='code' && ta) ta.style.display='';
+  if(mode==='edit' && contentEditor) contentEditor.style.display='';
+  if(mode==='preview' && previewEl) previewEl.style.display='';
   if(codeTab) codeTab.classList.toggle('bg-gray-200',mode==='code');
   if(previewTab) previewTab.classList.toggle('bg-gray-200',mode==='preview');
   if(editModeBtn) editModeBtn.classList.toggle('bg-gray-200',mode==='edit');
@@ -1102,6 +1116,7 @@ if(contentEditor){
       node.content=contentEditor.value;
       node.modified=new Date().toISOString();
       if(contentPreview) contentPreview.innerHTML=node.content;
+      renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
       clearTimeout(saveContentTimer);
       saveContentTimer=setTimeout(()=>saveCurrentJsonStructure(),500);
     }
@@ -1489,7 +1504,13 @@ async function openDir(rel){
   }
   r.items.filter(i=>i.type==='dir').sort((a,b)=>a.name.localeCompare(b.name)).forEach(d=>FL.appendChild(ent(d.name,d.rel,true,0,d.mtime)));
   const FI=document.getElementById('fileList'); FI.innerHTML='';
-  r.items.filter(i=>i.type==='file').sort((a,b)=>a.name.localeCompare(b.name)).forEach(f=>FI.appendChild(ent(f.name,f.rel,false,f.size,f.mtime)));
+  r.items.filter(i=>i.type==='file').sort((a,b)=>{
+    let cmp=0;
+    if(fileSort.criterion==='name') cmp=a.name.localeCompare(b.name);
+    else if(fileSort.criterion==='size') cmp=(a.size||0)-(b.size||0);
+    else if(fileSort.criterion==='date') cmp=(a.mtime||0)-(b.mtime||0);
+    return fileSort.direction==='asc'?cmp:-cmp;
+  }).forEach(f=>FI.appendChild(ent(f.name,f.rel,false,f.size,f.mtime)));
 }
 function jump(){ const p=document.getElementById('pathInput').value.trim(); openDir(p); }
 function fmtSize(b){ if(b<1024) return b+' B'; let u=['KB','MB','GB']; let i=-1; do{b/=1024;i++;}while(b>=1024&&i<2); return b.toFixed(1)+' '+u[i]; }
@@ -1540,6 +1561,8 @@ async function openFile(rel,name,size,mtime){
   hideTree();
   if(isStruct){
     contentTabs.classList.remove('hidden');
+    opmlPreview.classList.remove('hidden');
+    contentPreview.classList.add('hidden');
     showCodeView();
     try{
       const isJson=extLower==='json';
@@ -1558,6 +1581,7 @@ async function openFile(rel,name,size,mtime){
   }else{
     contentTabs.classList.add('hidden');
     opmlPreview.classList.add('hidden');
+    contentPreview.classList.add('hidden');
   }
 }
 function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; downloadBtn.disabled=!on; }
@@ -1825,38 +1849,23 @@ function showTree(){
   if(sortBtn) sortBtn.classList.add('hidden');
   loadTree();
 }
-if(sortBtn){
-  sortBtn.addEventListener('click',()=>{
-    if(sortState.direction==='asc'){
-      sortState.direction='desc';
-    }else{
-      sortState.direction='asc';
-      const order=['title','modified','default'];
-      const idx=order.indexOf(sortState.criteria);
-      sortState.criteria=order[(idx+1)%order.length];
-    }
-    performSort();
+if(sortBtn && sortMenu){
+  sortBtn.addEventListener('click',e=>{
+    e.stopPropagation();
+    sortMenu.classList.toggle('hidden');
   });
-}
-function performSort(){
-  if(!Array.isArray(currentJsonRoot)) return;
-  if(sortState.criteria==='default'){
-    currentJsonRoot=[...originalRootOrder];
-  }else{
-    currentJsonRoot.sort((a,b)=>{
-      let cmp=0;
-      if(sortState.criteria==='title') cmp=a.title.localeCompare(b.title);
-      else if(sortState.criteria==='modified') cmp=new Date(a.modified)-new Date(b.modified);
-      return sortState.direction==='asc'?cmp:-cmp;
+  document.addEventListener('click',e=>{
+    if(!sortMenu.contains(e.target) && e.target!==sortBtn) sortMenu.classList.add('hidden');
+  });
+  sortMenu.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const criterion=btn.dataset.sort;
+      if(fileSort.criterion===criterion) fileSort.direction=fileSort.direction==='asc'?'desc':'asc';
+      else { fileSort.criterion=criterion; fileSort.direction='asc'; }
+      sortMenu.classList.add('hidden');
+      openDir(currentDir);
     });
-  }
-  const expanded=getExpanded();
-  renderTree(cjsf_to_ark(currentJsonRoot));
-  restoreExpanded(expanded);
-  if(sortBtn){
-    sortBtn.classList.toggle('asc',sortState.direction==='asc');
-    sortBtn.classList.toggle('desc',sortState.direction==='desc');
-  }
+  });
 }
 function renderTree(nodes){
   nodeMap={}; arkMap={};
@@ -1865,7 +1874,7 @@ function renderTree(nodes){
   function walk(arr,level,parent){
     for(const n of arr){
       const row=document.createElement('div');
-      row.className='flex items-center gap-2 px-2 py-2 hover:bg-gray-100 rounded cursor-pointer';
+      row.className='flex items-center gap-2 px-2 py-2 hover:bg-gray-100 rounded cursor-pointer select-none';
       const has=n.children && n.children.length;
       if(has) row.classList.add('bg-gray-50');
       row.style.marginLeft=(level*20)+'px';
@@ -2179,10 +2188,13 @@ async function openLinkModal(id, existing=null){
 document.getElementById('fileRenameBtn').addEventListener('click', renameCurrent);
 document.getElementById('fileTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); renameCurrent(); }});
 document.getElementById('titleSaveBtn').addEventListener('click', saveTitle);
-document.getElementById('nodeTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); saveTitle(); }});
+const nodeTitleInput=document.getElementById('nodeTitle');
+nodeTitleInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); saveTitle(); }});
+nodeTitleInput.addEventListener('input',()=>{ clearTimeout(saveTitleTimer); saveTitleTimer=setTimeout(saveTitle,500); });
+nodeTitleInput.addEventListener('blur',saveTitle);
 async function saveTitle(){
   if(selectedId===null) return;
-  const title=document.getElementById('nodeTitle').value.trim();
+  const title=nodeTitleInput.value.trim();
   await nodeOp('set_title',{title});
 }
 init();
