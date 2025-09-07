@@ -1712,10 +1712,7 @@ async function loadTree(expanded=null){
 }
 function selectNode(id,title,note,links=[]){
   selectedId=id;
-  currentOutlinePath=id;
   currentLinks=links||[];
-  ta.value=note||''; ta.disabled=false;
-  saveBtn.disabled=false; delBtn.disabled=true;
   const titleRow=document.getElementById('nodeTitleRow');
   const titleInput=document.getElementById('nodeTitle');
   titleInput.value=title||'';
@@ -1724,10 +1721,18 @@ function selectNode(id,title,note,links=[]){
 }
 async function nodeOp(op,extra={},id=selectedId){
   if(!currentFile || id===null) return;
+  const lower=currentFile.toLowerCase();
+  let endpoint;
+  if(lower.endsWith('.json')){
+    endpoint='json_node';
+  }else if(lower.endsWith('.opml') || lower.endsWith('.xml')){
+    endpoint='opml_node';
+  }else{
+    endpoint='opml_node';
+  }
   const expanded=getExpanded();
   if(op==='add_child') expanded.add(id);
   const body=JSON.stringify({file:currentFile,op,id,...extra});
-  const endpoint=currentFile.toLowerCase().endsWith('.json')?'json_node':'opml_node';
   const r=await (await fetch(`?api=${endpoint}`,{method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body})).json();
   if(!r.ok){ modalInfo('Error',r.error||'node op failed'); return; }
   selectedId=r.id ?? id;
