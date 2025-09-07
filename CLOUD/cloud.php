@@ -980,6 +980,16 @@ function findJsonNode(items,id){
   return null;
 }
 
+function findJsonParent(items,id,parent=null){
+  for(let i=0;i<(items||[]).length;i++){
+    const it=items[i];
+    if(it.id===id) return {parent,index:i,array:items};
+    const res=findJsonParent(it.children||[],id,it);
+    if(res) return res;
+  }
+  return null;
+}
+
 async function saveCurrentJsonStructure(){
   if(!currentFile || !currentFile.toLowerCase().endsWith('.json') || !currentJsonDoc) return;
   currentJsonDoc.root=currentJsonRoot;
@@ -1687,8 +1697,69 @@ function restoreExpanded(set){
     }
   });
 }
-function addChild(id){ modalPrompt('Enter title for new node','',t=>{ if(t!==null) nodeOp('add_child',{title:t},id); }); }
-function addSibling(id){ modalPrompt('Enter title for new node','',t=>{ if(t!==null) nodeOp('add_sibling',{title:t},id); }); }
+function addChild(id){
+  modalPrompt('Enter title for new node','',async t=>{
+    if(t===null) return;
+    if(currentFile.toLowerCase().endsWith('.json')){
+      const parent=findJsonNode(currentJsonRoot,id);
+      if(!parent) return;
+      const now=new Date().toISOString();
+      const newItem={
+        id:crypto.randomUUID(),
+        type:'note',
+        title:t,
+        content:'',
+        created:now,
+        modified:now,
+        metadata:{title:t},
+        links:[],
+        children:[]
+      };
+      parent.children=parent.children||[];
+      parent.children.push(newItem);
+      const expanded=getExpanded();
+      expanded.add(id);
+      await saveCurrentJsonStructure();
+      renderTree(cjsf_to_ark(currentJsonRoot));
+      restoreExpanded(expanded);
+      selectNode(newItem.id,t,'',[]);
+    }else{
+      nodeOp('add_child',{title:t},id);
+    }
+  });
+}
+function addSibling(id){
+  modalPrompt('Enter title for new node','',async t=>{
+    if(t===null) return;
+    if(currentFile.toLowerCase().endsWith('.json')){
+      const info=findJsonParent(currentJsonRoot,id);
+      if(!info) return;
+      const {parent,index,array}=info;
+      const now=new Date().toISOString();
+      const newItem={
+        id:crypto.randomUUID(),
+        type:'note',
+        title:t,
+        content:'',
+        created:now,
+        modified:now,
+        metadata:{title:t},
+        links:[],
+        children:[]
+      };
+      const targetArray=parent?parent.children:currentJsonRoot;
+      targetArray.splice(index+1,0,newItem);
+      const expanded=getExpanded();
+      if(parent) expanded.add(parent.id);
+      await saveCurrentJsonStructure();
+      renderTree(cjsf_to_ark(currentJsonRoot));
+      restoreExpanded(expanded);
+      selectNode(newItem.id,t,'',[]);
+    }else{
+      nodeOp('add_sibling',{title:t},id);
+    }
+  });
+}
 function deleteNode(id){ modalConfirm('Delete node','Delete this node?',ok=>{ if(ok) nodeOp('delete',{},id); }); }
 function renameNode(id,oldTitle){ modalPrompt('Rename node',oldTitle,t=>{ if(t!==null) nodeOp('set_title',{title:t},id); }); }
 function hideTree(){
@@ -1979,7 +2050,7 @@ async function openLinkModal(id, existing=null){
   }
   typeSel.onchange=refresh; await refresh();
   if(editing && existing.title) titleInput.value=existing.title;
-  modal({title: editing?'Edit Link':'Add Link', body:wrap, okText:editing?'Save Link':'Add Link', extra: editing?{text:'Delete Link', onClick:async()=>{ await nodeOp('delete_link',{target:existing.target},id); }}:null, onOk:async()=>{
+  modal({title: editing?'Edit Link':'Add Link', body:wrap, okText:editing?'Save Link':'Add Link', extra: editing?{text:'Delete Link', onClick:async()=>{ if(currentFile.toLowerCase().endsWith('.json')){ const node=findJsonNode(currentJsonRoot,id); if(node){ node.links=(node.links||[]).filter(l=>l.id!==existing.id); node.modified=new Date().toISOString(); await saveCurrentJsonStructure(); currentLinks=(node.links||[]).map(l=>({id:l.id||'',type:l.type||'',title:l.metadata?.title||'',target:l.target||'',direction:l.metadata?.direction||null})); const expanded=getExpanded(); renderTree(cjsf_to_ark(currentJsonRoot)); restoreExpanded(expanded); selectNode(id,node.metadata?.title||node.title,node.content,currentLinks); }} else { await nodeOp('delete_link',{target:existing.target},id); } }}:null, onOk:async()=>{
     const selected=typeSel.value;
     const type=selected==='node'?'relation':selected;
     const target=targetInput ? targetInput.value.trim() : '';
@@ -1990,9 +2061,26 @@ async function openLinkModal(id, existing=null){
       else if(type==='url') title=target;
       else title=target.split('/').pop();
     }
-    const link={title,type,target,direction: existing?.direction || 'one-way'};
-    if(editing) await nodeOp('delete_link',{target:existing.target},id);
-    await nodeOp('add_link',{link},id);
+    if(currentFile.toLowerCase().endsWith('.json')){
+      const node=findJsonNode(currentJsonRoot,id);
+      if(!node) return;
+      const now=new Date().toISOString();
+      const link={id:existing?.id || crypto.randomUUID(),type,target,metadata:{title,direction: existing?.direction || 'one-way'}};
+      node.links=node.links||[];
+      if(editing){ node.links=node.links.filter(l=>l.id!==existing.id); }
+      node.links.push(link);
+      node.modified=now;
+      await saveCurrentJsonStructure();
+      currentLinks=(node.links||[]).map(l=>({id:l.id||'',type:l.type||'',title:l.metadata?.title||'',target:l.target||'',direction:l.metadata?.direction||null}));
+      const expanded=getExpanded();
+      renderTree(cjsf_to_ark(currentJsonRoot));
+      restoreExpanded(expanded);
+      selectNode(id,node.metadata?.title||node.title,node.content,currentLinks);
+    }else{
+      const link={title,type,target,direction: existing?.direction || 'one-way'};
+      if(editing) await nodeOp('delete_link',{target:existing.target},id);
+      await nodeOp('add_link',{link},id);
+    }
   }});
 }
 document.getElementById('fileRenameBtn').addEventListener('click', renameCurrent);
