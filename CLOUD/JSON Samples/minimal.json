@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "doc-uuid-minimal-0001",
+  "metadata": {
+    "title": "Minimal Document"
+  },
+  "root": [
+    {
+      "id": "item-uuid-minimal-root",
+      "title": "Home",
+      "type": "note",
+      "content": "Just a single note.",
+      "created": "2025-09-07T12:00:00Z",
+      "modified": "2025-09-07T12:00:00Z",
+      "metadata": {},
+      "links": [],
+      "children": []
+    }
+  ]
+}

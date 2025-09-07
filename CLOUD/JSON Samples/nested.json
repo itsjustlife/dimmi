@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "doc-uuid-nested-0001",
+  "metadata": {
+    "title": "Nested Example",
+    "author": "Tester"
+  },
+  "root": [
+    {
+      "id": "item-uuid-root-folder",
+      "title": "Root Folder",
+      "type": "folder",
+      "content": "Folder with nested items and different link types.",
+      "created": "2025-09-07T13:00:00Z",
+      "modified": "2025-09-07T13:05:00Z",
+      "metadata": {
+        "tags": ["example", "nested"]
+      },
+      "links": [
+        {
+          "id": "link-uuid-url-1",
+          "type": "url",
+          "target": "https://example.com"
+        },
+        {
+          "id": "link-uuid-file-1",
+          "type": "file",
+          "target": "/path/to/file.txt"
+        }
+      ],
+      "children": [
+        {
+          "id": "item-uuid-child-1",
+          "title": "Child Note",
+          "type": "note",
+          "content": "A nested note with a relation link to the root folder.",
+          "created": "2025-09-07T13:01:00Z",
+          "modified": "2025-09-07T13:02:00Z",
+          "metadata": {},
+          "links": [
+            {
+              "id": "link-uuid-rel-1",
+              "type": "relation",
+              "target": "item-uuid-root-folder",
+              "metadata": {
+                "direction": "one-way"
+              }
+            }
+          ],
+          "children": []
+        }
+      ]
+    }
+  ]
+}
