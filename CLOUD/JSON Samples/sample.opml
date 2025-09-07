@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>Arkhivist Help</title>
+  </head>
+  <body>
+    <outline text="Welcome to Arkhivist" _note="Use this outline to explore features.">
+      <outline text="Navigation">
+        <outline text="Select nodes to edit their content." />
+        <outline text="Use Ctrl+Enter to add a child." />
+        <outline text="Use Ctrl+Shift+Enter to add a sibling." />
+      </outline>
+      <outline text="Links">
+        <outline text="Use the + button to create links between nodes." />
+        <outline text="Two-way links connect both nodes." />
+      </outline>
+    </outline>
+  </body>
+</opml>

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "doc-uuid-0000-0000-000000000001",
+  "metadata": {
+    "title": "CJSF Test Document",
+    "author": "Arkhivist User"
+  },
+  "root": [
+    {
+      "id": "item-uuid-0001-0001-000000000001",
+      "title": "Root Node",
+      "type": "folder",
+      "content": "This is the root node. It has a child and a link.",
+      "created": "2025-09-07T12:00:00Z",
+      "modified": "2025-09-07T12:05:00Z",
+      "metadata": {
+        "tags": ["root", "test"]
+      },
+      "links": [
+        {
+          "id": "link-uuid-0001-0001-000000000001",
+          "type": "url",
+          "target": "https://example.com",
+          "metadata": {
+            "title": "Example Site"
+          }
+        }
+      ],
+      "children": [
+        {
+          "id": "item-uuid-0002-0002-000000000002",
+          "title": "Child Node",
+          "type": "note",
+          "content": "This is a child node. It has no links.",
+          "created": "2025-09-07T12:01:00Z",
+          "modified": "2025-09-07T12:02:00Z",
+          "metadata": {
+            "status": "draft"
+          },
+          "links": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "item-uuid-0003-0003-000000000003",
+      "title": "Second Root Node",
+      "type": "note",
+      "content": "This is a second root node. It has a relation link to the first root node.",
+      "created": "2025-09-07T12:10:00Z",
+      "modified": "2025-09-07T12:15:00Z",
+      "metadata": {},
+      "links": [
+        {
+          "id": "link-uuid-0003-0003-000000000002",
+          "type": "relation",
+          "target": "item-uuid-0001-0001-000000000001",
+          "metadata": {
+            "direction": "one-way"
+          }
+        }
+      ],
+      "children": []
+    }
+  ]
+}
