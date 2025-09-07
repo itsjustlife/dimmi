@@ -77,6 +77,50 @@ function uuidv4(){
   return vsprintf('%s%s-%s-%s-%s-%s%s%s',str_split(bin2hex($data),4));
 }
 
+function uuidv5($ns,$name){
+  $ns=str_replace('-','',$ns); $ns=hex2bin($ns);
+  if($ns===false || strlen($ns)!==16) return uuidv4();
+  $hash=sha1($ns.$name);
+  return sprintf('%08s-%04s-5%03s-%04x-%12s',
+    substr($hash,0,8),
+    substr($hash,8,4),
+    substr($hash,12,3),
+    (hexdec(substr($hash,16,4)) & 0x3fff) | 0x8000,
+    substr($hash,20,12));
+}
+
+function cjsf_to_ark($items){
+  $map=function($node) use (&$map){
+    $out=['t'=>$node['title']??'', 'id'=>$node['id']??'', 'arkid'=>$node['id']??'', 'children'=>[]];
+    if(isset($node['content'])) $out['note']=$node['content'];
+    if(!empty($node['links']) && is_array($node['links'])){
+      $links=[];
+      foreach($node['links'] as $l){
+        $links[]=[
+          'title'=>$l['metadata']['title']??'',
+          'type'=>($l['type']??'')==='relation' ? 'node' : ($l['type']??''),
+          'target'=>$l['target']??'',
+          'direction'=>$l['metadata']['direction']??null
+        ];
+      }
+      if($links) $out['links']=$links;
+    }
+    if(!empty($node['children']) && is_array($node['children'])){
+      $out['children']=array_map($map,$node['children']);
+    }
+    return $out;
+  };
+  return array_map($map,$items);
+}
+
+function cjsf_find_item_ref(&$items,$id,&$out){
+  foreach($items as &$it){
+    if(($it['id']??'')===$id){ $out=&$it; return true; }
+    if(isset($it['children']) && is_array($it['children']) && cjsf_find_item_ref($it['children'],$id,$out)) return true;
+  }
+  return false;
+}
+
 // ----- OPML helpers -----
 function opml_load_dom($abs){
   if (!class_exists('DOMDocument')) bad('DOM extension missing',500);
@@ -372,6 +416,20 @@ if (isset($_GET['api'])) {
     j(['ok'=>true,'tree'=>$tree]);
   }
 
+  if ($action==='json_tree') {
+    $file = $_GET['file'] ?? $_POST['file'] ?? '';
+    $fileAbs = safe_abs($file);
+    if ($fileAbs===false || !is_file($fileAbs)) bad('Bad file');
+    $ext = strtolower(pathinfo($fileAbs, PATHINFO_EXTENSION));
+    if ($ext !== 'json') bad('Not JSON',415);
+    $raw = @file_get_contents($fileAbs); if($raw===false) bad('Read error',500);
+    $doc = json_decode($raw,true);
+    if(!is_array($doc) || (($doc['schemaVersion'] ?? '') !== '1.0.0')) bad('Invalid schema',422);
+    if(!isset($doc['root']) || !is_array($doc['root'])) $doc['root']=[];
+    $tree = cjsf_to_ark($doc['root']);
+    j(['ok'=>true,'tree'=>$tree]);
+  }
+
   if ($action==='get_all_nodes') {
     $file = $_GET['file'] ?? '';
     $fileAbs = safe_abs($file);
@@ -510,6 +568,47 @@ if (isset($_GET['api'])) {
     }
     opml_save_dom($dom,$fileAbs);
     j(['ok'=>true,'id'=>opml_id_of($sel ?: $body)]);
+  }
+
+  if ($action==='json_node' && $method==='POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $file = $data['file'] ?? '';
+    $id   = $data['id'] ?? '';
+    $op   = $data['op'] ?? '';
+    $fileAbs = safe_abs($file);
+    if ($fileAbs===false || !is_file($fileAbs)) bad('Bad file');
+    $ext = strtolower(pathinfo($fileAbs, PATHINFO_EXTENSION));
+    if ($ext !== 'json') bad('Not JSON',415);
+    $raw = @file_get_contents($fileAbs); if($raw===false) bad('Read error',500);
+    $doc = json_decode($raw,true);
+    if(!is_array($doc) || (($doc['schemaVersion'] ?? '') !== '1.0.0')) bad('Invalid schema',422);
+    if(!isset($doc['root']) || !is_array($doc['root'])) $doc['root']=[];
+    $item=null; if(!cjsf_find_item_ref($doc['root'],$id,$item)) bad('Node not found',404);
+    $now=gmdate('Y-m-d\TH:i:s\Z');
+    switch($op){
+      case 'add_link': {
+        $link=$data['link'] ?? null; if(!is_array($link)) bad('Missing link',400);
+        if(empty($link['id'])) $link['id']=uuidv5($id,($link['type']??'').'|'.($link['target']??''));
+        if(!isset($item['links']) || !is_array($item['links'])) $item['links']=[];
+        $item['links'][]=$link;
+        $item['modified']=$now;
+      } break;
+      case 'delete_link': {
+        $linkId=$data['linkId'] ?? null; $target=$data['target'] ?? null;
+        if(isset($item['links']) && is_array($item['links'])){
+          $item['links']=array_values(array_filter($item['links'],function($l) use ($linkId,$target){
+            if($linkId) return ($l['id'] ?? '') !== $linkId;
+            if($target) return ($l['target'] ?? '') !== $target;
+            return true;
+          }));
+          $item['modified']=$now;
+        }
+      } break;
+      default: bad('Unknown op',400);
+    }
+    $ok=file_put_contents($fileAbs,json_encode($doc,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES))!==false;
+    if(!$ok) bad('Write failed',500);
+    j(['ok'=>true,'id'=>$id]);
   }
 
   bad('Unknown action',404);
@@ -872,6 +971,7 @@ function renderOpmlPreview(nodes){
   opmlPreview.appendChild(walk(nodes,0));
   attachPreviewLinks();
 }
+function renderJsonPreview(nodes){ renderOpmlPreview(nodes); }
 function attachPreviewLinks(){
   opmlPreview.querySelectorAll('a').forEach(a=>{
     a.addEventListener('click',e=>{
@@ -1128,16 +1228,18 @@ async function openFile(rel,name,size,mtime){
   const r=await (await api('read',{path:rel})).json();
   if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); titleInput.classList.add('hidden'); renameBtn.classList.add('hidden'); infoBtn.disabled=true; contentTabs.classList.add('hidden'); opmlPreview.classList.add('hidden'); return; }
   ta.value=r.content; ta.disabled=false; btns(true);
-  const isOpml=['opml','xml'].includes(ext);
-  document.getElementById('structTreeBtn').disabled = !isOpml;
+  const extLower=ext.toLowerCase();
+  const isStruct=['opml','xml','json'].includes(extLower);
+  document.getElementById('structTreeBtn').disabled = !isStruct;
   hideTree();
-  if(isOpml){
+  if(isStruct){
     contentTabs.classList.remove('hidden');
     showCodeView();
     try{
-      const p=await (await api('opml_tree',{file:rel})).json();
-      if(p.ok) renderOpmlPreview(p.tree||[]); else opmlPreview.textContent=p.error||'OPML parse error.';
-    }catch{ opmlPreview.textContent='OPML load error.'; }
+      const endpoint=extLower==='json'?'json_tree':'opml_tree';
+      const p=await (await api(endpoint,{file:rel})).json();
+      if(p.ok) renderOpmlPreview(p.tree||[]); else opmlPreview.textContent=p.error||'Structure parse error.';
+    }catch{ opmlPreview.textContent='Structure load error.'; }
   }else{
     contentTabs.classList.add('hidden');
     opmlPreview.classList.add('hidden');
@@ -1427,11 +1529,12 @@ function hideChildren(id){
 }
 async function loadTree(expanded=null){
   try{
-    const r=await (await api('opml_tree',{file:currentFile})).json();
-    if(!r.ok){ treeWrap.textContent=r.error||'OPML parse error.'; return; }
+    const endpoint=currentFile.toLowerCase().endsWith('.json')?'json_tree':'opml_tree';
+    const r=await (await api(endpoint,{file:currentFile})).json();
+    if(!r.ok){ treeWrap.textContent=r.error||'Structure parse error.'; return; }
     renderTree(r.tree||[]);
     if(expanded) restoreExpanded(expanded);
-  }catch(e){ treeWrap.textContent='OPML load error.'; }
+  }catch(e){ treeWrap.textContent='Structure load error.'; }
 }
 function selectNode(id,title,note,links=[]){
   selectedId=id;
@@ -1450,7 +1553,8 @@ async function nodeOp(op,extra={},id=selectedId){
   const expanded=getExpanded();
   if(op==='add_child') expanded.add(id);
   const body=JSON.stringify({file:currentFile,op,id,...extra});
-  const r=await (await fetch(`?api=opml_node`,{method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body})).json();
+  const endpoint=currentFile.toLowerCase().endsWith('.json')?'json_node':'opml_node';
+  const r=await (await fetch(`?api=${endpoint}`,{method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body})).json();
   if(!r.ok){ modalInfo('Error',r.error||'node op failed'); return; }
   selectedId=r.id ?? id;
   await loadTree(expanded);
