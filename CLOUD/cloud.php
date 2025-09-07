@@ -91,9 +91,12 @@ function uuidv5($ns,$name){
 
 function cjsf_to_ark($items){
   $map=function($node) use (&$map){
-    $title=$node['title']??($node['metadata']['title']??($node['content']??''));
+    $title=$node['title']??($node['metadata']['title']??($node['content']??($node['note']??'')));
     $out=['t'=>$title, 'id'=>$node['id']??'', 'arkid'=>$node['id']??'', 'children'=>[]];
-    if(isset($node['content'])) $out['note']=$node['content'];
+    $note='';
+    if(array_key_exists('note',$node)) $note=$node['note'];
+    elseif(array_key_exists('content',$node) && (isset($node['title']) || isset($node['metadata']['title']))) $note=$node['content'];
+    if($note!=='') $out['note']=$note;
     if(!empty($node['links']) && is_array($node['links'])){
       $links=[];
       foreach($node['links'] as $l){
@@ -134,6 +137,48 @@ function cjsf_find_parent(&$items,$id,&$parent,&$index,&$parentItem=null){
     }
   }
   return false;
+}
+
+function json_get_root(&$doc,&$key){
+  if(isset($doc['root']) && is_array($doc['root'])){ $key='root'; return $doc['root']; }
+  if(isset($doc['items']) && is_array($doc['items'])){ $key='items'; return $doc['items']; }
+  if(is_array($doc)){ $key=null; return $doc; }
+  bad('Invalid document',422);
+}
+
+function json_get_title($node){
+  return $node['title'] ?? ($node['metadata']['title'] ?? ($node['content'] ?? ($node['note'] ?? '')));
+}
+function json_set_title(&$node,$title){
+  if(array_key_exists('title',$node)) $node['title']=$title;
+  elseif(isset($node['metadata']) && is_array($node['metadata']) && array_key_exists('title',$node['metadata'])) $node['metadata']['title']=$title;
+  elseif(array_key_exists('content',$node) && !array_key_exists('title',$node)) $node['content']=$title;
+  else $node['title']=$title;
+}
+function json_get_note($node){
+  if(array_key_exists('note',$node)) return $node['note'];
+  if(array_key_exists('content',$node) && (array_key_exists('title',$node) || (isset($node['metadata']['title'])))) return $node['content'];
+  return '';
+}
+function json_set_note(&$node,$note){
+  if(array_key_exists('note',$node)) $node['note']=$note;
+  elseif(array_key_exists('content',$node) && (array_key_exists('title',$node) || (isset($node['metadata']['title'])))) $node['content']=$note;
+  else $node['content']=$note;
+}
+function json_new_node_like($ref,$title,$now){
+  $n=['id'=>uuidv4(),'children'=>[]];
+  if(isset($ref['type'])) $n['type']=$ref['type'];
+  if(isset($ref['title'])) $n['title']=$title;
+  if(isset($ref['metadata']) && is_array($ref['metadata'])) $n['metadata']=['title'=>$title];
+  if(isset($ref['note'])) $n['note']='';
+  if(isset($ref['content'])){
+    if(isset($ref['title']) || (isset($ref['metadata']['title']))) $n['content']='';
+    else $n['content']=$title;
+  }
+  if(isset($ref['links'])) $n['links']=[];
+  if(isset($ref['created'])) $n['created']=$now;
+  if(isset($ref['modified'])) $n['modified']=$now;
+  return $n;
 }
 
 // ----- OPML helpers -----
@@ -485,8 +530,8 @@ if (isset($_GET['api'])) {
     if ($ext !== 'json') bad('Not JSON',415);
     $raw = @file_get_contents($fileAbs); if($raw===false) bad('Read error',500);
     $doc = json_decode($raw,true);
-    if(!isset($doc['root']) || !is_array($doc['root'])) bad('Invalid document',422);
-    j(['ok'=>true,'root'=>$doc['root']]);
+    $key=null; $root=json_get_root($doc,$key);
+    j(['ok'=>true,'root'=>$root]);
   }
 
   if ($action==='get_all_json_nodes') {
@@ -497,18 +542,18 @@ if (isset($_GET['api'])) {
     if ($ext !== 'json') bad('Not JSON',415);
     $raw = @file_get_contents($fileAbs); if($raw===false) bad('Read error',500);
     $doc = json_decode($raw,true);
-    if(!isset($doc['root']) || !is_array($doc['root'])) bad('Invalid document',422);
+    $key=null; $root=json_get_root($doc,$key);
     $nodes = [];
     $walk = function($items) use (&$walk,&$nodes){
       foreach($items as $it){
         if(!is_array($it)) continue;
         $id=$it['id'] ?? '';
-        $title=$it['title'] ?? '';
+        $title=json_get_title($it);
         if($id!=='') $nodes[]=['arkid'=>$id,'title'=>$title];
         if(!empty($it['children']) && is_array($it['children'])) $walk($it['children']);
       }
     };
-    $walk($doc['root']);
+    $walk($root);
     j(['ok'=>true,'nodes'=>$nodes]);
   }
 
@@ -663,32 +708,26 @@ if (isset($_GET['api'])) {
     if ($ext !== 'json') bad('Not JSON',415);
     $raw = @file_get_contents($fileAbs); if($raw===false) bad('Read error',500);
     $doc = json_decode($raw,true);
-    if(!is_array($doc) || (($doc['schemaVersion'] ?? '') !== '1.0.0')) bad('Invalid schema',422);
-    if(!isset($doc['root']) || !is_array($doc['root'])) $doc['root']=[];
+    $rootKey=null; $root=&json_get_root($doc,$rootKey);
     $now=gmdate('Y-m-d\TH:i:s\Z');
     $selId=$id;
     $parentList=$index=$parentItem=null;
     if(in_array($op,['add_sibling','delete','move'])){
-      if(!cjsf_find_parent($doc['root'],$id,$parentList,$index,$parentItem)) bad('Node not found',404);
+      if(!cjsf_find_parent($root,$id,$parentList,$index,$parentItem)) bad('Node not found',404);
       $item=&$parentList[$index];
     }else{
-      $item=null; if(!cjsf_find_item_ref($doc['root'],$id,$item)) bad('Node not found',404);
+      $item=null; if(!cjsf_find_item_ref($root,$id,$item)) bad('Node not found',404);
     }
     switch($op){
       case 'set_title': {
         $title=(string)($data['title'] ?? '');
-        $item['title']=$title;
-        if(!isset($item['metadata']) || !is_array($item['metadata'])) $item['metadata']=[];
-        $item['metadata']['title']=$title;
+        json_set_title($item,$title);
         $item['modified']=$now;
       } break;
       case 'add_child': {
         $title=trim($data['title'] ?? 'New');
-        $new=[
-          'id'=>uuidv4(), 'type'=>'note', 'title'=>$title, 'content'=>'',
-          'created'=>$now, 'modified'=>$now, 'metadata'=>['title'=>$title],
-          'links'=>[], 'children'=>[]
-        ];
+        $ref = (!empty($item['children']) && isset($item['children'][0]) && is_array($item['children'][0])) ? $item['children'][0] : $item;
+        $new=json_new_node_like($ref,$title,$now);
         if(!isset($item['children']) || !is_array($item['children'])) $item['children']=[];
         $item['children'][]=$new;
         $item['modified']=$now;
@@ -696,19 +735,15 @@ if (isset($_GET['api'])) {
       } break;
       case 'add_sibling': {
         $title=trim($data['title'] ?? 'New');
-        $new=[
-          'id'=>uuidv4(), 'type'=>'note', 'title'=>$title, 'content'=>'',
-          'created'=>$now, 'modified'=>$now, 'metadata'=>['title'=>$title],
-          'links'=>[], 'children'=>[]
-        ];
+        $new=json_new_node_like($item,$title,$now);
         array_splice($parentList,$index+1,0,[$new]);
         if($parentItem) $parentItem['modified']=$now;
         $selId=$new['id'];
       } break;
       case 'delete': {
         array_splice($parentList,$index,1);
-        if($parentItem){ $parentItem['modified']=$now; $selId=$parentItem['id'] ?? ($doc['root'][0]['id'] ?? null); }
-        else { $selId=$doc['root'][0]['id'] ?? null; }
+        if($parentItem){ $parentItem['modified']=$now; $selId=$parentItem['id'] ?? ($root[0]['id'] ?? null); }
+        else { $selId=$root[0]['id'] ?? null; }
       } break;
       case 'move': {
         $dir=$data['dir'] ?? '';
@@ -725,7 +760,7 @@ if (isset($_GET['api'])) {
           $prev['modified']=$now;
         }elseif($dir==='out' && $parentItem){
           $gpList=$gpIndex=$gpParent=null;
-          if(!cjsf_find_parent($doc['root'],$parentItem['id'],$gpList,$gpIndex,$gpParent)) bad('Cannot outdent root-level',400);
+          if(!cjsf_find_parent($root,$parentItem['id'],$gpList,$gpIndex,$gpParent)) bad('Cannot outdent root-level',400);
           $node=$parentList[$index];
           array_splice($parentList,$index,1);
           array_splice($gpList,$gpIndex+1,0,[$node]);
@@ -753,7 +788,8 @@ if (isset($_GET['api'])) {
       } break;
       default: bad('Unknown op',400);
     }
-    $ok=file_put_contents($fileAbs,json_encode($doc,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES))!==false;
+    $save = ($rootKey===null) ? $root : $doc;
+    $ok=file_put_contents($fileAbs,json_encode($save,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES))!==false;
     if(!$ok) bad('Write failed',500);
     j(['ok'=>true,'id'=>$selId]);
   }
@@ -997,10 +1033,30 @@ const sortMenu=document.getElementById('sort-menu');
 const contentPreview=document.getElementById('content-preview');
 const contentEditor=document.getElementById('content-editor');
 const editModeBtn=document.getElementById('edit-mode-btn');
-let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null;
+let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null, currentJsonRootKey=null;
 let fileSort={criterion:'name',direction:'asc'};
 let originalRootOrder=[];
 let saveContentTimer=null, saveTitleTimer=null;
+
+function getNodeTitle(node){
+  return node.title || (node.metadata&&node.metadata.title) || node.content || node.note || '';
+}
+function setNodeTitle(node,val){
+  if('title' in node) node.title=val;
+  else if(node.metadata && 'title' in node.metadata) node.metadata.title=val;
+  else if('content' in node && !('title' in node)) node.content=val;
+  else node.title=val;
+}
+function getNodeNote(node){
+  if('note' in node) return node.note;
+  if('content' in node && ('title' in node || (node.metadata&&'title' in node.metadata))) return node.content;
+  return '';
+}
+function setNodeNote(node,val){
+  if('note' in node) node.note=val;
+  else if('content' in node && ('title' in node || (node.metadata&&'title' in node.metadata))) node.content=val;
+  else node.content=val;
+}
 
 function findJsonNode(items,id){
   for(const it of items||[]){
@@ -1021,15 +1077,37 @@ function findJsonParent(items,id,parent=null){
   return null;
 }
 
+function newNodeLike(ref,title,now){
+  const n={id:crypto.randomUUID(),children:[]};
+  if('type' in ref) n.type=ref.type;
+  if('title' in ref) n.title=title;
+  if(ref.metadata) n.metadata={title};
+  if('note' in ref) n.note='';
+  if('content' in ref){
+    if('title' in ref || (ref.metadata&&ref.metadata.title!==undefined)) n.content='';
+    else n.content=title;
+  }
+  if('links' in ref) n.links=[];
+  if('created' in ref) n.created=now;
+  if('modified' in ref) n.modified=now;
+  return n;
+}
+
 async function saveCurrentJsonStructure(){
-  if(!currentFile || !currentFile.toLowerCase().endsWith('.json') || !currentJsonDoc) return;
-  currentJsonDoc.root=currentJsonRoot;
-  const body=JSON.stringify(currentJsonDoc,null,2);
+  if(!currentFile || !currentFile.toLowerCase().endsWith('.json')) return;
+  let body;
+  if(currentJsonRootKey===null){
+    body=JSON.stringify(currentJsonRoot,null,2);
+  }else{
+    if(!currentJsonDoc || typeof currentJsonDoc!=='object') currentJsonDoc={};
+    currentJsonDoc[currentJsonRootKey]=currentJsonRoot;
+    body=JSON.stringify(currentJsonDoc,null,2);
+  }
   try{
     await fetch(`?api=save_json_structure&path=${encodeURIComponent(currentFile)}`,{
       method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body
     });
-    ta.value=body;
+    if(ta) ta.value=body;
   }catch(e){console.error('save failed',e);}
 }
 function cjsf_to_ark(items){
@@ -1037,13 +1115,14 @@ function cjsf_to_ark(items){
     const out=[];
     for(const it of arr||[]){
       if(!it || typeof it!=='object') continue;
-      const title=it.title||(it.metadata&&it.metadata.title)||it.content||'•';
+      const title=it.title||(it.metadata&&it.metadata.title)||it.content||it.note||'•';
+      const note=('note' in it)? it.note : (('content' in it && (it.title||(it.metadata&&it.metadata.title)))? it.content : '');
       const n={
         t:title,
         id:it.id||'',
-        arkid:it.id||'',
-        note:it.content||''
+        arkid:it.id||''
       };
+      if(note) n.note=note;
       if(Array.isArray(it.links) && it.links.length){
         n.links=it.links.map(l=>({
           title:(l.metadata&&l.metadata.title)||'',
@@ -1065,7 +1144,7 @@ function getAllJsonNodes(){
   (function walk(arr){
     for(const it of arr||[]){
       if(!it || typeof it!=='object') continue;
-      out.push({id:it.id||'', title:(it.metadata&&it.metadata.title)||it.content||''});
+      out.push({id:it.id||'', title:getNodeTitle(it)});
       if(Array.isArray(it.children) && it.children.length) walk(it.children);
     }
   })(currentJsonRoot);
@@ -1102,7 +1181,7 @@ if(editModeBtn){
   editModeBtn.addEventListener('click',()=>{
     if(selectedId!==null){
       const node=findJsonNode(currentJsonRoot,selectedId);
-      contentEditor.value=node?node.content||'':'';
+      contentEditor.value=node?getNodeNote(node):'';
     }
     toggleContentMode('edit');
   });
@@ -1123,9 +1202,9 @@ if(contentEditor){
   contentEditor.addEventListener('input',()=>{
     const node=findJsonNode(currentJsonRoot,selectedId);
     if(node){
-      node.content=contentEditor.value;
+      setNodeNote(node,contentEditor.value);
       node.modified=new Date().toISOString();
-      if(contentPreview) contentPreview.innerHTML=node.content;
+      if(contentPreview) contentPreview.innerHTML=getNodeNote(node);
       renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
       clearTimeout(saveContentTimer);
       saveContentTimer=setTimeout(()=>saveCurrentJsonStructure(),500);
@@ -1156,14 +1235,7 @@ function renderOpmlPreview(nodes){
         const val=input.value;
         span.textContent=val;
         input.replaceWith(span);
-        const node=findJsonNode(currentJsonRoot,id); if(node){
-          node.title=val;
-          if(node.metadata && typeof node.metadata==='object') node.metadata.title=val;
-          else if(!node.metadata){
-            node.metadata = { title: val };
-          }
-          node.modified=new Date().toISOString();
-        }
+        const node=findJsonNode(currentJsonRoot,id); if(node){ setNodeTitle(node,val); node.modified=new Date().toISOString(); }
         saveCurrentJsonStructure();
       };
       input.addEventListener('blur',finish);
@@ -1180,7 +1252,7 @@ function renderOpmlPreview(nodes){
       textarea.focus();
       const finish=()=>{
         const val=textarea.value;
-        const node=findJsonNode(currentJsonRoot,id); if(node){ node.content=val; node.modified=new Date().toISOString(); }
+        const node=findJsonNode(currentJsonRoot,id); if(node){ setNodeNote(node,val); node.modified=new Date().toISOString(); }
         n.note=val;
         const newDiv=document.createElement('div');
         newDiv.className=div.className;
@@ -1580,13 +1652,18 @@ async function openFile(rel,name,size,mtime){
     try{
       const isJson=extLower==='json';
       if(isJson){
-        try{ currentJsonDoc=JSON.parse(r.content); currentJsonRoot=currentJsonDoc.root||[]; }
-        catch{ currentJsonDoc={schemaVersion:'1.0.0',id:'',metadata:{},root:[]}; currentJsonRoot=[]; }
-      } else { currentJsonDoc=null; }
+        try{
+          const parsed=JSON.parse(r.content);
+          if(Array.isArray(parsed)){ currentJsonDoc=null; currentJsonRoot=parsed; currentJsonRootKey=null; }
+          else if(Array.isArray(parsed.root)){ currentJsonDoc=parsed; currentJsonRoot=parsed.root; currentJsonRootKey='root'; }
+          else if(Array.isArray(parsed.items)){ currentJsonDoc=parsed; currentJsonRoot=parsed.items; currentJsonRootKey='items'; }
+          else { currentJsonDoc=parsed; currentJsonRoot=[]; currentJsonRootKey='root'; }
+        }catch{ currentJsonDoc=null; currentJsonRoot=[]; currentJsonRootKey=null; }
+      } else { currentJsonDoc=null; currentJsonRootKey=null; }
       const endpoint=isJson?'json_tree':'opml_tree';
       const p=await (await api(endpoint,{file:rel})).json();
       if(p.ok){
-        if(isJson) currentJsonRoot=p.root||currentJsonRoot;
+        if(isJson){ currentJsonRoot=p.root||currentJsonRoot; if(currentJsonDoc) currentJsonDoc[currentJsonRootKey]=currentJsonRoot; }
         const tree=isJson? cjsf_to_ark(currentJsonRoot) : (p.tree||[]);
         renderOpmlPreview(tree);
       }else opmlPreview.textContent=p.error||'Structure parse error.';
@@ -1768,17 +1845,8 @@ function addChild(id){
       const parent=findJsonNode(currentJsonRoot,id);
       if(!parent) return;
       const now=new Date().toISOString();
-      const newItem={
-        id:crypto.randomUUID(),
-        type:'note',
-        title:t,
-        content:'',
-        created:now,
-        modified:now,
-        metadata:{title:t},
-        links:[],
-        children:[]
-      };
+      const ref=(parent.children&&parent.children[0])?parent.children[0]:parent;
+      const newItem=newNodeLike(ref,t,now);
       parent.children=parent.children||[];
       parent.children.push(newItem);
       const expanded=getExpanded();
@@ -1786,7 +1854,7 @@ function addChild(id){
       await saveCurrentJsonStructure();
       renderTree(cjsf_to_ark(currentJsonRoot));
       restoreExpanded(expanded);
-      selectNode(newItem.id,t,'',[]);
+      selectNode(newItem.id,getNodeTitle(newItem),getNodeNote(newItem),newItem.links||[]);
     }else{
       nodeOp('add_child',{title:t},id);
     }
@@ -1800,17 +1868,8 @@ function addSibling(id){
       if(!info) return;
       const {parent,index,array}=info;
       const now=new Date().toISOString();
-      const newItem={
-        id:crypto.randomUUID(),
-        type:'note',
-        title:t,
-        content:'',
-        created:now,
-        modified:now,
-        metadata:{title:t},
-        links:[],
-        children:[]
-      };
+      const ref=array[index];
+      const newItem=newNodeLike(ref,t,now);
       const targetArray=parent?parent.children:currentJsonRoot;
       targetArray.splice(index+1,0,newItem);
       const expanded=getExpanded();
@@ -1818,7 +1877,7 @@ function addSibling(id){
       await saveCurrentJsonStructure();
       renderTree(cjsf_to_ark(currentJsonRoot));
       restoreExpanded(expanded);
-      selectNode(newItem.id,t,'',[]);
+      selectNode(newItem.id,getNodeTitle(newItem),getNodeNote(newItem),newItem.links||[]);
     }else{
       nodeOp('add_sibling',{title:t},id);
     }
@@ -1833,15 +1892,13 @@ function renameNode(id,oldTitle){
     if(currentFile.toLowerCase().endsWith('.json')){
       const node=findJsonNode(currentJsonRoot,renameTargetId);
       if(node){
-        node.title=t;
-        node.metadata=node.metadata||{};
-        node.metadata.title=t;
+        setNodeTitle(node,t);
         node.modified=new Date().toISOString();
         await saveCurrentJsonStructure();
         const expanded=getExpanded();
         renderTree(cjsf_to_ark(currentJsonRoot));
         restoreExpanded(expanded);
-        selectNode(node.id,node.metadata?.title||node.title,node.content,node.links||[]);
+        selectNode(node.id,getNodeTitle(node),getNodeNote(node),node.links||[]);
       }
     }else{
       nodeOp('set_title',{title:t},renameTargetId);
@@ -1992,6 +2049,7 @@ async function loadTree(expanded=null){
     if(isJson){
       currentJsonRoot=r.root||[];
       originalRootOrder=currentJsonRoot.slice();
+      if(currentJsonDoc) currentJsonDoc[currentJsonRootKey]=currentJsonRoot;
     }
     const tree=isJson? cjsf_to_ark(currentJsonRoot) : (r.tree||[]);
     renderTree(tree);
@@ -2008,7 +2066,7 @@ function selectNode(id,title,note,links=[]){
   if(contentTabs) contentTabs.classList.remove('hidden');
   const node=findJsonNode(currentJsonRoot,id);
   if(node && contentPreview){
-    contentPreview.innerHTML=node.content||'';
+    contentPreview.innerHTML=getNodeNote(node);
   }
   toggleContentMode('preview');
   renderLinks();
@@ -2025,7 +2083,8 @@ async function nodeOp(op,extra={},id=selectedId){
   selectedId=r.id ?? id;
   await loadTree(expanded);
   if(isJson){
-    currentJsonDoc.root=currentJsonRoot;
+    if(currentJsonRootKey===null) currentJsonDoc=null;
+    else if(currentJsonDoc) currentJsonDoc[currentJsonRootKey]=currentJsonRoot;
     renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
     await saveCurrentJsonStructure();
   }
@@ -2165,7 +2224,7 @@ async function openLinkModal(id, existing=null){
   }
   typeSel.onchange=refresh; await refresh();
   if(editing && existing.title) titleInput.value=existing.title;
-  modal({title: editing?'Edit Link':'Add Link', body:wrap, okText:editing?'Save Link':'Add Link', extra: editing?{text:'Delete Link', onClick:async()=>{ if(currentFile.toLowerCase().endsWith('.json')){ const node=findJsonNode(currentJsonRoot,id); if(node){ node.links=(node.links||[]).filter(l=>l.id!==existing.id); node.modified=new Date().toISOString(); await saveCurrentJsonStructure(); currentLinks=(node.links||[]).map(l=>({id:l.id||'',type:l.type||'',title:l.metadata?.title||'',target:l.target||'',direction:l.metadata?.direction||null})); const expanded=getExpanded(); renderTree(cjsf_to_ark(currentJsonRoot)); restoreExpanded(expanded); selectNode(id,node.metadata?.title||node.title,node.content,currentLinks); }} else { await nodeOp('delete_link',{target:existing.target},id); } }}:null, onOk:async()=>{
+  modal({title: editing?'Edit Link':'Add Link', body:wrap, okText:editing?'Save Link':'Add Link', extra: editing?{text:'Delete Link', onClick:async()=>{ if(currentFile.toLowerCase().endsWith('.json')){ const node=findJsonNode(currentJsonRoot,id); if(node){ node.links=(node.links||[]).filter(l=>l.id!==existing.id); node.modified=new Date().toISOString(); await saveCurrentJsonStructure(); currentLinks=(node.links||[]).map(l=>({id:l.id||'',type:l.type||'',title:l.metadata?.title||'',target:l.target||'',direction:l.metadata?.direction||null})); const expanded=getExpanded(); renderTree(cjsf_to_ark(currentJsonRoot)); restoreExpanded(expanded); selectNode(id,getNodeTitle(node),getNodeNote(node),currentLinks); }} else { await nodeOp('delete_link',{target:existing.target},id); } }}:null, onOk:async()=>{
     const selected=typeSel.value;
     const type=selected==='node'?'relation':selected;
     const target=targetInput ? targetInput.value.trim() : '';
@@ -2190,7 +2249,7 @@ async function openLinkModal(id, existing=null){
       const expanded=getExpanded();
       renderTree(cjsf_to_ark(currentJsonRoot));
       restoreExpanded(expanded);
-      selectNode(id,node.metadata?.title||node.title,node.content,currentLinks);
+      selectNode(id,getNodeTitle(node),getNodeNote(node),currentLinks);
     }else{
       const link={title,type,target,direction: existing?.direction || 'one-way'};
       if(editing) await nodeOp('delete_link',{target:existing.target},id);
