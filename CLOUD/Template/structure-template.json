@@ -1,0 +1,21 @@
+[
+  {
+    "id": "root-1",
+    "title": "Root Item",
+    "type": "folder",
+    "content": "Top-level item note.",
+    "links": [
+      { "type": "url", "target": "https://example.com", "title": "Example" }
+    ],
+    "children": [
+      {
+        "id": "child-1",
+        "title": "Child Item",
+        "type": "note",
+        "content": "Child note.",
+        "links": [],
+        "children": []
+      }
+    ]
+  }
+]
