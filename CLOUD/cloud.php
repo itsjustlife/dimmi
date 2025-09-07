@@ -248,11 +248,21 @@ if (isset($_GET['api'])) {
     $ext=strtolower(pathinfo($name,PATHINFO_EXTENSION));
     $content='';
     if($ext==='json'){
+      $now=gmdate('Y-m-d\TH:i:s\Z');
       $content=json_encode([
         'schemaVersion'=>'1.0.0',
         'id'=>uuidv4(),
         'metadata'=>['title'=>'New File Title'],
-        'root'=>[]
+        'root'=>[
+          [
+            'id'=>uuidv4(),
+            'type'=>'note',
+            'content'=>'This is your first item. Edit its content here.',
+            'created'=>$now,
+            'modified'=>$now,
+            'metadata'=>['title'=>'Root Item']
+          ]
+        ]
       ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
     }
     $ok=file_put_contents($dst,$content)!==false; audit('newfile',rel_of($dst),$ok); j(['ok'=>$ok]);
@@ -738,6 +748,18 @@ if (isset($_GET['api'])) {
     j(['ok'=>true,'id'=>$selId]);
   }
 
+  if ($action==='save_json_structure' && $method==='POST') {
+    $file = $_GET['path'] ?? '';
+    $fileAbs = safe_abs($file);
+    if ($fileAbs===false) bad('Bad path');
+    $ext = strtolower(pathinfo($fileAbs, PATHINFO_EXTENSION));
+    if ($ext !== 'json') bad('Not JSON',415);
+    $raw = file_get_contents('php://input');
+    $ok = file_put_contents($fileAbs,$raw)!==false;
+    if(!$ok) bad('Write failed',500);
+    j(['ok'=>true]);
+  }
+
   bad('Unknown action',404);
 }
 
@@ -947,7 +969,28 @@ const contentTabs=document.getElementById('contentTabs');
 const codeTab=document.getElementById('codeTab');
 const previewTab=document.getElementById('previewTab');
 const opmlPreview=document.getElementById('opmlPreview');
-let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[];
+let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null;
+
+function findJsonNode(items,id){
+  for(const it of items||[]){
+    if(it.id===id) return it;
+    const ch=findJsonNode(it.children||[],id);
+    if(ch) return ch;
+  }
+  return null;
+}
+
+async function saveCurrentJsonStructure(){
+  if(!currentFile || !currentFile.toLowerCase().endsWith('.json') || !currentJsonDoc) return;
+  currentJsonDoc.root=currentJsonRoot;
+  const body=JSON.stringify(currentJsonDoc,null,2);
+  try{
+    await fetch(`?api=save_json_structure&path=${encodeURIComponent(currentFile)}`,{
+      method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body
+    });
+    ta.value=body;
+  }catch(e){console.error('save failed',e);}
+}
 function cjsf_to_ark(items){
   function walk(arr){
     const out=[];
@@ -1035,10 +1078,54 @@ function mdLinks(str){
   return str.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
 }
 function renderOpmlPreview(nodes){
+  const jsonMode=currentFile.toLowerCase().endsWith('.json');
   const usedIds=new Set();
   function slug(str){
     const base=(str||'section').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')||'section';
     let id=base, i=1; while(usedIds.has(id)) id=base+'-'+(i++); usedIds.add(id); return id;
+  }
+  function makeTitleEditable(span,id){
+    span.addEventListener('click',e=>{
+      if(!jsonMode) return; e.stopPropagation();
+      const input=document.createElement('input');
+      input.type='text'; input.value=span.textContent;
+      span.replaceWith(input); input.focus();
+      const finish=()=>{
+        const val=input.value;
+        span.textContent=val;
+        input.replaceWith(span);
+        const node=findJsonNode(currentJsonRoot,id); if(node){
+          node.title=val;
+          if(node.metadata && typeof node.metadata==='object') node.metadata.title=val;
+          node.modified=new Date().toISOString();
+        }
+        saveCurrentJsonStructure();
+      };
+      input.addEventListener('blur',finish);
+      input.addEventListener('keydown',e=>{if(e.key==='Enter'){finish();}});
+    });
+  }
+  function makeNoteEditable(div,id,n){
+    div.addEventListener('click',()=>{
+      if(!jsonMode) return;
+      const textarea=document.createElement('textarea');
+      textarea.value=n.note||'';
+      textarea.className='w-full border rounded p-1 text-sm';
+      div.replaceWith(textarea);
+      textarea.focus();
+      const finish=()=>{
+        const val=textarea.value;
+        const node=findJsonNode(currentJsonRoot,id); if(node){ node.content=val; node.modified=new Date().toISOString(); }
+        n.note=val;
+        const newDiv=document.createElement('div');
+        newDiv.className=div.className;
+        newDiv.innerHTML=mdLinks(escapeHtml(val).replace(/\n/g,'<br>'));
+        makeNoteEditable(newDiv,id,n);
+        textarea.replaceWith(newDiv);
+        saveCurrentJsonStructure();
+      };
+      textarea.addEventListener('blur',finish);
+    });
   }
   function walk(arr,level){
     const ul=document.createElement('ul');
@@ -1053,6 +1140,7 @@ function renderOpmlPreview(nodes){
       titleSpan.textContent=n.t||'';
       if(level===0) titleSpan.className='font-bold text-lg';
       else if(level===1) titleSpan.className='font-semibold';
+      if(jsonMode) makeTitleEditable(titleSpan,n.id);
       if(n.children && n.children.length){
         const caret=document.createElement('span');
         caret.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-4 h-4 text-gray-500 transform transition-transform"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>';
@@ -1072,6 +1160,7 @@ function renderOpmlPreview(nodes){
           const note=document.createElement('div');
           note.className='ml-2 text-gray-600 text-sm';
           note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
+          if(jsonMode) makeNoteEditable(note,n.id,n);
           li.appendChild(note);
         }
         if(n.links && n.links.length){
@@ -1095,6 +1184,7 @@ function renderOpmlPreview(nodes){
           const note=document.createElement('div');
           note.className='ml-2 text-gray-600 text-sm';
           note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
+          if(jsonMode) makeNoteEditable(note,n.id,n);
           li.appendChild(note);
         }
         if(n.links && n.links.length){
@@ -1416,10 +1506,15 @@ async function openFile(rel,name,size,mtime){
     showCodeView();
     try{
       const isJson=extLower==='json';
+      if(isJson){
+        try{ currentJsonDoc=JSON.parse(r.content); currentJsonRoot=currentJsonDoc.root||[]; }
+        catch{ currentJsonDoc={schemaVersion:'1.0.0',id:'',metadata:{},root:[]}; currentJsonRoot=[]; }
+      } else { currentJsonDoc=null; }
       const endpoint=isJson?'json_tree':'opml_tree';
       const p=await (await api(endpoint,{file:rel})).json();
       if(p.ok){
-        const tree=isJson? cjsf_to_ark(p.root||[]) : (p.tree||[]);
+        if(isJson) currentJsonRoot=p.root||currentJsonRoot;
+        const tree=isJson? cjsf_to_ark(currentJsonRoot) : (p.tree||[]);
         renderOpmlPreview(tree);
       }else opmlPreview.textContent=p.error||'Structure parse error.';
     }catch{ opmlPreview.textContent='Structure load error.'; }
@@ -1743,6 +1838,11 @@ async function nodeOp(op,extra={},id=selectedId){
   if(!r.ok){ modalInfo('Error',r.error||'node op failed'); return; }
   selectedId=r.id ?? id;
   await loadTree(expanded);
+  if(isJson){
+    currentJsonDoc.root=currentJsonRoot;
+    renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
+    await saveCurrentJsonStructure();
+  }
   const sel=treeWrap.querySelector(`div[data-id="${selectedId}"]`);
   if(sel){ sel.scrollIntoView({block:'nearest'}); }
   const n=nodeMap[selectedId];
