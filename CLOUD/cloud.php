@@ -868,6 +868,7 @@ if (isset($_GET['api'])) {
         <div class="ml-auto flex gap-2">
           <button id="structListBtn" type="button" class="px-2 py-1 text-sm border rounded">List</button>
           <button id="structTreeBtn" type="button" class="px-2 py-1 text-sm border rounded" title="Show OPML ARK" disabled>ARK</button>
+          <button id="sort-btn" class="icon-sort hidden px-2 py-1 text-sm border rounded" title="Sort"></button>
         </div>
         <button class="ml-2 md:hidden" onclick="toggleSection('structBody', this)">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
@@ -893,6 +894,7 @@ if (isset($_GET['api'])) {
         <div id="contentTabs" class="hidden flex gap-2">
           <button id="codeTab" class="px-2 py-1 text-sm border rounded bg-gray-200">Code</button>
           <button id="previewTab" class="px-2 py-1 text-sm border rounded">Preview</button>
+          <button id="edit-mode-btn" class="px-2 py-1 text-sm border rounded">Edit</button>
         </div>
         <div class="ml-auto flex gap-2 flex-wrap">
           <button onclick="downloadFile()" id="downloadBtn" disabled class="p-2 rounded text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Download">
@@ -918,6 +920,8 @@ if (isset($_GET['api'])) {
         </div>
         <div id="imgPreviewWrap" class="hidden flex-1 overflow-auto items-center justify-center min-h-[16rem]"><img id="imgPreview" class="max-w-full" /></div>
         <div id="opmlPreview" class="p-4 flex-1 overflow-auto hidden"></div>
+        <div id="content-preview" class="p-4 flex-1 overflow-auto hidden"></div>
+        <textarea id="content-editor" class="p-4 flex-1 overflow-auto hidden"></textarea>
         <textarea id="ta" class="flex-1 w-full p-4 resize-none border-0 outline-none overflow-auto min-h-[16rem]" placeholder="Open a text file…" disabled></textarea>
         <div id="linkList" class="hidden border-t p-2 flex flex-wrap text-sm"></div>
       </div>
@@ -969,7 +973,14 @@ const contentTabs=document.getElementById('contentTabs');
 const codeTab=document.getElementById('codeTab');
 const previewTab=document.getElementById('previewTab');
 const opmlPreview=document.getElementById('opmlPreview');
+const sortBtn=document.getElementById('sort-btn');
+const contentPreview=document.getElementById('content-preview');
+const contentEditor=document.getElementById('content-editor');
+const editModeBtn=document.getElementById('edit-mode-btn');
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null;
+let sortState={criteria:'title',direction:'asc'};
+let originalRootOrder=[];
+let saveContentTimer=null;
 
 function findJsonNode(items,id){
   for(const it of items||[]){
@@ -1064,21 +1075,37 @@ if(listBtn && treeBtn){
 }
 
 if(codeTab && previewTab){
-  codeTab.addEventListener('click', showCodeView);
-  previewTab.addEventListener('click', showPreviewView);
+  codeTab.addEventListener('click',()=>toggleContentMode('code'));
+  previewTab.addEventListener('click',()=>toggleContentMode('preview'));
+}
+if(editModeBtn){
+  editModeBtn.addEventListener('click',()=>{
+    if(selectedId!==null){
+      const node=findJsonNode(currentJsonRoot,selectedId);
+      contentEditor.value=node?node.content||'':'';
+    }
+    toggleContentMode('edit');
+  });
 }
 
-function showCodeView(){
-  codeTab.classList.add('bg-gray-200');
-  previewTab.classList.remove('bg-gray-200');
-  ta.classList.remove('hidden');
-  opmlPreview.classList.add('hidden');
+function toggleContentMode(mode){
+  const modes={preview:contentPreview, code:ta, edit:contentEditor};
+  Object.entries(modes).forEach(([k,el])=>{ if(el) el.style.display=(k===mode)?'':'none'; });
+  if(codeTab) codeTab.classList.toggle('bg-gray-200',mode==='code');
+  if(previewTab) previewTab.classList.toggle('bg-gray-200',mode==='preview');
+  if(editModeBtn) editModeBtn.classList.toggle('bg-gray-200',mode==='edit');
 }
-function showPreviewView(){
-  previewTab.classList.add('bg-gray-200');
-  codeTab.classList.remove('bg-gray-200');
-  ta.classList.add('hidden');
-  opmlPreview.classList.remove('hidden');
+if(contentEditor){
+  contentEditor.addEventListener('input',()=>{
+    const node=findJsonNode(currentJsonRoot,selectedId);
+    if(node){
+      node.content=contentEditor.value;
+      node.modified=new Date().toISOString();
+      if(contentPreview) contentPreview.innerHTML=node.content;
+      clearTimeout(saveContentTimer);
+      saveContentTimer=setTimeout(()=>saveCurrentJsonStructure(),500);
+    }
+  });
 }
 
 function escapeHtml(str){
@@ -1761,18 +1788,75 @@ function addSibling(id){
   });
 }
 function deleteNode(id){ modalConfirm('Delete node','Delete this node?',ok=>{ if(ok) nodeOp('delete',{},id); }); }
-function renameNode(id,oldTitle){ modalPrompt('Rename node',oldTitle,t=>{ if(t!==null) nodeOp('set_title',{title:t},id); }); }
+let renameTargetId=null;
+function renameNode(id,oldTitle){
+  renameTargetId=id;
+  modalPrompt('Rename node',oldTitle,async t=>{
+    if(t===null) return;
+    if(currentFile.toLowerCase().endsWith('.json')){
+      const node=findJsonNode(currentJsonRoot,renameTargetId);
+      if(node){
+        node.title=t;
+        node.metadata=node.metadata||{};
+        node.metadata.title=t;
+        node.modified=new Date().toISOString();
+        await saveCurrentJsonStructure();
+        const expanded=getExpanded();
+        renderTree(cjsf_to_ark(currentJsonRoot));
+        restoreExpanded(expanded);
+        selectNode(node.id,node.metadata?.title||node.title,node.content,node.links||[]);
+      }
+    }else{
+      nodeOp('set_title',{title:t},renameTargetId);
+    }
+  });
+}
 function hideTree(){
   treeWrap.classList.add('hidden');
   fileList.classList.remove('hidden');
   selectedId=null;
   currentOutlinePath='';
+  if(sortBtn) sortBtn.classList.remove('hidden');
 }
 function showTree(){
   if(!currentFile) return;
   treeWrap.classList.remove('hidden');
   fileList.classList.add('hidden');
+  if(sortBtn) sortBtn.classList.add('hidden');
   loadTree();
+}
+if(sortBtn){
+  sortBtn.addEventListener('click',()=>{
+    if(sortState.direction==='asc'){
+      sortState.direction='desc';
+    }else{
+      sortState.direction='asc';
+      const order=['title','modified','default'];
+      const idx=order.indexOf(sortState.criteria);
+      sortState.criteria=order[(idx+1)%order.length];
+    }
+    performSort();
+  });
+}
+function performSort(){
+  if(!Array.isArray(currentJsonRoot)) return;
+  if(sortState.criteria==='default'){
+    currentJsonRoot=[...originalRootOrder];
+  }else{
+    currentJsonRoot.sort((a,b)=>{
+      let cmp=0;
+      if(sortState.criteria==='title') cmp=a.title.localeCompare(b.title);
+      else if(sortState.criteria==='modified') cmp=new Date(a.modified)-new Date(b.modified);
+      return sortState.direction==='asc'?cmp:-cmp;
+    });
+  }
+  const expanded=getExpanded();
+  renderTree(cjsf_to_ark(currentJsonRoot));
+  restoreExpanded(expanded);
+  if(sortBtn){
+    sortBtn.classList.toggle('asc',sortState.direction==='asc');
+    sortBtn.classList.toggle('desc',sortState.direction==='desc');
+  }
 }
 function renderTree(nodes){
   nodeMap={}; arkMap={};
@@ -1883,7 +1967,10 @@ async function loadTree(expanded=null){
     const endpoint=isJson?'json_tree':'opml_tree';
     const r=await (await api(endpoint,{file:currentFile})).json();
     if(!r.ok){ treeWrap.textContent=r.error||'Structure parse error.'; return; }
-    if(isJson){ currentJsonRoot=r.root||[]; }
+    if(isJson){
+      currentJsonRoot=r.root||[];
+      originalRootOrder=currentJsonRoot.slice();
+    }
     const tree=isJson? cjsf_to_ark(currentJsonRoot) : (r.tree||[]);
     renderTree(tree);
     if(expanded) restoreExpanded(expanded);
@@ -1896,6 +1983,12 @@ function selectNode(id,title,note,links=[]){
   const titleInput=document.getElementById('nodeTitle');
   titleInput.value=title||'';
   titleRow.classList.remove('hidden');
+  if(contentTabs) contentTabs.classList.remove('hidden');
+  const node=findJsonNode(currentJsonRoot,id);
+  if(node && contentPreview){
+    contentPreview.innerHTML=node.content||'';
+  }
+  toggleContentMode('preview');
   renderLinks();
 }
 async function nodeOp(op,extra={},id=selectedId){
