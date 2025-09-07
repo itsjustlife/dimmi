@@ -1648,7 +1648,10 @@ async function openFile(rel,name,size,mtime){
     contentTabs.classList.remove('hidden');
     opmlPreview.classList.remove('hidden');
     contentPreview.classList.add('hidden');
-    showCodeView();
+    // Default to showing the raw code when a structured file is opened
+    // This replaces the old showCodeView() call which wasn't defined here
+    // and was causing the script to stop before the preview was rendered.
+    toggleContentMode('code');
     try{
       const isJson=extLower==='json';
       if(isJson){
@@ -1883,7 +1886,31 @@ function addSibling(id){
     }
   });
 }
-function deleteNode(id){ modalConfirm('Delete node','Delete this node?',ok=>{ if(ok) nodeOp('delete',{},id); }); }
+// Remove a node from the current structure. For JSON documents we update the
+// in-memory tree and save immediately. For other formats fall back to the
+// existing nodeOp API.
+function deleteNode(id){
+  modalConfirm('Delete node','Delete this node?',async ok=>{
+    if(!ok) return;
+    if(currentFile.toLowerCase().endsWith('.json')){
+      const info=findJsonParent(currentJsonRoot,id);
+      if(!info) return;
+      const {parent,index}=info;
+      const targetArray=parent?parent.children:currentJsonRoot;
+      targetArray.splice(index,1);
+      await saveCurrentJsonStructure();
+      const expanded=getExpanded();
+      renderTree(cjsf_to_ark(currentJsonRoot));
+      restoreExpanded(expanded);
+      selectedId=null;
+      document.getElementById('nodeTitleRow').classList.add('hidden');
+      if(contentPreview) contentPreview.innerHTML='';
+      renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
+    }else{
+      nodeOp('delete',{},id);
+    }
+  });
+}
 let renameTargetId=null;
 function renameNode(id,oldTitle){
   renameTargetId=id;
