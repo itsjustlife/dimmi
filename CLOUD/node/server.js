@@ -139,11 +139,19 @@ app.post('/api/newfile', async (req,res)=>{
   try{
     let content='';
     if(name.toLowerCase().endsWith('.json')){
+      const now=new Date().toISOString();
       content=JSON.stringify({
         schemaVersion:'1.0.0',
         id:crypto.randomUUID(),
         metadata:{title:'New File Title'},
-        root:[]
+        root:[{
+          id:crypto.randomUUID(),
+          type:'note',
+          content:'This is your first item. Edit its content here.',
+          created:now,
+          modified:now,
+          metadata:{title:'Root Item'}
+        }]
       }, null, 2);
     }
     await fsp.writeFile(abs,content);
