@@ -10,15 +10,30 @@
         height: 100vh;
         margin: 0;
       }
+      #treePane {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      #treeHeader {
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+      }
       #tree {
         flex: 1;
         overflow: auto;
         padding: 10px;
+        user-select: none;
       }
       #controls {
-        width: 200px;
+        width: 300px;
         border-left: 1px solid #ccc;
         padding: 10px;
+        box-sizing: border-box;
+      }
+      #controls textarea {
+        width: 100%;
+        height: 200px;
         box-sizing: border-box;
       }
       .selected {
@@ -26,22 +41,39 @@
       }
       li {
         cursor: pointer;
+        user-select: none;
+      }
+      li.collapsed > ul {
+        display: none;
       }
     </style>
   </head>
   <body>
-    <div id="tree"></div>
+    <div id="treePane">
+      <div id="treeHeader">
+        <input type="file" id="fileInput" />
+        <select id="sortSelect">
+          <option value="az">Title A-Z</option>
+          <option value="za">Title Z-A</option>
+          <option value="mod">Date Modified</option>
+        </select>
+      </div>
+      <div id="tree"></div>
+    </div>
     <div id="controls">
-      <input type="file" id="fileInput" /><br /><br />
       <button id="addChild">Add Child</button>
       <button id="addSibling">Add Sibling</button><br /><br />
       <button id="expandAll">Expand All</button>
       <button id="collapseAll">Collapse All</button><br /><br />
       <button id="save">Save OPML</button>
+      <h3>Node Editor</h3>
+      <input id="nodeTitle" placeholder="Title" /><br />
+      <textarea id="nodeContent" placeholder="Content"></textarea>
     </div>
     <script>
       let opmlDoc = null;
       let selectedLi = null;
+      let sortCriteria = "az";
 
       document.getElementById("fileInput").addEventListener("change", (e) => {
         const file = e.target.files[0];
@@ -50,10 +82,21 @@
         reader.onload = () => {
           const parser = new DOMParser();
           opmlDoc = parser.parseFromString(reader.result, "text/xml");
+          autoSave();
           renderTree();
         };
         reader.readAsText(file);
       });
+
+      function autoSave() {
+        if (!opmlDoc) return;
+        try {
+          const serializer = new XMLSerializer();
+          localStorage.setItem("arkData", serializer.serializeToString(opmlDoc));
+        } catch (err) {
+          console.error("Auto-save failed", err);
+        }
+      }
 
       function renderTree() {
         const body = opmlDoc.querySelector("body");
@@ -75,6 +118,12 @@
           if (selectedLi) selectedLi.classList.remove("selected");
           selectedLi = li;
           li.classList.add("selected");
+          showEditor(outline);
+        };
+        li.ondblclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          li.classList.toggle("collapsed");
         };
         const children = outline.children;
         if (children.length) {
@@ -103,6 +152,28 @@
         ).singleNodeValue;
       }
 
+      function showEditor(outline) {
+        const titleInput = document.getElementById("nodeTitle");
+        const contentInput = document.getElementById("nodeContent");
+        titleInput.value = outline.getAttribute("text") || "";
+        contentInput.value = outline.getAttribute("_note") || "";
+        titleInput.oninput = () => {
+          outline.setAttribute("text", titleInput.value);
+          outline.setAttribute("_modified", Date.now());
+          selectedLi.textContent = titleInput.value || "Untitled";
+          autoSave();
+        };
+        contentInput.oninput = () => {
+          if (contentInput.value) {
+            outline.setAttribute("_note", contentInput.value);
+          } else {
+            outline.removeAttribute("_note");
+          }
+          outline.setAttribute("_modified", Date.now());
+          autoSave();
+        };
+      }
+
       function promptNode() {
         const text = prompt("Node title?");
         if (text === null) return null;
@@ -110,6 +181,7 @@
         const el = opmlDoc.createElement("outline");
         el.setAttribute("text", text || "Untitled");
         if (note) el.setAttribute("_note", note);
+        el.setAttribute("_modified", Date.now());
         return el;
       }
 
@@ -122,7 +194,8 @@
         const newNode = promptNode();
         if (!newNode) return;
         outline.appendChild(newNode);
-        renderTree();
+        autoSave();
+        sortTree();
       }
 
       function addSibling() {
@@ -135,12 +208,14 @@
         const newNode = promptNode();
         if (!newNode) return;
         parent.insertBefore(newNode, outline.nextSibling);
-        renderTree();
+        autoSave();
+        sortTree();
       }
 
       function expandCollapseAll(expand) {
-        document.querySelectorAll("#tree ul").forEach((ul) => {
-          ul.style.display = expand ? "block" : "none";
+        document.querySelectorAll("#tree li").forEach((li) => {
+          if (expand) li.classList.remove("collapsed");
+          else li.classList.add("collapsed");
         });
       }
 
@@ -155,13 +230,53 @@
         URL.revokeObjectURL(a.href);
       }
 
+      function sortOutlines(node) {
+        const children = Array.from(node.children).filter(
+          (c) => c.nodeName === "outline",
+        );
+        children.sort((a, b) => {
+          if (sortCriteria === "az")
+            return (a.getAttribute("text") || "").localeCompare(
+              b.getAttribute("text") || "",
+            );
+          if (sortCriteria === "za")
+            return (b.getAttribute("text") || "").localeCompare(
+              a.getAttribute("text") || "",
+            );
+          if (sortCriteria === "mod")
+            return (
+              (b.getAttribute("_modified") || 0) -
+              (a.getAttribute("_modified") || 0)
+            );
+          return 0;
+        });
+        children.forEach((c) => node.appendChild(c));
+        children.forEach((c) => sortOutlines(c));
+      }
+
+      function sortTree() {
+        if (!opmlDoc) return;
+        const body = opmlDoc.querySelector("body");
+        sortOutlines(body);
+        renderTree();
+      }
+
       document.getElementById("addChild").onclick = addChild;
       document.getElementById("addSibling").onclick = addSibling;
-      document.getElementById("expandAll").onclick = () =>
-        expandCollapseAll(true);
-      document.getElementById("collapseAll").onclick = () =>
-        expandCollapseAll(false);
+      document.getElementById("expandAll").onclick = () => expandCollapseAll(true);
+      document.getElementById("collapseAll").onclick = () => expandCollapseAll(false);
       document.getElementById("save").onclick = save;
+      document.getElementById("sortSelect").onchange = (e) => {
+        sortCriteria = e.target.value;
+        sortTree();
+      };
+
+      const saved = localStorage.getItem("arkData");
+      if (saved) {
+        const parser = new DOMParser();
+        opmlDoc = parser.parseFromString(saved, "text/xml");
+        renderTree();
+      }
     </script>
   </body>
 </html>
