@@ -91,7 +91,7 @@ function uuidv5($ns,$name){
 
 function cjsf_to_ark($items){
   $map=function($node) use (&$map){
-    $title=$node['metadata']['title']??($node['content']??'');
+    $title=$node['title']??($node['metadata']['title']??($node['content']??''));
     $out=['t'=>$title, 'id'=>$node['id']??'', 'arkid'=>$node['id']??'', 'children'=>[]];
     if(isset($node['content'])) $out['note']=$node['content'];
     if(!empty($node['links']) && is_array($node['links'])){
@@ -678,11 +678,17 @@ if (isset($_GET['api'])) {
       case 'set_title': {
         $title=(string)($data['title'] ?? '');
         $item['title']=$title;
+        if(!isset($item['metadata']) || !is_array($item['metadata'])) $item['metadata']=[];
+        $item['metadata']['title']=$title;
         $item['modified']=$now;
       } break;
       case 'add_child': {
         $title=trim($data['title'] ?? 'New');
-        $new=[ 'id'=>uuidv4(), 'title'=>$title!==''?$title:'New', 'children'=>[], 'created'=>$now, 'modified'=>$now ];
+        $new=[
+          'id'=>uuidv4(), 'type'=>'note', 'title'=>$title, 'content'=>'',
+          'created'=>$now, 'modified'=>$now, 'metadata'=>['title'=>$title],
+          'links'=>[], 'children'=>[]
+        ];
         if(!isset($item['children']) || !is_array($item['children'])) $item['children']=[];
         $item['children'][]=$new;
         $item['modified']=$now;
@@ -690,7 +696,11 @@ if (isset($_GET['api'])) {
       } break;
       case 'add_sibling': {
         $title=trim($data['title'] ?? 'New');
-        $new=[ 'id'=>uuidv4(), 'title'=>$title!==''?$title:'New', 'children'=>[], 'created'=>$now, 'modified'=>$now ];
+        $new=[
+          'id'=>uuidv4(), 'type'=>'note', 'title'=>$title, 'content'=>'',
+          'created'=>$now, 'modified'=>$now, 'metadata'=>['title'=>$title],
+          'links'=>[], 'children'=>[]
+        ];
         array_splice($parentList,$index+1,0,[$new]);
         if($parentItem) $parentItem['modified']=$now;
         $selId=$new['id'];
@@ -1027,7 +1037,7 @@ function cjsf_to_ark(items){
     const out=[];
     for(const it of arr||[]){
       if(!it || typeof it!=='object') continue;
-      const title=(it.metadata&&it.metadata.title)||it.content||'•';
+      const title=it.title||(it.metadata&&it.metadata.title)||it.content||'•';
       const n={
         t:title,
         id:it.id||'',
@@ -1149,6 +1159,9 @@ function renderOpmlPreview(nodes){
         const node=findJsonNode(currentJsonRoot,id); if(node){
           node.title=val;
           if(node.metadata && typeof node.metadata==='object') node.metadata.title=val;
+          else if(!node.metadata){
+            node.metadata = { title: val };
+          }
           node.modified=new Date().toISOString();
         }
         saveCurrentJsonStructure();
