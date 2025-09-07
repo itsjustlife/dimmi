@@ -465,8 +465,30 @@ if (isset($_GET['api'])) {
     $raw = @file_get_contents($fileAbs); if($raw===false) bad('Read error',500);
     $doc = json_decode($raw,true);
     if(!isset($doc['root']) || !is_array($doc['root'])) bad('Invalid document',422);
-    $tree = cjsf_to_ark($doc['root']);
-    j(['ok'=>true,'tree'=>$tree]);
+    j(['ok'=>true,'root'=>$doc['root']]);
+  }
+
+  if ($action==='get_all_json_nodes') {
+    $file = $_GET['file'] ?? '';
+    $fileAbs = safe_abs($file);
+    if ($fileAbs===false || !is_file($fileAbs)) bad('Bad file');
+    $ext = strtolower(pathinfo($fileAbs, PATHINFO_EXTENSION));
+    if ($ext !== 'json') bad('Not JSON',415);
+    $raw = @file_get_contents($fileAbs); if($raw===false) bad('Read error',500);
+    $doc = json_decode($raw,true);
+    if(!isset($doc['root']) || !is_array($doc['root'])) bad('Invalid document',422);
+    $nodes = [];
+    $walk = function($items) use (&$walk,&$nodes){
+      foreach($items as $it){
+        if(!is_array($it)) continue;
+        $id=$it['id'] ?? '';
+        $title=$it['title'] ?? '';
+        if($id!=='') $nodes[]=['arkid'=>$id,'title'=>$title];
+        if(!empty($it['children']) && is_array($it['children'])) $walk($it['children']);
+      }
+    };
+    $walk($doc['root']);
+    j(['ok'=>true,'nodes'=>$nodes]);
   }
 
   if ($action==='get_all_nodes') {
@@ -915,6 +937,26 @@ const codeTab=document.getElementById('codeTab');
 const previewTab=document.getElementById('previewTab');
 const opmlPreview=document.getElementById('opmlPreview');
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[];
+function cjsf_to_ark(items){
+  function walk(arr){
+    const out=[];
+    for(const it of arr||[]){
+      if(!it || typeof it!=='object') continue;
+      const n={
+        t: it.title || '•',
+        id: it.id || '',
+        arkid: it.id || '',
+        note: it.content || ''
+      };
+      if(Array.isArray(it.links) && it.links.length) n.links=it.links;
+      if(Array.isArray(it.children) && it.children.length) n.children=walk(it.children);
+      else n.children=[];
+      out.push(n);
+    }
+    return out;
+  }
+  return walk(items);
+}
 const settingsBtn=document.getElementById('settingsBtn');
 const settingsMenu=document.getElementById('settingsMenu');
 if(settingsBtn && settingsMenu){
@@ -1341,9 +1383,13 @@ async function openFile(rel,name,size,mtime){
     contentTabs.classList.remove('hidden');
     showCodeView();
     try{
-      const endpoint=extLower==='json'?'json_tree':'opml_tree';
+      const isJson=extLower==='json';
+      const endpoint=isJson?'json_tree':'opml_tree';
       const p=await (await api(endpoint,{file:rel})).json();
-      if(p.ok) renderOpmlPreview(p.tree||[]); else opmlPreview.textContent=p.error||'Structure parse error.';
+      if(p.ok){
+        const tree=isJson? cjsf_to_ark(p.root||[]) : (p.tree||[]);
+        renderOpmlPreview(tree);
+      }else opmlPreview.textContent=p.error||'Structure parse error.';
     }catch{ opmlPreview.textContent='Structure load error.'; }
   }else{
     contentTabs.classList.add('hidden');
@@ -1634,10 +1680,12 @@ function hideChildren(id){
 }
 async function loadTree(expanded=null){
   try{
-    const endpoint=currentFile.toLowerCase().endsWith('.json')?'json_tree':'opml_tree';
+    const isJson=currentFile.toLowerCase().endsWith('.json');
+    const endpoint=isJson?'json_tree':'opml_tree';
     const r=await (await api(endpoint,{file:currentFile})).json();
     if(!r.ok){ treeWrap.textContent=r.error||'Structure parse error.'; return; }
-    renderTree(r.tree||[]);
+    const tree=isJson? cjsf_to_ark(r.root||[]) : (r.tree||[]);
+    renderTree(tree);
     if(expanded) restoreExpanded(expanded);
   }catch(e){ treeWrap.textContent='Structure load error.'; }
 }
@@ -1761,7 +1809,8 @@ async function openLinkModal(id, existing=null){
     const type=typeSel.value;
     if(type==='node'){
       const sel=document.createElement('select'); sel.className='w-full border rounded px-2 py-1';
-      const r=await (await api('get_all_nodes',{file:currentFile})).json();
+      const endpoint=currentFile.toLowerCase().endsWith('.json')?'get_all_json_nodes':'get_all_nodes';
+      const r=await (await api(endpoint,{file:currentFile})).json();
       if(r.ok){ r.nodes.forEach(n=>{ const o=document.createElement('option'); o.value=n.arkid; o.textContent=n.title; sel.appendChild(o); }); }
       sel.onchange=()=>{ titleInput.value=sel.options[sel.selectedIndex]?.textContent || ''; };
       targetDiv.appendChild(sel); targetInput=sel;
