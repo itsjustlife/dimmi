@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "doc-uuid-macro-0001",
+  "metadata": {
+    "title": "Macro Example"
+  },
+  "root": [
+    {
+      "id": "item-uuid-macro-1",
+      "title": "Run Script",
+      "type": "macro",
+      "content": "Example macro that runs a script.",
+      "created": "2025-09-07T14:00:00Z",
+      "modified": "2025-09-07T14:00:00Z",
+      "metadata": {
+        "params": {
+          "script": "deploy.sh"
+        }
+      },
+      "links": [
+        {
+          "id": "link-uuid-action-1",
+          "type": "action",
+          "target": "shell:./scripts/deploy.sh"
+        }
+      ],
+      "children": []
+    }
+  ]
+}
