@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkhiver/schema/cjsf-1.0.0.json",
+  "title": "Canonical JSON Structure File (CJSF) v1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "root"],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "1.0.0" },
+    "id": { "type": "string", "format": "uuid" },
+    "metadata": { "type": "object", "additionalProperties": true },
+    "root": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/item" }
+    }
+  },
+  "$defs": {
+    "link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "target"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": {
+          "type": "string",
+          "enum": ["relation", "url", "file", "folder", "action"]
+        },
+        "target": { "type": "string", "minLength": 1 },
+        "metadata": { "type": "object", "additionalProperties": true }
+      }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "type", "created", "modified", "children"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "title": { "type": "string" },
+        "type": { "type": "string", "minLength": 1 },
+        "content": { "type": "string" },
+        "created": { "type": "string", "format": "date-time" },
+        "modified": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object", "additionalProperties": true },
+        "links": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/link" }
+        },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/item" }
+        }
+      }
+    }
+  }
+}

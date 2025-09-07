@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "doc-uuid-1111-2222-333333333333",
+  "metadata": {
+    "title": "Project Phoenix Plan",
+    "author": "D"
+  },
+  "root": [
+    {
+      "id": "item-uuid-aaaa-bbbb-cccccccccccc",
+      "title": "Overview",
+      "type": "folder",
+      "content": "Top-level section about architecture.\nUse this to outline phases.",
+      "created": "2025-09-06T18:00:00Z",
+      "modified": "2025-09-06T18:40:00Z",
+      "metadata": {
+        "tags": ["plan", "phase1"],
+        "aliases": ["Project Overview"]
+      },
+      "links": [
+        {
+          "id": "link-uuid-1111-aaaa-000000000001",
+          "type": "url",
+          "target": "https://example.com/spec",
+          "metadata": {
+            "title": "Spec",
+            "direction": "one-way"
+          }
+        },
+        {
+          "id": "link-uuid-1111-aaaa-000000000002",
+          "type": "relation",
+          "target": "item-uuid-gggg-hhhh-iiiiiiiiiiii",
+          "metadata": {
+            "relation": "depends_on",
+            "direction": "one-way",
+            "target_type": "node"
+          }
+        }
+      ],
+      "children": [
+        {
+          "id": "item-uuid-dddd-eeee-ffffffffffff",
+          "title": "Sprint 1 Notes",
+          "type": "note",
+          "content": "Notes for sprint 1. See [Docs](https://example.com/docs).",
+          "created": "2025-09-06T18:05:00Z",
+          "modified": "2025-09-06T18:35:00Z",
+          "metadata": {
+            "status": "draft"
+          },
+          "links": [
+            {
+              "id": "link-uuid-1111-aaaa-000000000003",
+              "type": "file",
+              "target": "/Projects/Phoenix/README.md",
+              "metadata": {
+                "anchor": null
+              }
+            }
+          ],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "item-uuid-gggg-hhhh-iiiiiiiiiiii",
+      "title": "Launch Dev Environment",
+      "type": "macro",
+      "content": "Bootstrap the local dev stack.",
+      "created": "2025-09-06T18:10:00Z",
+      "modified": "2025-09-06T18:45:00Z",
+      "metadata": {
+        "aliases": ["dev-env", "start-work"],
+        "params": {
+          "script": "start.sh"
+        }
+      },
+      "links": [
+        {
+          "id": "link-uuid-1111-aaaa-000000000004",
+          "type": "action",
+          "target": "shell:./scripts/start.sh",
+          "metadata": {
+            "timeout_ms": 20000
+          }
+        },
+        {
+          "id": "link-uuid-1111-aaaa-000000000005",
+          "type": "folder",
+          "target": "/Projects/Phoenix",
+          "metadata": {}
+        }
+      ],
+      "children": []
+    }
+  ]
+}
