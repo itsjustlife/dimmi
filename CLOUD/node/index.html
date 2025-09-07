@@ -71,6 +71,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
           <button id="previewTab" class="btn small">Preview</button>
         </div>
         <div style="margin-left:auto"></div>
+        <button class="btn" id="editBtn" onclick="toggleEdit()" disabled>Edit</button>
         <button class="btn" onclick="save()" id="saveBtn" disabled>Save</button>
         <button class="btn" onclick="del()" id="delBtn" disabled>Delete</button>
       </div>
@@ -102,6 +103,7 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 const CSRF = '{{CSRF}}';
 const api=(act,params)=>fetch('api/'+act+'?'+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
+let opmlDoc=null, editMode=false;
 const newExts=['.json','.txt','.html','.md','.opml'];
 let newExtIndex=0;
 const listBtn=document.getElementById('structListBtn');
@@ -115,6 +117,7 @@ const contentTabs=document.getElementById('contentTabs');
 const codeTab=document.getElementById('codeTab');
 const previewTab=document.getElementById('previewTab');
 const opmlPreview=document.getElementById('opmlPreview');
+const editBtn=document.getElementById('editBtn');
 if(listBtn && treeBtn){
   listBtn.onclick=()=>hideTree();
   treeBtn.onclick=()=>showTree();
@@ -130,142 +133,72 @@ function showCodeView(){
   previewTab.classList.remove('selected');
   ta.style.display='';
   opmlPreview.style.display='none';
+  editMode=false;
+  if(editBtn) editBtn.textContent='Edit';
 }
 function showPreviewView(){
   previewTab.classList.add('selected');
   codeTab.classList.remove('selected');
   ta.style.display='none';
   opmlPreview.style.display='block';
+  if(ta.value && !editBtn.disabled){
+    try{ opmlDoc=new DOMParser().parseFromString(ta.value,'application/xml'); }catch{}
+  }
+  renderOpmlPreview();
 }
 function escapeHtml(str){return str.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 function mdLinks(str){return str.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');}
-function renderOpmlPreview(nodes){
-  const usedIds=new Set();
-  function slug(str){
-    const base=(str||'section').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')||'section';
-    let id=base,i=1; while(usedIds.has(id)) id=base+'-'+(i++); usedIds.add(id); return id;
-  }
-  function walk(arr,level){
-    const ul=document.createElement('ul');
-    if(level) ul.style.borderLeft='1px solid var(--line)';
-    if(level) ul.style.paddingLeft='12px';
-    arr.forEach((n,i)=>{
-      const li=document.createElement('li');
-      li.style.marginTop='6px';
-      if(level===0){ li.id=n._id || (n._id=slug(n.t)); }
-      const title=document.createElement('div');
-      title.style.display='flex';
-      title.style.alignItems='center';
-      title.style.cursor='pointer';
-      const titleSpan=document.createElement('span');
-      titleSpan.textContent=n.t||'';
-      if(level===0){ titleSpan.style.fontWeight='700'; titleSpan.style.fontSize='1.125rem'; }
-      else if(level===1){ titleSpan.style.fontWeight='600'; }
-      if(n.children && n.children.length){
-        const caret=document.createElement('span');
-        caret.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>';
-        caret.style.marginRight='4px';
-        caret.firstChild.style.width='16px';
-        caret.firstChild.style.height='16px';
-        caret.firstChild.style.transition='transform .2s';
-        title.appendChild(caret);
-        title.appendChild(titleSpan);
-        const childUl=walk(n.children,level+1);
-        childUl.style.display='none';
-        const toggle=()=>{
-          const open=childUl.style.display==='none';
-          childUl.style.display=open?'block':'none';
-          caret.firstChild.style.transform=open?'rotate(90deg)':'rotate(0deg)';
-        };
-        title.addEventListener('click',toggle);
-        li.appendChild(title);
-        if(n.note){
-          const note=document.createElement('div');
-          note.style.opacity=.7;
-          note.style.fontSize='12px';
-          note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
-          li.appendChild(note);
-        }
-        if(n.links && n.links.length){
-          const linkDiv=document.createElement('div');
-          n.links.forEach(l=>{
-            const a=document.createElement('a');
-            a.textContent=l.title||l.target;
-            a.href=l.target;
-            a.dataset.link=JSON.stringify(l);
-            a.style.background='#f3f4f6';
-            a.style.padding='2px 6px';
-            a.style.borderRadius='4px';
-            a.style.color='inherit';
-            a.style.textDecoration='none';
-            linkDiv.appendChild(a);
-            linkDiv.appendChild(document.createTextNode(' '));
-          });
-          li.appendChild(linkDiv);
-        }
-        li.appendChild(childUl);
-      }else{
-        title.appendChild(titleSpan);
-        li.appendChild(title);
-        if(n.note){
-          const note=document.createElement('div');
-          note.style.opacity=.7;
-          note.style.fontSize='12px';
-          note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
-          li.appendChild(note);
-        }
-        if(n.links && n.links.length){
-          const linkDiv=document.createElement('div');
-          n.links.forEach(l=>{
-            const a=document.createElement('a');
-            a.textContent=l.title||l.target;
-            a.href=l.target;
-            a.dataset.link=JSON.stringify(l);
-            a.style.background='#f3f4f6';
-            a.style.padding='2px 6px';
-            a.style.borderRadius='4px';
-            a.style.color='inherit';
-            a.style.textDecoration='none';
-            linkDiv.appendChild(a);
-            linkDiv.appendChild(document.createTextNode(' '));
-          });
-          li.appendChild(linkDiv);
-        }
-      }
-      ul.appendChild(li);
-    });
-    return ul;
-  }
+function renderOpmlPreview(){
+  if(!opmlDoc){ opmlPreview.innerHTML=''; return; }
   opmlPreview.innerHTML='';
-  const toc=document.createElement('div');
-  toc.style.marginBottom='8px';
-  const tocTitle=document.createElement('div');
-  tocTitle.style.fontWeight='700';
-  tocTitle.style.marginBottom='4px';
-  tocTitle.textContent='Table of Contents';
-  const tocList=document.createElement('ul');
-  tocList.style.display='flex';
-  tocList.style.flexWrap='wrap';
-  tocList.style.gap='8px';
-  nodes.forEach((n,i)=>{
-    if(!n._id) n._id=slug(n.t);
-    const a=document.createElement('a');
-    a.href='#'+n._id;
-    a.textContent=n.t||('Section '+(i+1));
-    a.style.background='#f3f4f6';
-    a.style.padding='2px 6px';
-    a.style.borderRadius='4px';
-    a.style.color='inherit';
-    a.style.textDecoration='none';
-    const li=document.createElement('li');
-    li.appendChild(a);
-    tocList.appendChild(li);
+  const body=opmlDoc.querySelector('body');
+  if(!body) return;
+  function walk(node,level){
+    const wrap=document.createElement('div');
+    const heading=document.createElement(level===0?'h2':'h3');
+    heading.textContent=node.getAttribute('text')||'';
+    if(editMode){
+      heading.style.cursor='pointer';
+      heading.onclick=()=>{
+        const inp=document.createElement('input');
+        inp.value=heading.textContent;
+        inp.onblur=()=>{
+          node.setAttribute('text',inp.value);
+          serializeAndSave();
+        };
+        inp.onkeydown=e=>{ if(e.key==='Enter') inp.blur(); };
+        heading.replaceWith(inp);
+        inp.focus();
+      };
+    }
+    wrap.appendChild(heading);
+    const noteText=node.getAttribute('_note')||'';
+    const content=document.createElement('div');
+    content.innerHTML=mdLinks(escapeHtml(noteText).replace(/\n/g,'<br>'));
+    if(editMode){
+      content.style.cursor='pointer';
+      content.onclick=()=>{
+        const ta2=document.createElement('textarea');
+        ta2.value=noteText;
+        ta2.onblur=()=>{
+          if(ta2.value) node.setAttribute('_note',ta2.value); else node.removeAttribute('_note');
+          serializeAndSave();
+        };
+        content.replaceWith(ta2);
+        ta2.focus();
+      };
+      content.querySelectorAll('a').forEach(a=>a.addEventListener('click',e=>{e.preventDefault(); content.click();}));
+    }
+    wrap.appendChild(content);
+    node.querySelectorAll(':scope > outline').forEach(child=>{
+      wrap.appendChild(walk(child,level+1));
+    });
+    return wrap;
+  }
+  body.querySelectorAll(':scope > outline').forEach(n=>{
+    opmlPreview.appendChild(walk(n,0));
   });
-  toc.appendChild(tocTitle);
-  toc.appendChild(tocList);
-  opmlPreview.appendChild(toc);
-  opmlPreview.appendChild(walk(nodes,0));
-  attachPreviewLinks();
+  if(!editMode) attachPreviewLinks();
 }
 function attachPreviewLinks(){
   opmlPreview.querySelectorAll('a').forEach(a=>{
@@ -287,6 +220,21 @@ function attachPreviewLinks(){
       else openFile(href, href.split('/').pop(),0,0);
     });
   });
+}
+
+function serializeAndSave(){
+  if(!opmlDoc) return;
+  const serializer=new XMLSerializer();
+  ta.value=serializer.serializeToString(opmlDoc);
+  save();
+  renderOpmlPreview();
+}
+
+function toggleEdit(){
+  if(!opmlDoc) return;
+  editMode=!editMode;
+  editBtn.textContent=editMode?'Stop Edit':'Edit';
+  renderOpmlPreview();
 }
 
 function crumb(rel){
@@ -332,13 +280,20 @@ async function openFile(rel,name,size,mtime){
     contentTabs.style.display='flex';
     showCodeView();
     try{
-      const p=await (await api('opml_tree',{file:rel})).json();
-      if(p.ok) renderOpmlPreview(p.tree||[]); else opmlPreview.textContent=p.error||'OPML parse error.';
-    }catch{ opmlPreview.textContent='OPML load error.'; }
+      const parser=new DOMParser();
+      opmlDoc=parser.parseFromString(r.content,'application/xml');
+      editMode=false;
+      editBtn.disabled=false;
+      editBtn.textContent='Edit';
+      renderOpmlPreview();
+    }catch{ opmlPreview.textContent='OPML parse error.'; }
   }else{
     contentTabs.style.display='none';
     opmlPreview.style.display='none';
     ta.style.display='';
+    opmlDoc=null;
+    editMode=false;
+    editBtn.disabled=true;
   }
 }
 function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; }
