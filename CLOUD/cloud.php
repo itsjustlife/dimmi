@@ -870,7 +870,7 @@ if (isset($_GET['api'])) {
       </div>
     </div>
   </header>
-  <main class="flex-1 overflow-auto md:overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:h-[calc(100vh-64px)] min-h-0">
+  <main class="flex-1 overflow-auto md:overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-4 md:gap-4 md:h-[calc(100vh-64px)] min-h-0">
     <!-- FIND -->
     <section class="bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
       <div class="flex items-center gap-2 p-4 border-b">
@@ -935,6 +935,25 @@ if (isset($_GET['api'])) {
       </div>
     </section>
 
+    <!-- PREVIEW -->
+    <section id="pane-preview" class="bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
+      <div class="flex items-center gap-2 p-4 border-b">
+        <h2 class="font-semibold">PREVIEW</h2>
+        <div class="flex gap-2">
+          <button id="preview-web-btn" class="px-2 py-1 text-sm border rounded bg-gray-200">WEB</button>
+          <button id="preview-raw-btn" class="px-2 py-1 text-sm border rounded">RAW</button>
+          <button id="preview-save" class="px-2 py-1 text-sm border rounded bg-blue-600 text-white hidden">Save</button>
+        </div>
+        <button class="ml-auto md:hidden" onclick="toggleSection('previewBody', this)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </div>
+      <div id="previewBody" class="flex-1 flex flex-col overflow-hidden min-h-0">
+        <div id="preview-web" class="flex-1 overflow-auto p-4"></div>
+        <textarea id="preview-raw" class="hidden flex-1 p-4 font-mono overflow-auto"></textarea>
+      </div>
+    </section>
+
     <!-- CONTENT -->
     <section class="bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
       <div class="flex flex-wrap items-center gap-2 p-4 border-b">
@@ -974,7 +993,6 @@ if (isset($_GET['api'])) {
           </button>
         </div>
         <div id="imgPreviewWrap" class="hidden flex-1 overflow-auto items-center justify-center min-h-[16rem]"><img id="imgPreview" class="max-w-full" /></div>
-        <div id="opmlPreview" class="p-4 flex-1 overflow-auto hidden"></div>
         <div id="content-preview" class="p-4 flex-1 overflow-auto hidden"></div>
         <textarea id="content-editor" class="p-4 flex-1 overflow-auto hidden"></textarea>
         <textarea id="ta" class="flex-1 w-full p-4 resize-none border-0 outline-none overflow-auto min-h-[16rem]" placeholder="Open a text file…" disabled></textarea>
@@ -1027,17 +1045,26 @@ const ta=document.getElementById('ta');
 const contentTabs=document.getElementById('contentTabs');
 const codeTab=document.getElementById('codeTab');
 const previewTab=document.getElementById('previewTab');
-const opmlPreview=document.getElementById('opmlPreview');
+const opmlPreview=document.getElementById('preview-web');
 const sortBtn=document.getElementById('sort-btn');
 const sortMenu=document.getElementById('sort-menu');
 const contentPreview=document.getElementById('content-preview');
 const contentEditor=document.getElementById('content-editor');
 const editModeBtn=document.getElementById('edit-mode-btn');
+const previewRaw=document.getElementById('preview-raw');
+const previewWebBtn=document.getElementById('preview-web-btn');
+const previewRawBtn=document.getElementById('preview-raw-btn');
+const previewSave=document.getElementById('preview-save');
+const bus=new EventTarget();
+const emit=(type,detail)=>bus.dispatchEvent(new CustomEvent(type,{detail}));
+const on=(type,handler)=>bus.addEventListener(type,handler);
+const state={doc:null};
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null, currentJsonRootKey=null;
 let fileSort={criterion:'name',direction:'asc'};
 let originalRootOrder=[];
 let saveContentTimer=null, saveTitleTimer=null;
-let currentContentMode='code';
+let currentContentMode='edit';
+let previewMode='web';
 
 function getNodeTitle(node){
   return node.title || (node.metadata&&node.metadata.title) || node.content || node.note || '';
@@ -1094,22 +1121,29 @@ function newNodeLike(ref,title,now){
   return n;
 }
 
+async function saveDocument(path, doc){
+  try{
+    await fetch(`?api=save_json_structure&path=${encodeURIComponent(path)}`,{
+      method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},
+      body:JSON.stringify(doc,null,2)
+    });
+  }catch(e){console.error('save failed',e);}
+}
+
 async function saveCurrentJsonStructure(){
   if(!currentFile || !currentFile.toLowerCase().endsWith('.json')) return;
-  let body;
+  let doc;
   if(currentJsonRootKey===null){
-    body=JSON.stringify(currentJsonRoot,null,2);
+    doc=currentJsonRoot;
   }else{
     if(!currentJsonDoc || typeof currentJsonDoc!=='object') currentJsonDoc={};
     currentJsonDoc[currentJsonRootKey]=currentJsonRoot;
-    body=JSON.stringify(currentJsonDoc,null,2);
+    doc=currentJsonDoc;
   }
-  try{
-    await fetch(`?api=save_json_structure&path=${encodeURIComponent(currentFile)}`,{
-      method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},body
-    });
-    if(ta) ta.value=body;
-  }catch(e){console.error('save failed',e);}
+  await saveDocument(currentFile,doc);
+  if(ta) ta.value=JSON.stringify(doc,null,2);
+  state.doc=doc;
+  emit('documentChanged',doc);
 }
 function cjsf_to_ark(items){
   function walk(arr){
@@ -1178,6 +1212,45 @@ if(codeTab && previewTab){
   codeTab.addEventListener('click',()=>toggleContentMode('code'));
   previewTab.addEventListener('click',()=>toggleContentMode('preview'));
 }
+if(previewWebBtn && previewRawBtn){
+  previewWebBtn.addEventListener('click',()=>{
+    previewMode='web';
+    previewWebBtn.classList.add('bg-gray-200');
+    previewRawBtn.classList.remove('bg-gray-200');
+    if(opmlPreview) opmlPreview.classList.remove('hidden');
+    if(previewRaw) previewRaw.classList.add('hidden');
+    if(previewSave) previewSave.classList.add('hidden');
+  });
+  previewRawBtn.addEventListener('click',()=>{
+    previewMode='raw';
+    previewRawBtn.classList.add('bg-gray-200');
+    previewWebBtn.classList.remove('bg-gray-200');
+    if(opmlPreview) opmlPreview.classList.add('hidden');
+    if(previewRaw){ previewRaw.value=JSON.stringify(state.doc,null,2); previewRaw.classList.remove('hidden'); }
+    if(previewSave) previewSave.classList.remove('hidden');
+  });
+}
+if(previewSave){
+  previewSave.addEventListener('click',async()=>{
+    if(previewMode!=='raw') return;
+    try{
+      const parsed=JSON.parse(previewRaw.value);
+      state.doc=parsed;
+      if(Array.isArray(parsed)){
+        currentJsonDoc=null; currentJsonRoot=parsed; currentJsonRootKey=null;
+      }else if(Array.isArray(parsed.root)){
+        currentJsonDoc=parsed; currentJsonRoot=parsed.root; currentJsonRootKey='root';
+      }else if(Array.isArray(parsed.items)){
+        currentJsonDoc=parsed; currentJsonRoot=parsed.items; currentJsonRootKey='items';
+      }else{
+        currentJsonDoc=parsed; currentJsonRoot=[]; currentJsonRootKey='root';
+      }
+      await saveDocument(currentFile, parsed);
+      emit('documentChanged', parsed);
+      previewWebBtn.click();
+    }catch(e){ alert('Invalid JSON'); }
+  });
+}
 if(editModeBtn){
   editModeBtn.addEventListener('click',()=>{
     if(selectedId!==null){
@@ -1190,9 +1263,8 @@ if(editModeBtn){
 
 function toggleContentMode(mode){
   currentContentMode=mode;
-  const isStruct=currentFile && ['opml','xml','json'].includes(currentFile.split('.').pop().toLowerCase());
-  const previewEl=isStruct?opmlPreview:contentPreview;
-  [ta,contentEditor,contentPreview,opmlPreview].forEach(el=>{ if(el) el.style.display='none'; });
+  const previewEl=contentPreview;
+  [ta,contentEditor,contentPreview].forEach(el=>{ if(el) el.style.display='none'; });
   if(mode==='code' && ta) ta.style.display='';
   if(mode==='edit' && contentEditor) contentEditor.style.display='';
   if(mode==='preview' && previewEl) previewEl.style.display='';
@@ -1678,6 +1750,8 @@ async function openFile(rel,name,size,mtime){
         if(isJson){ currentJsonRoot=p.root||currentJsonRoot; if(currentJsonDoc) currentJsonDoc[currentJsonRootKey]=currentJsonRoot; }
         const tree=isJson? cjsf_to_ark(currentJsonRoot) : (p.tree||[]);
         renderOpmlPreview(tree);
+        state.doc=currentJsonRootKey===null?currentJsonRoot:currentJsonDoc;
+        emit('documentChanged',state.doc);
       }else opmlPreview.textContent=p.error||'Structure parse error.';
     }catch{ opmlPreview.textContent='Structure load error.'; }
   }else{
@@ -2107,6 +2181,7 @@ function selectNode(id,title,note,links=[]){
   const mode=currentContentMode==='edit'?'edit':'preview';
   toggleContentMode(mode);
   renderLinks();
+  emit('selectionChanged',{id});
 }
 async function nodeOp(op,extra={},id=selectedId){
   if(!currentFile || id===null) return;
@@ -2294,6 +2369,18 @@ async function openLinkModal(id, existing=null){
     }
   }});
 }
+on('documentChanged',()=>{
+  const expanded=getExpanded();
+  renderTree(cjsf_to_ark(currentJsonRoot));
+  restoreExpanded(expanded);
+  renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
+  state.doc=currentJsonRootKey===null?currentJsonRoot:currentJsonDoc;
+  if(previewMode==='raw' && previewRaw) previewRaw.value=JSON.stringify(state.doc,null,2);
+  if(selectedId){
+    const n=findJsonNode(currentJsonRoot,selectedId);
+    if(n) selectNode(selectedId,getNodeTitle(n),getNodeNote(n),n.links||[]);
+  }
+});
 document.getElementById('fileRenameBtn').addEventListener('click', renameCurrent);
 document.getElementById('fileTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); renameCurrent(); }});
 document.getElementById('titleSaveBtn').addEventListener('click', saveTitle);
