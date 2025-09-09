@@ -1747,7 +1747,10 @@ async function openDir(rel){
   const ft=document.getElementById('fileTitle'); if(ft) ft.classList.add('hidden');
   const fr=document.getElementById('fileRenameBtn'); if(fr) fr.classList.add('hidden');
   const ts=document.getElementById('titleSaveBtn'); if(ts) ts.classList.add('hidden');
-  btns(false); infoBtn.disabled=true; currentFileInfo=null; document.getElementById('imgPreviewWrap').classList.add('hidden'); if(ta) ta.classList.remove('hidden');
+  btns(false); infoBtn.disabled=true; currentFileInfo=null;
+  const imgWrap = document.getElementById('imgPreviewWrap');
+  if (imgWrap) imgWrap.classList.add('hidden');
+  if(ta) ta.classList.remove('hidden');
   const FL=document.getElementById('folderList'); FL.innerHTML='';
   const r=await (await api('list',{path:currentDir})).json(); if(!r.ok){modalInfo('Error',r.error||'list failed');return;}
   if(currentDir){
@@ -1800,8 +1803,8 @@ async function openFile(rel,name,size,mtime){
   const isImg=['png','jpg','jpeg','gif','webp','svg'].includes(ext);
   if(isImg){
     if(ta) ta.classList.add('hidden');
-    imgWrap.classList.remove('hidden');
-    img.src='?api=get_file&path='+encodeURIComponent(rel);
+    if (imgWrap) imgWrap.classList.remove('hidden');
+    if (img) img.src='?api=get_file&path='+encodeURIComponent(rel);
     if(ta){ ta.value=''; ta.disabled=true; }
     btns(false); delBtn.disabled=false; downloadBtn.disabled=false;
     document.getElementById('structTreeBtn').disabled=true;
@@ -1810,7 +1813,9 @@ async function openFile(rel,name,size,mtime){
     hideTree();
     return;
   }else{
-    imgWrap.classList.add('hidden'); img.src=''; if(ta) ta.classList.remove('hidden');
+    if (imgWrap) imgWrap.classList.add('hidden');
+    if (img) img.src='';
+    if(ta) ta.classList.remove('hidden');
   }
   const r=await (await api('read',{path:rel})).json();
   if (!r.ok) { if(ta){ ta.value=''; ta.disabled=true; } btns(false); titleInput.classList.add('hidden'); renameBtn.classList.add('hidden'); infoBtn.disabled=true; if(contentTabs) contentTabs.classList.add('hidden'); opmlPreview.classList.add('hidden'); return; }
