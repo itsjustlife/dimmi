@@ -1072,6 +1072,56 @@ function updateMeta(){
   });
 }
 updateMeta();
+
+function applyMetaBindings(pane){
+  const fileInput=document.getElementById(`meta-file-${pane}`);
+  const titleInput=document.getElementById(`meta-title-${pane}`);
+  const saveBtn=document.getElementById(`meta-save-${pane}`);
+  if(!fileInput || !titleInput || !saveBtn) return;
+
+  if(pane==='CONTENT'){
+    fileInput.readOnly=true;
+    saveBtn.addEventListener('click',async()=>{
+      const title=titleInput.value.trim();
+      if(selectedId!==null){
+        await nodeOp('set_title',{title});
+        emit('documentChanged');
+      }
+    });
+    return;
+  }
+
+  if(pane==='FIND'){
+    saveBtn.addEventListener('click',async()=>{
+      const newPath=fileInput.value.trim();
+      if(!newPath) return;
+      if(newPath!==currentDir){
+        await renameDocument(currentDir,newPath);
+        currentDir=newPath;
+      }
+      openDir(newPath);
+      emit('documentChanged');
+    });
+    return;
+  }
+
+  saveBtn.addEventListener('click',async()=>{
+    const newPath=fileInput.value.trim();
+    const newTitle=titleInput.value.trim();
+    let changed=false;
+    if(newPath && newPath!==currentFile){
+      await renameDocument(currentFile,newPath);
+      currentFile=newPath;
+      changed=true;
+    }
+    if(state.doc && newTitle && newTitle!==getNodeTitle(state.doc)){
+      setNodeTitle(state.doc,newTitle);
+      await saveDocument(currentFile,state.doc);
+      changed=true;
+    }
+    if(changed) emit('documentChanged');
+  });
+}
 const icons={
   folder:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/></svg>',
   file:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>',
@@ -1179,6 +1229,15 @@ async function saveDocument(path, doc){
       body:JSON.stringify(doc,null,2)
     });
   }catch(e){console.error('save failed',e);}
+}
+
+async function renameDocument(oldPath, newPath){
+  try{
+    await fetch(`?api=rename&`+new URLSearchParams({path:oldPath}),{
+      method:'POST',headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},
+      body:JSON.stringify({to:newPath})
+    });
+  }catch(e){console.error('rename failed',e);}
 }
 
 async function saveCurrentJsonStructure(){
@@ -2433,6 +2492,9 @@ on('documentChanged',()=>{
     const n=findJsonNode(currentJsonRoot,selectedId);
     if(n) selectNode(selectedId,getNodeTitle(n),getNodeNote(n),n.links||[]);
   }
+});
+window.addEventListener('DOMContentLoaded',()=>{
+  ['FIND','STRUCTURE','CONTENT','PREVIEW'].forEach(applyMetaBindings);
 });
 document.getElementById('fileRenameBtn').addEventListener('click', renameCurrent);
 document.getElementById('fileTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); renameCurrent(); }});
