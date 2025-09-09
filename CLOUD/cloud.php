@@ -958,7 +958,7 @@ if (isset($_GET['api'])) {
     <!-- CONTENT -->
     <section id="pane-content" class="order-3 bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
       <header class="pane-header">
-        <h3 id="content-title" class="pane-title"></h3>
+        <h3 class="pane-title">CONTENT</h3>
         <div class="pane-controls">
           <button onclick="showCurrentInfo()" id="infoBtn" disabled class="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Info">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -979,32 +979,28 @@ if (isset($_GET['api'])) {
           </button>
         </div>
       </header>
-      <div id="content-body">
-        <label>Notes</label>
-        <textarea id="content-note" rows="12"></textarea>
+      <div class="pane-meta">
+        <label>Node Title <input id="meta-title-CONTENT" class="title-input" /></label>
+      </div>
+      <div id="content-body" class="p-4 flex-1 flex flex-col overflow-hidden min-h-0">
+        <textarea id="content-note" class="flex-1 w-full resize-none"></textarea>
 
-        <div id="content-links">
-          <ul id="link-list"></ul>
-          <div class="mt-2 flex gap-2">
-            <button id="link-add">Add Link</button>
-            <button id="link-edit" class="hidden" disabled>Edit</button>
-            <button id="link-del" class="hidden" disabled>Delete</button>
-          </div>
-          <div id="link-editor" hidden>
-            <input id="link-title" placeholder="Title (optional)"/>
-            <select id="link-type">
-              <option value="relation">Node</option>
-              <option value="url">URL</option>
-              <option value="file">File</option>
-              <option value="structure">Structure</option>
-              <option value="folder">Folder</option>
-            </select>
-            <select id="link-target-node" hidden></select>
-            <input id="link-target-text" hidden placeholder="Target (URL/path)"/>
-            <input id="link-anchor" placeholder="Anchor (optional)"/>
-            <button id="link-save">Save Link</button>
-            <button id="link-cancel" type="button">Cancel</button>
-          </div>
+        <ul id="link-list"></ul>
+        <button id="link-add" class="mt-2">Add Link</button>
+        <div id="link-editor" hidden>
+          <input id="link-title" placeholder="Title (optional)"/>
+          <select id="link-type">
+            <option value="relation">Node</option>
+            <option value="url">URL</option>
+            <option value="file">File</option>
+            <option value="structure">Structure</option>
+            <option value="folder">Folder</option>
+          </select>
+          <select id="link-target-node" hidden></select>
+          <input id="link-target-text" hidden placeholder="Target (URL/path)"/>
+          <input id="link-anchor" placeholder="Anchor (optional)"/>
+          <button id="link-save">Save Link</button>
+          <button id="link-cancel" type="button">Cancel</button>
         </div>
       </div>
     </section>
@@ -1059,13 +1055,14 @@ const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='', currentOutlinePath='', currentFileInfo=null;
 let clipboardPath='';
 function updateMeta(){
-  const title=currentFile ? (document.getElementById('content-title')?.textContent || '') : '';
+  const node = selectedId!==null ? findJsonNode(currentJsonRoot, selectedId) : null;
+  const title = node ? getNodeTitle(node) : '';
   ['FIND','STRUCTURE','CONTENT','PREVIEW'].forEach(p=>{
     const f=document.getElementById('meta-file-'+p);
     const t=document.getElementById('meta-title-'+p);
     if(f){
       if(p==='FIND') f.value=currentDir || '';
-      else f.value=currentFile || currentDir || '';
+      else if(p!=='CONTENT') f.value=currentFile || currentDir || '';
     }
     if(t){
       if(p==='STRUCTURE' && state.doc) t.value=getNodeTitle(state.doc)||'';
@@ -1101,23 +1098,19 @@ function applyMetaBindings(pane){
     return;
   }
 
-  if(!fileInput || !titleInput || !saveBtn) return;
-
   if(pane==='CONTENT'){
-    fileInput.readOnly=true;
-    saveBtn.addEventListener('click',async()=>{
-      if(selectedId===null) return;
-      const node=findJsonNode(currentJsonRoot,selectedId);
-      if(!node) return;
-      const newTitle=titleInput.value.trim();
-      const newNote=contentNote?contentNote.value:'';
-      setNodeTitle(node,newTitle);
-      setNodeNote(node,newNote);
-      await saveDocument(currentFile,state.doc);
-      emit('documentChanged');
-    });
+    if(titleInput){
+      titleInput.addEventListener('input',()=>{
+        if(selectedId===null) return;
+        const node=findJsonNode(currentJsonRoot,selectedId);
+        if(node) setNodeTitle(node,titleInput.value.trim());
+        updateMeta();
+      });
+    }
     return;
   }
+
+  if(!fileInput || !titleInput || !saveBtn) return;
 
   if(pane==='STRUCTURE'){
     saveBtn.addEventListener('click',async()=>{
@@ -1173,8 +1166,6 @@ const contentEditor=document.getElementById('content-editor');
 const contentNote=document.getElementById('content-note');
 const linkList=document.getElementById('link-list');
 const linkAdd=document.getElementById('link-add');
-const linkEdit=document.getElementById('link-edit');
-const linkDel=document.getElementById('link-del');
 const linkEditor=document.getElementById('link-editor');
 const linkTitle=document.getElementById('link-title');
 const linkType=document.getElementById('link-type');
@@ -1779,7 +1770,6 @@ async function openDir(rel){
   currentDir = rel || '';
   currentFile='';
   crumb(currentDir);
-  const ct=document.getElementById('content-title'); if(ct) ct.textContent='';
   btns(false); infoBtn.disabled=true; currentFileInfo=null;
   const imgWrap = document.getElementById('imgPreviewWrap');
   if (imgWrap) imgWrap.classList.add('hidden');
@@ -1825,8 +1815,6 @@ async function openFile(rel,name,size,mtime){
   if(nodeTitleRow) nodeTitleRow.classList.add('hidden');
   const imgWrap=document.getElementById('imgPreviewWrap');
   const img=document.getElementById('imgPreview');
-  const ct=document.getElementById('content-title');
-  if(ct) ct.textContent=name;
   infoBtn.disabled=false;
   updateMeta();
   const ext=name.toLowerCase().split('.').pop();
@@ -1851,7 +1839,6 @@ async function openFile(rel,name,size,mtime){
   if (!r.ok) {
     if(ta){ ta.value=''; ta.disabled=true; }
     btns(false); infoBtn.disabled=true;
-    const ct=document.getElementById('content-title'); if(ct) ct.textContent='';
     if(contentTabs) contentTabs.classList.add('hidden');
     opmlPreview.classList.add('hidden');
     return;
@@ -1931,7 +1918,8 @@ async function del(){
 }
 function downloadFile(){
   if(!currentFile) return;
-  downloadItem(null,currentFile,document.getElementById('content-title')?.textContent || 'download');
+  const title=document.getElementById('meta-title-CONTENT')?.value || 'download';
+  downloadItem(null,currentFile,title);
 }
 async function mkdirPrompt(){
   modalPrompt('New folder name','',async name=>{
@@ -2073,14 +2061,6 @@ function updateLinkSelection(){
   Array.from(linkList.children).forEach(li=>{
     li.classList.toggle('selected', Number(li.dataset.index)===selectedLinkIndex);
   });
-  if(linkEdit){
-    linkEdit.disabled = selectedLinkIndex===null;
-    linkEdit.classList.toggle('hidden', selectedLinkIndex===null);
-  }
-  if(linkDel){
-    linkDel.disabled = selectedLinkIndex===null;
-    linkDel.classList.toggle('hidden', selectedLinkIndex===null);
-  }
 }
 
 function populateNodeOptions(){
@@ -2122,17 +2102,6 @@ if(linkType) linkType.addEventListener('change',()=>{
 });
 
 if(linkAdd) linkAdd.addEventListener('click',()=>{ selectedLinkIndex=null; openLinkEditor(); });
-if(linkEdit) linkEdit.addEventListener('click',()=>{ if(selectedLinkIndex!==null) openLinkEditor(currentLinks[selectedLinkIndex], selectedLinkIndex); });
-if(linkDel) linkDel.addEventListener('click',async()=>{
-  if(selectedLinkIndex===null || selectedId===null) return;
-  const node=findJsonNode(currentJsonRoot,selectedId);
-  if(!node || !node.links) return;
-  node.links.splice(selectedLinkIndex,1);
-  emit('documentChanged');
-  currentLinks=node.links;
-  selectedLinkIndex=null;
-  renderLinkList();
-});
 
 if(linkSave) linkSave.addEventListener('click',async()=>{
   if(selectedId===null) return;
@@ -2156,8 +2125,6 @@ on('selectionChanged', e=>{
   if(selectedId===null || !contentNote) return;
   const node=findJsonNode(currentJsonRoot,selectedId);
   if(!node) return;
-  const ct=document.getElementById('content-title');
-  if(ct) ct.textContent=getNodeTitle(node);
   contentNote.value=getNodeNote(node);
   currentLinks=node.links||[];
   selectedLinkIndex=null;
