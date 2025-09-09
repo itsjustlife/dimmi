@@ -987,21 +987,6 @@ if (isset($_GET['api'])) {
 
         <ul id="link-list"></ul>
         <button id="link-add" class="mt-2">Add Link</button>
-        <div id="link-editor" hidden>
-          <input id="link-title" placeholder="Title (optional)"/>
-          <select id="link-type">
-            <option value="relation">Node</option>
-            <option value="url">URL</option>
-            <option value="file">File</option>
-            <option value="structure">Structure</option>
-            <option value="folder">Folder</option>
-          </select>
-          <select id="link-target-node" hidden></select>
-          <input id="link-target-text" hidden placeholder="Target (URL/path)"/>
-          <input id="link-anchor" placeholder="Anchor (optional)"/>
-          <button id="link-save">Save Link</button>
-          <button id="link-cancel" type="button">Cancel</button>
-        </div>
       </div>
     </section>
 
@@ -1166,14 +1151,6 @@ const contentEditor=document.getElementById('content-editor');
 const contentNote=document.getElementById('content-note');
 const linkList=document.getElementById('link-list');
 const linkAdd=document.getElementById('link-add');
-const linkEditor=document.getElementById('link-editor');
-const linkTitle=document.getElementById('link-title');
-const linkType=document.getElementById('link-type');
-const linkTargetNode=document.getElementById('link-target-node');
-const linkTargetText=document.getElementById('link-target-text');
-const linkAnchor=document.getElementById('link-anchor');
-const linkSave=document.getElementById('link-save');
-const linkCancel=document.getElementById('link-cancel');
 const bus=new EventTarget();
 const emit=(type,detail)=>bus.dispatchEvent(new CustomEvent(type,{detail}));
 const on=(type,handler)=>bus.addEventListener(type,handler);
@@ -2048,9 +2025,29 @@ function renderLinkList(){
   linkList.innerHTML='';
   (currentLinks||[]).forEach((l,i)=>{
     const li=document.createElement('li');
-    li.textContent=l.metadata?.title || l.title || l.target || '';
     li.dataset.index=i;
-    li.addEventListener('click',()=>{ selectedLinkIndex=i; updateLinkSelection(); followLink(l); });
+    const btn=document.createElement('button');
+    btn.className='flex items-center gap-1';
+    const titleSpan=document.createElement('span');
+    titleSpan.className='flex-1 text-left';
+    titleSpan.textContent=l.metadata?.title || l.title || l.target || '';
+    const editSpan=document.createElement('span');
+    editSpan.innerHTML=icons.edit;
+    editSpan.className='text-gray-500 hover:text-blue-600';
+    editSpan.addEventListener('click',e=>{
+      e.stopPropagation();
+      selectedLinkIndex=i;
+      openLinkModal(selectedId,{
+        id:l.id||'',
+        type:l.type||'relation',
+        title:l.metadata?.title || l.title || '',
+        target:l.target||'',
+        direction:l.metadata?.direction || l.direction || null
+      });
+    });
+    btn.addEventListener('click',()=>{ selectedLinkIndex=i; updateLinkSelection(); followLink(l); });
+    btn.append(titleSpan,editSpan);
+    li.appendChild(btn);
     linkList.appendChild(li);
   });
   updateLinkSelection();
@@ -2063,63 +2060,7 @@ function updateLinkSelection(){
   });
 }
 
-function populateNodeOptions(){
-  if(!linkTargetNode) return;
-  linkTargetNode.innerHTML='';
-  Object.entries(nodeMap).forEach(([id,n])=>{
-    const opt=document.createElement('option');
-    opt.value=id;
-    opt.textContent=n.t;
-    linkTargetNode.appendChild(opt);
-  });
-}
-
-function openLinkEditor(existing=null,index=null){
-  populateNodeOptions();
-  linkEditor.hidden=false;
-  linkTitle.value=existing? (existing.metadata?.title || existing.title || '') : '';
-  linkType.value=existing? (existing.type || 'relation') : 'relation';
-  linkAnchor.value=existing? (existing.anchor || '') : '';
-  if(linkType.value==='relation'){
-    linkTargetNode.hidden=false;
-    linkTargetText.hidden=true;
-    linkTargetNode.value=existing? (existing.target || '') : '';
-  }else{
-    linkTargetNode.hidden=true;
-    linkTargetText.hidden=false;
-    linkTargetText.value=existing? (existing.target || '') : '';
-  }
-  selectedLinkIndex=index;
-}
-
-if(linkType) linkType.addEventListener('change',()=>{
-  const t=linkType.value;
-  if(t==='relation'){
-    linkTargetNode.hidden=false; linkTargetText.hidden=true;
-  }else{
-    linkTargetNode.hidden=true; linkTargetText.hidden=false;
-  }
-});
-
-if(linkAdd) linkAdd.addEventListener('click',()=>{ selectedLinkIndex=null; openLinkEditor(); });
-
-if(linkSave) linkSave.addEventListener('click',async()=>{
-  if(selectedId===null) return;
-  const node=findJsonNode(currentJsonRoot,selectedId);
-  if(!node) return;
-  node.links=node.links||[];
-  const obj={type:linkType.value, target: linkType.value==='relation'?linkTargetNode.value:linkTargetText.value};
-  const t=linkTitle.value.trim(); if(t) obj.metadata={title:t};
-  const a=linkAnchor.value.trim(); if(a) obj.anchor=a;
-  if(selectedLinkIndex!==null) node.links[selectedLinkIndex]=obj; else node.links.push(obj);
-  emit('documentChanged');
-  currentLinks=node.links;
-  linkEditor.hidden=true;
-  selectedLinkIndex=null;
-  renderLinkList();
-});
-
-if(linkCancel) linkCancel.addEventListener('click',()=>{ linkEditor.hidden=true; selectedLinkIndex=null; });
+if(linkAdd) linkAdd.addEventListener('click',()=>{ selectedLinkIndex=null; openLinkModal(selectedId); });
 
 on('selectionChanged', e=>{
   if(selectedId===null || !contentNote) return;
@@ -2511,7 +2452,7 @@ async function openLinkModal(id, existing=null){
   }
   typeSel.onchange=refresh; await refresh();
   if(editing && existing.title) titleInput.value=existing.title;
-  modal({title: editing?'Edit Link':'Add Link', body:wrap, okText:editing?'Save Link':'Add Link', extra: editing?{text:'Delete Link', onClick:async()=>{ if(currentFile.toLowerCase().endsWith('.json')){ const node=findJsonNode(currentJsonRoot,id); if(node){ node.links=(node.links||[]).filter(l=>l.id!==existing.id); node.modified=new Date().toISOString(); await saveCurrentJsonStructure(); currentLinks=(node.links||[]).map(l=>({id:l.id||'',type:l.type||'',title:l.metadata?.title||'',target:l.target||'',direction:l.metadata?.direction||null})); const expanded=getExpanded(); renderTree(cjsf_to_ark(currentJsonRoot)); restoreExpanded(expanded); selectNode(id,getNodeTitle(node),getNodeNote(node),currentLinks); }} else { await nodeOp('delete_link',{target:existing.target},id); } }}:null, onOk:async()=>{
+  modal({title: editing?'Edit Link':'Add Link', body:wrap, okText:editing?'Save Link':'Add Link', extra: editing?{text:'Delete Link', onClick:async()=>{ if(currentFile.toLowerCase().endsWith('.json')){ const node=findJsonNode(currentJsonRoot,id); if(node){ node.links=(node.links||[]).filter(l=>l.id!==existing.id); node.modified=new Date().toISOString(); await saveCurrentJsonStructure(); currentLinks=(node.links||[]).map(l=>({id:l.id||'',type:l.type||'',title:l.metadata?.title||'',target:l.target||'',direction:l.metadata?.direction||null})); const expanded=getExpanded(); renderTree(cjsf_to_ark(currentJsonRoot)); restoreExpanded(expanded); selectNode(id,getNodeTitle(node),getNodeNote(node),currentLinks); } } else { await nodeOp('delete_link',{target:existing.target},id); } renderLinkList(); attachPreviewLinks(); }}:null, onOk:async()=>{
     const selected=typeSel.value;
     const type=selected==='node'?'relation':selected;
     const target=targetInput ? targetInput.value.trim() : '';
@@ -2537,10 +2478,14 @@ async function openLinkModal(id, existing=null){
       renderTree(cjsf_to_ark(currentJsonRoot));
       restoreExpanded(expanded);
       selectNode(id,getNodeTitle(node),getNodeNote(node),currentLinks);
+      renderLinkList();
+      attachPreviewLinks();
     }else{
       const link={title,type,target,direction: existing?.direction || 'one-way'};
       if(editing) await nodeOp('delete_link',{target:existing.target},id);
       await nodeOp('add_link',{link},id);
+      renderLinkList();
+      attachPreviewLinks();
     }
   }});
 }
