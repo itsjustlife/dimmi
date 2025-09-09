@@ -969,6 +969,7 @@ if (isset($_GET['api'])) {
           <button id="fileRenameBtn" class="hidden p-2 text-green-600 hover:text-green-800" title="Rename">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
           </button>
+          <button id="titleSaveBtn" class="hidden p-2 text-blue-600 hover:text-blue-800" title="Save">Save</button>
           <button onclick="showCurrentInfo()" id="infoBtn" disabled class="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Info">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </button>
@@ -1188,7 +1189,7 @@ const state={doc:null};
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null, currentJsonRootKey=null;
 let fileSort={criterion:'name',direction:'asc'};
 let originalRootOrder=[];
-let saveContentTimer=null, saveTitleTimer=null;
+let saveContentTimer=null, saveTitleTimer=null, nodeTitleInput=null;
 let previewMode='web';
 
 function getNodeTitle(node){
@@ -1743,8 +1744,9 @@ function ent(name,rel,isDir,size,mtime){
 }
 async function openDir(rel){
   currentDir = rel || ''; crumb(currentDir);
-  document.getElementById('fileTitle').classList.add('hidden');
-  document.getElementById('fileRenameBtn').classList.add('hidden');
+  const ft=document.getElementById('fileTitle'); if(ft) ft.classList.add('hidden');
+  const fr=document.getElementById('fileRenameBtn'); if(fr) fr.classList.add('hidden');
+  const ts=document.getElementById('titleSaveBtn'); if(ts) ts.classList.add('hidden');
   btns(false); infoBtn.disabled=true; currentFileInfo=null; document.getElementById('imgPreviewWrap').classList.add('hidden'); if(ta) ta.classList.remove('hidden');
   const FL=document.getElementById('folderList'); FL.innerHTML='';
   const r=await (await api('list',{path:currentDir})).json(); if(!r.ok){modalInfo('Error',r.error||'list failed');return;}
@@ -2547,17 +2549,28 @@ on('documentChanged',()=>{
 });
 window.addEventListener('DOMContentLoaded',()=>{
   ['FIND','STRUCTURE','CONTENT','PREVIEW'].forEach(applyMetaBindings);
+
+  const renameBtn=document.getElementById('fileRenameBtn');
+  if(renameBtn) renameBtn.addEventListener('click', renameCurrent);
+
+  const fileTitle=document.getElementById('fileTitle');
+  if(fileTitle){
+    fileTitle.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); renameCurrent(); }});
+    fileTitle.addEventListener('input', updateMeta);
+  }
+
+  const saveBtn=document.getElementById('titleSaveBtn');
+  if(saveBtn) saveBtn.addEventListener('click', saveTitle);
+
+  nodeTitleInput=document.getElementById('nodeTitle');
+  if(nodeTitleInput){
+    nodeTitleInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); saveTitle(); }});
+    nodeTitleInput.addEventListener('input',()=>{ clearTimeout(saveTitleTimer); saveTitleTimer=setTimeout(saveTitle,500); });
+    nodeTitleInput.addEventListener('blur',saveTitle);
+  }
 });
-document.getElementById('fileRenameBtn').addEventListener('click', renameCurrent);
-document.getElementById('fileTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); renameCurrent(); }});
-document.getElementById('fileTitle').addEventListener('input', updateMeta);
-document.getElementById('titleSaveBtn').addEventListener('click', saveTitle);
-const nodeTitleInput=document.getElementById('nodeTitle');
-nodeTitleInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); saveTitle(); }});
-nodeTitleInput.addEventListener('input',()=>{ clearTimeout(saveTitleTimer); saveTitleTimer=setTimeout(saveTitle,500); });
-nodeTitleInput.addEventListener('blur',saveTitle);
 async function saveTitle(){
-  if(selectedId===null) return;
+  if(selectedId===null || !nodeTitleInput) return;
   const title=nodeTitleInput.value.trim();
   await nodeOp('set_title',{title});
 }
