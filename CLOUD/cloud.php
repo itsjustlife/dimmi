@@ -1039,6 +1039,8 @@ const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='', currentOutlinePath='', currentFileInfo=null;
 let clipboardPath='';
+const state={doc:null};
+let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null, currentJsonRootKey=null;
 function updateMeta(){
   const node = selectedId!==null ? findJsonNode(currentJsonRoot, selectedId) : null;
   const title = node ? getNodeTitle(node) : '';
@@ -1154,8 +1156,6 @@ const linkAdd=document.getElementById('link-add');
 const bus=new EventTarget();
 const emit=(type,detail)=>bus.dispatchEvent(new CustomEvent(type,{detail}));
 const on=(type,handler)=>bus.addEventListener(type,handler);
-const state={doc:null};
-let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null, currentJsonRootKey=null;
 let fileSort={criterion:'name',direction:'asc'};
 let originalRootOrder=[];
 let saveContentTimer=null, saveTitleTimer=null, nodeTitleInput=null;
