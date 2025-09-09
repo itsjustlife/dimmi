@@ -1025,9 +1025,10 @@ if (isset($_GET['api'])) {
         </div>
       </header>
       <div class="pane-meta">
-        <input id="meta-file-PREVIEW" class="file-input mono" />
-        <input id="meta-title-PREVIEW" class="title-input" />
-        <button id="meta-save-PREVIEW" class="primary">Save</button>
+        <input id="meta-file-PREVIEW" class="file-input mono" readonly />
+        <button id="meta-save-PREVIEW" class="px-2 py-1 border rounded" title="Save">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h18v18H3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v6h6V3"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 15h8v6H8z"/></svg>
+        </button>
       </div>
       <div id="previewBody" class="flex-1 flex flex-col overflow-hidden min-h-0">
         <div id="preview-web" class="flex-1 overflow-auto p-4"></div>
@@ -1083,6 +1084,15 @@ function applyMetaBindings(pane){
         }
       });
     }
+    return;
+  }
+
+  if(pane==='PREVIEW'){
+    if(!fileInput || !saveBtn) return;
+    fileInput.readOnly=true;
+    saveBtn.addEventListener('click',async()=>{
+      if(state.doc){ await saveDocument(currentFile,state.doc); emit('documentChanged'); }
+    });
     return;
   }
 
@@ -1379,9 +1389,9 @@ function renderOpmlPreview(nodes){
     const base=(str||'section').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')||'section';
     let id=base, i=1; while(usedIds.has(id)) id=base+'-'+(i++); usedIds.add(id); return id;
   }
-  function makeTitleEditable(span,id){
-    span.addEventListener('click',e=>{
-      if(!jsonMode) return; e.stopPropagation();
+  function makeTitleEditable(span,id,onEditStart){
+      const startEdit=e=>{
+        if(!jsonMode) return; e.stopPropagation(); e.preventDefault();
       const input=document.createElement('input');
       input.type='text'; input.value=span.textContent;
       span.replaceWith(input); input.focus();
@@ -1394,7 +1404,16 @@ function renderOpmlPreview(nodes){
       };
       input.addEventListener('blur',finish);
       input.addEventListener('keydown',e=>{if(e.key==='Enter'){finish();}});
-    });
+      if(onEditStart) onEditStart();
+    };
+    span.addEventListener('dblclick',startEdit);
+    let pressTimer;
+    span.addEventListener('mousedown',e=>{ pressTimer=setTimeout(()=>startEdit(e),500); });
+    span.addEventListener('mouseup',()=>clearTimeout(pressTimer));
+    span.addEventListener('mouseleave',()=>clearTimeout(pressTimer));
+    span.addEventListener('touchstart',e=>{ pressTimer=setTimeout(()=>startEdit(e),500); },{passive:true});
+    span.addEventListener('touchend',()=>clearTimeout(pressTimer));
+    span.addEventListener('touchcancel',()=>clearTimeout(pressTimer));
   }
   function makeNoteEditable(div,id,n){
     div.addEventListener('click',()=>{
@@ -1418,85 +1437,95 @@ function renderOpmlPreview(nodes){
       textarea.addEventListener('blur',finish);
     });
   }
-  function walk(arr,level){
-    const ul=document.createElement('ul');
-    ul.className='list-none space-y-2'+(level?' ml-4 pl-4 border-l border-gray-300':'');
-    arr.forEach((n,i)=>{
-      const li=document.createElement('li');
-      li.className='mt-2';
-      if(level===0){ li.id=n._id || (n._id=slug(n.t)); }
-      const title=document.createElement('div');
-      title.className='flex items-center cursor-pointer';
-      const titleSpan=document.createElement('span');
-      titleSpan.textContent=n.t||'';
-      if(level===0) titleSpan.className='font-bold text-lg';
-      else if(level===1) titleSpan.className='font-semibold';
-      if(jsonMode) makeTitleEditable(titleSpan,n.id);
-      if(n.children && n.children.length){
-        const caret=document.createElement('span');
-        caret.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-4 h-4 text-gray-500 transform transition-transform"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>';
-        caret.className='mr-1';
-        title.append(caret,titleSpan);
-        const childUl=walk(n.children,level+1);
-        childUl.style.display='none';
-        const toggle=()=>{
-          const open=childUl.style.display==='none';
-          childUl.style.display=open?'block':'none';
-          const svg=caret.querySelector('svg');
-          if(svg) svg.classList.toggle('rotate-90',open);
-        };
-        title.addEventListener('click',toggle);
-        li.appendChild(title);
-        if(n.note){
-          const note=document.createElement('div');
-          note.className='ml-2 text-gray-600 text-sm';
-          note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
-          if(jsonMode) makeNoteEditable(note,n.id,n);
-          li.appendChild(note);
-        }
-        if(n.links && n.links.length){
-          const linkDiv=document.createElement('div');
-          linkDiv.className='ml-2 flex flex-wrap gap-2 text-sm';
-          n.links.forEach(l=>{
-            const a=document.createElement('a');
-            a.textContent=l.title||l.target;
-            a.href=l.target;
-            a.dataset.link=JSON.stringify(l);
-            a.className='inline-block px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-700';
-            linkDiv.appendChild(a);
+    function walk(arr,level){
+      const ul=document.createElement('ul');
+      ul.className='list-none space-y-2'+(level?' ml-4 pl-4 border-l border-gray-300':'');
+      arr.forEach((n,i)=>{
+        const li=document.createElement('li');
+        li.className='mt-2';
+        if(level===0){ li.id=n._id || (n._id=slug(n.t)); }
+        let clickCount=0;
+        const title=document.createElement('div');
+        title.className='inline-flex items-center cursor-pointer border rounded px-2 py-1 bg-gray-100 hover:bg-gray-200';
+        const titleSpan=document.createElement('span');
+        titleSpan.textContent=n.t||'';
+        if(level===0) titleSpan.className='font-bold text-lg';
+        else if(level===1) titleSpan.className='font-semibold';
+        if(jsonMode) makeTitleEditable(titleSpan,n.id,()=>{clickCount=0;});
+        if(n.children && n.children.length){
+          li.className='mt-2 border border-gray-300 rounded p-2';
+          const caret=document.createElement('span');
+          caret.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-4 h-4 text-gray-500 transform transition-transform"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>';
+          caret.className='mr-1';
+          title.append(caret,titleSpan);
+          const childUl=walk(n.children,level+1);
+          childUl.style.display='none';
+          const toggle=()=>{
+            const open=childUl.style.display==='none';
+            childUl.style.display=open?'block':'none';
+            const svg=caret.querySelector('svg');
+            if(svg) svg.classList.toggle('rotate-90',open);
+          };
+          title.addEventListener('click',()=>{
+            clickCount++;
+            setTimeout(()=>{ if(clickCount===1) toggle(); clickCount=0; },200);
           });
-          li.appendChild(linkDiv);
+          li.appendChild(title);
+          if(n.note){
+            const note=document.createElement('div');
+            note.className='ml-2 text-gray-600 text-sm';
+            note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
+            if(jsonMode) makeNoteEditable(note,n.id,n);
+            li.appendChild(note);
+          }
+          if(n.links && n.links.length){
+            const linkDiv=document.createElement('div');
+            linkDiv.className='ml-2 flex flex-wrap gap-2 text-sm';
+            n.links.forEach(l=>{
+              const a=document.createElement('a');
+              a.textContent=l.title||l.target;
+              a.href=l.target;
+              a.dataset.link=JSON.stringify(l);
+              a.className='inline-block px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-700';
+              linkDiv.appendChild(a);
+            });
+            li.appendChild(linkDiv);
+          }
+          li.appendChild(childUl);
+        }else{
+          title.appendChild(titleSpan);
+          li.appendChild(title);
+          if(n.note){
+            const note=document.createElement('div');
+            note.className='ml-2 text-gray-600 text-sm';
+            note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
+            if(jsonMode) makeNoteEditable(note,n.id,n);
+            li.appendChild(note);
+          }
+          if(n.links && n.links.length){
+            const linkDiv=document.createElement('div');
+            linkDiv.className='ml-2 flex flex-wrap gap-2 text-sm';
+            n.links.forEach(l=>{
+              const a=document.createElement('a');
+              a.textContent=l.title||l.target;
+              a.href=l.target;
+              a.dataset.link=JSON.stringify(l);
+              a.className='inline-block px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-700';
+              linkDiv.appendChild(a);
+            });
+            li.appendChild(linkDiv);
+          }
         }
-        li.appendChild(childUl);
-      }else{
-        title.appendChild(titleSpan);
-        li.appendChild(title);
-        if(n.note){
-          const note=document.createElement('div');
-          note.className='ml-2 text-gray-600 text-sm';
-          note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
-          if(jsonMode) makeNoteEditable(note,n.id,n);
-          li.appendChild(note);
-        }
-        if(n.links && n.links.length){
-          const linkDiv=document.createElement('div');
-          linkDiv.className='ml-2 flex flex-wrap gap-2 text-sm';
-          n.links.forEach(l=>{
-            const a=document.createElement('a');
-            a.textContent=l.title||l.target;
-            a.href=l.target;
-            a.dataset.link=JSON.stringify(l);
-            a.className='inline-block px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-700';
-            linkDiv.appendChild(a);
-          });
-          li.appendChild(linkDiv);
-        }
-      }
-      ul.appendChild(li);
-    });
-    return ul;
-  }
+        ul.appendChild(li);
+      });
+      return ul;
+    }
   opmlPreview.innerHTML='';
+  const heading=document.createElement('h1');
+  heading.className='text-center text-2xl font-bold mb-2';
+  heading.textContent=getNodeTitle(state.doc);
+  opmlPreview.appendChild(heading);
+  opmlPreview.appendChild(document.createElement('hr'));
   const toc=document.createElement('div');
   toc.className='mb-4';
   const tocTitle=document.createElement('div');
@@ -1517,29 +1546,43 @@ function renderOpmlPreview(nodes){
   toc.appendChild(tocTitle);
   toc.appendChild(tocList);
   opmlPreview.appendChild(toc);
+  opmlPreview.appendChild(document.createElement('hr'));
   opmlPreview.appendChild(walk(nodes,0));
   attachPreviewLinks();
 }
 function renderJsonPreview(nodes){ renderOpmlPreview(nodes); }
-function attachPreviewLinks(){
-  opmlPreview.querySelectorAll('a').forEach(a=>{
-    a.addEventListener('click',e=>{
+  function attachPreviewLinks(){
+    if(attachPreviewLinks.initialized) return;
+    attachPreviewLinks.initialized=true;
+    const handler=e=>{
+      const a=e.target.closest('a');
+      if(!a || !opmlPreview.contains(a)) return;
       e.preventDefault();
       const data=a.dataset.link;
       if(data){
         try{ followLink(JSON.parse(data)); return; }catch{}
       }
       const href=a.getAttribute('href')||'';
-      if(/^https?:\/\//i.test(href)){
-        window.open(href,'_blank');
-      }else if(href.endsWith('/')){
-        openDir(href.replace(/\/$/,''));
-      }else{
-        openFile(href, href.split('/').pop(),0,0);
-      }
-    });
-  });
-}
+      if(/^https?:\/\//i.test(href)) window.open(href,'_blank');
+      else if(href.endsWith('/')) openDir(href.replace(/\/$/,''));
+      else openFile(href, href.split('/').pop(),0,0);
+    };
+    opmlPreview.addEventListener('click',handler);
+    const process=root=>{
+      root.querySelectorAll('a').forEach(a=>{
+        if(!a.dataset.link) a.dataset.link=a.getAttribute('href')||'';
+      });
+    };
+    process(opmlPreview);
+    new MutationObserver(muts=>{
+      muts.forEach(m=>m.addedNodes.forEach(node=>{
+        if(node.nodeType===1){
+          if(node.tagName==='A' && !node.dataset.link) node.dataset.link=node.getAttribute('href')||'';
+          node.querySelectorAll&&node.querySelectorAll('a').forEach(a=>{ if(!a.dataset.link) a.dataset.link=a.getAttribute('href')||''; });
+        }
+      }));
+    }).observe(opmlPreview,{childList:true,subtree:true});
+  }
 
 function toggleSection(id,btn){
   const el=document.getElementById(id);
