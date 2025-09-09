@@ -1365,9 +1365,10 @@ function renderOpmlPreview(nodes){
     const base=(str||'section').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')||'section';
     let id=base, i=1; while(usedIds.has(id)) id=base+'-'+(i++); usedIds.add(id); return id;
   }
-  function makeTitleEditable(span,id,onEditStart){
-      const startEdit=e=>{
-        if(!jsonMode) return; e.stopPropagation(); e.preventDefault();
+function makeTitleEditable(span,id,onEditStart,target){
+    const targetEl=target||span;
+    const startEdit=e=>{
+      if(!jsonMode) return; e.stopPropagation(); e.preventDefault();
       const input=document.createElement('input');
       input.type='text'; input.value=span.textContent;
       span.replaceWith(input); input.focus();
@@ -1382,14 +1383,14 @@ function renderOpmlPreview(nodes){
       input.addEventListener('keydown',e=>{if(e.key==='Enter'){finish();}});
       if(onEditStart) onEditStart();
     };
-    span.addEventListener('dblclick',startEdit);
+    targetEl.addEventListener('dblclick',startEdit);
     let pressTimer;
-    span.addEventListener('mousedown',e=>{ pressTimer=setTimeout(()=>startEdit(e),500); });
-    span.addEventListener('mouseup',()=>clearTimeout(pressTimer));
-    span.addEventListener('mouseleave',()=>clearTimeout(pressTimer));
-    span.addEventListener('touchstart',e=>{ pressTimer=setTimeout(()=>startEdit(e),500); },{passive:true});
-    span.addEventListener('touchend',()=>clearTimeout(pressTimer));
-    span.addEventListener('touchcancel',()=>clearTimeout(pressTimer));
+    targetEl.addEventListener('mousedown',e=>{ pressTimer=setTimeout(()=>startEdit(e),500); });
+    targetEl.addEventListener('mouseup',()=>clearTimeout(pressTimer));
+    targetEl.addEventListener('mouseleave',()=>clearTimeout(pressTimer));
+    targetEl.addEventListener('touchstart',e=>{ pressTimer=setTimeout(()=>startEdit(e),500); },{passive:true});
+    targetEl.addEventListener('touchend',()=>clearTimeout(pressTimer));
+    targetEl.addEventListener('touchcancel',()=>clearTimeout(pressTimer));
   }
   function makeNoteEditable(div,id,n){
     div.addEventListener('click',()=>{
@@ -1408,6 +1409,7 @@ function renderOpmlPreview(nodes){
         newDiv.innerHTML=mdLinks(escapeHtml(val).replace(/\n/g,'<br>'));
         makeNoteEditable(newDiv,id,n);
         textarea.replaceWith(newDiv);
+        attachPreviewLinks();
         saveCurrentJsonStructure();
       };
       textarea.addEventListener('blur',finish);
@@ -1421,13 +1423,14 @@ function renderOpmlPreview(nodes){
         li.className='mt-2';
         if(level===0){ li.id=n._id || (n._id=slug(n.t)); }
         let clickCount=0;
-        const title=document.createElement('div');
-        title.className='inline-flex items-center cursor-pointer border rounded px-2 py-1 bg-gray-100 hover:bg-gray-200';
+        const title=document.createElement('button');
+        title.type='button';
+        title.className='inline-flex items-center border rounded px-2 py-1 bg-gray-100 hover:bg-gray-200';
         const titleSpan=document.createElement('span');
         titleSpan.textContent=n.t||'';
         if(level===0) titleSpan.className='font-bold text-lg';
         else if(level===1) titleSpan.className='font-semibold';
-        if(jsonMode) makeTitleEditable(titleSpan,n.id,()=>{clickCount=0;});
+        if(jsonMode) makeTitleEditable(titleSpan,n.id,()=>{clickCount=0;},title);
         if(n.children && n.children.length){
           li.className='mt-2 border border-gray-300 rounded p-2';
           const caret=document.createElement('span');
@@ -1528,6 +1531,12 @@ function renderOpmlPreview(nodes){
 }
 function renderJsonPreview(nodes){ renderOpmlPreview(nodes); }
   function attachPreviewLinks(){
+    const process=root=>{
+      root.querySelectorAll('a').forEach(a=>{
+        if(!a.dataset.link) a.dataset.link=a.getAttribute('href')||'';
+      });
+    };
+    process(opmlPreview);
     if(attachPreviewLinks.initialized) return;
     attachPreviewLinks.initialized=true;
     const handler=e=>{
@@ -1544,12 +1553,6 @@ function renderJsonPreview(nodes){ renderOpmlPreview(nodes); }
       else openFile(href, href.split('/').pop(),0,0);
     };
     opmlPreview.addEventListener('click',handler);
-    const process=root=>{
-      root.querySelectorAll('a').forEach(a=>{
-        if(!a.dataset.link) a.dataset.link=a.getAttribute('href')||'';
-      });
-    };
-    process(opmlPreview);
     new MutationObserver(muts=>{
       muts.forEach(m=>m.addedNodes.forEach(node=>{
         if(node.nodeType===1){
