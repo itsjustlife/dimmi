@@ -870,7 +870,7 @@ if (isset($_GET['api'])) {
       </div>
     </div>
   </header>
-  <main class="flex-1 overflow-auto md:overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:h-[calc(100vh-64px)] min-h-0">
+  <main class="flex-1 overflow-auto md:overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-4 md:gap-4 md:h-[calc(100vh-64px)] min-h-0">
     <!-- FIND -->
     <section class="bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
       <div class="flex items-center gap-2 p-4 border-b">
@@ -946,11 +946,6 @@ if (isset($_GET['api'])) {
         <button onclick="showCurrentInfo()" id="infoBtn" disabled class="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Info">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </button>
-        <div id="contentTabs" class="hidden flex gap-2">
-          <button id="codeTab" class="px-2 py-1 text-sm border rounded bg-gray-200">Code</button>
-          <button id="previewTab" class="px-2 py-1 text-sm border rounded">Preview</button>
-          <button id="edit-mode-btn" class="px-2 py-1 text-sm border rounded">Edit</button>
-        </div>
         <div class="ml-auto flex gap-2 flex-wrap">
           <button onclick="downloadFile()" id="downloadBtn" disabled class="p-2 rounded text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Download">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 9l4.5 4.5 4.5-4.5M12 13.5V3"/></svg>
@@ -973,12 +968,27 @@ if (isset($_GET['api'])) {
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
           </button>
         </div>
+        <textarea id="content-editor" class="p-4 flex-1 overflow-auto hidden"></textarea>
+        <div id="linkList" class="hidden border-t p-2 flex flex-wrap text-sm"></div>
+      </div>
+    </section>
+    <!-- PREVIEW -->
+    <section class="bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
+      <div class="flex flex-wrap items-center gap-2 p-4 border-b">
+        <h2 class="font-semibold">PREVIEW</h2>
+        <div id="contentTabs" class="hidden flex gap-2">
+          <button id="codeTab" class="px-2 py-1 text-sm border rounded bg-gray-200">Code</button>
+          <button id="previewTab" class="px-2 py-1 text-sm border rounded">Preview</button>
+        </div>
+        <button class="ml-auto md:hidden" onclick="toggleSection('previewBody', this)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </div>
+      <div id="previewBody" class="flex-1 flex flex-col overflow-hidden min-h-0">
         <div id="imgPreviewWrap" class="hidden flex-1 overflow-auto items-center justify-center min-h-[16rem]"><img id="imgPreview" class="max-w-full" /></div>
         <div id="opmlPreview" class="p-4 flex-1 overflow-auto hidden"></div>
         <div id="content-preview" class="p-4 flex-1 overflow-auto hidden"></div>
-        <textarea id="content-editor" class="p-4 flex-1 overflow-auto hidden"></textarea>
         <textarea id="ta" class="flex-1 w-full p-4 resize-none border-0 outline-none overflow-auto min-h-[16rem]" placeholder="Open a text file…" disabled></textarea>
-        <div id="linkList" class="hidden border-t p-2 flex flex-wrap text-sm"></div>
       </div>
     </section>
   </main>
@@ -1032,11 +1042,11 @@ const sortBtn=document.getElementById('sort-btn');
 const sortMenu=document.getElementById('sort-menu');
 const contentPreview=document.getElementById('content-preview');
 const contentEditor=document.getElementById('content-editor');
-const editModeBtn=document.getElementById('edit-mode-btn');
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null, currentJsonRootKey=null;
 let fileSort={criterion:'name',direction:'asc'};
 let originalRootOrder=[];
 let saveContentTimer=null, saveTitleTimer=null;
+let currentPreviewMode='preview';
 
 function getNodeTitle(node){
   return node.title || (node.metadata&&node.metadata.title) || node.content || node.note || '';
@@ -1174,29 +1184,19 @@ if(listBtn && treeBtn){
 }
 
 if(codeTab && previewTab){
-  codeTab.addEventListener('click',()=>toggleContentMode('code'));
-  previewTab.addEventListener('click',()=>toggleContentMode('preview'));
-}
-if(editModeBtn){
-  editModeBtn.addEventListener('click',()=>{
-    if(selectedId!==null){
-      const node=findJsonNode(currentJsonRoot,selectedId);
-      contentEditor.value=node?getNodeNote(node):'';
-    }
-    toggleContentMode('edit');
-  });
+  codeTab.addEventListener('click',()=>togglePreviewMode('code'));
+  previewTab.addEventListener('click',()=>togglePreviewMode('preview'));
 }
 
-function toggleContentMode(mode){
+function togglePreviewMode(mode){
+  currentPreviewMode=mode;
   const isStruct=currentFile && ['opml','xml','json'].includes(currentFile.split('.').pop().toLowerCase());
   const previewEl=isStruct?opmlPreview:contentPreview;
-  [ta,contentEditor,contentPreview,opmlPreview].forEach(el=>{ if(el) el.style.display='none'; });
+  [ta,contentPreview,opmlPreview].forEach(el=>{ if(el) el.style.display='none'; });
   if(mode==='code' && ta) ta.style.display='';
-  if(mode==='edit' && contentEditor) contentEditor.style.display='';
   if(mode==='preview' && previewEl) previewEl.style.display='';
   if(codeTab) codeTab.classList.toggle('bg-gray-200',mode==='code');
   if(previewTab) previewTab.classList.toggle('bg-gray-200',mode==='preview');
-  if(editModeBtn) editModeBtn.classList.toggle('bg-gray-200',mode==='edit');
 }
 if(contentEditor){
   contentEditor.addEventListener('input',()=>{
@@ -1204,8 +1204,15 @@ if(contentEditor){
     if(node){
       setNodeNote(node,contentEditor.value);
       node.modified=new Date().toISOString();
-      if(contentPreview) contentPreview.innerHTML=getNodeNote(node);
-      renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
+      const noteHtml=getNodeNote(node);
+      if(contentPreview) contentPreview.innerHTML=noteHtml;
+      const titleInput=document.getElementById('nodeTitle');
+      if(titleInput) titleInput.value=getNodeTitle(node);
+      const expanded=getExpanded();
+      const arkTree=cjsf_to_ark(currentJsonRoot);
+      renderTree(arkTree);
+      restoreExpanded(expanded);
+      renderOpmlPreview(arkTree);
       clearTimeout(saveContentTimer);
       saveContentTimer=setTimeout(()=>saveCurrentJsonStructure(),500);
     }
@@ -1613,6 +1620,8 @@ function showCurrentInfo(){ if(currentFileInfo) showInfo(currentFile,currentFile
 async function openFile(rel,name,size,mtime){
   currentFile=rel; currentOutlinePath=''; selectedId=null; currentFileInfo={name,size,mtime};
   document.getElementById('nodeTitleRow').classList.add('hidden');
+  if(contentEditor) contentEditor.classList.add('hidden');
+  document.getElementById('linkList').classList.add('hidden');
   const titleInput=document.getElementById('fileTitle');
   const renameBtn=document.getElementById('fileRenameBtn');
   const imgWrap=document.getElementById('imgPreviewWrap');
@@ -1651,7 +1660,7 @@ async function openFile(rel,name,size,mtime){
     // Default to showing the raw code when a structured file is opened
     // This replaces the old showCodeView() call which wasn't defined here
     // and was causing the script to stop before the preview was rendered.
-    toggleContentMode('code');
+    togglePreviewMode('code');
     try{
       const isJson=extLower==='json';
       if(isJson){
@@ -1904,7 +1913,9 @@ function deleteNode(id){
       restoreExpanded(expanded);
       selectedId=null;
       document.getElementById('nodeTitleRow').classList.add('hidden');
+      if(contentEditor) contentEditor.classList.add('hidden');
       if(contentPreview) contentPreview.innerHTML='';
+      document.getElementById('linkList').classList.add('hidden');
       renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
     }else{
       nodeOp('delete',{},id);
@@ -2092,10 +2103,13 @@ function selectNode(id,title,note,links=[]){
   titleRow.classList.remove('hidden');
   if(contentTabs) contentTabs.classList.remove('hidden');
   const node=findJsonNode(currentJsonRoot,id);
-  if(node && contentPreview){
-    contentPreview.innerHTML=getNodeNote(node);
+  const nodeNote=node?getNodeNote(node):(note||'');
+  if(contentPreview) contentPreview.innerHTML=nodeNote;
+  if(contentEditor){
+    contentEditor.value=nodeNote;
+    contentEditor.classList.remove('hidden');
   }
-  toggleContentMode('preview');
+  togglePreviewMode(currentPreviewMode);
   renderLinks();
 }
 async function nodeOp(op,extra={},id=selectedId){
@@ -2293,8 +2307,9 @@ nodeTitleInput.addEventListener('input',()=>{ clearTimeout(saveTitleTimer); save
 nodeTitleInput.addEventListener('blur',saveTitle);
 async function saveTitle(){
   if(selectedId===null) return;
+  const id=selectedId;
   const title=nodeTitleInput.value.trim();
-  await nodeOp('set_title',{title});
+  await nodeOp('set_title',{title},id);
 }
 init();
 </script>
