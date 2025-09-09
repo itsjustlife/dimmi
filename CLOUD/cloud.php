@@ -845,6 +845,16 @@ if (isset($_GET['api'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?=$TITLE?></title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style type="text/tailwindcss">
+    .pane-header {@apply flex flex-wrap items-center gap-2 p-4 border-b;}
+    .pane-title {@apply font-semibold flex-1;}
+    .pane-controls {@apply flex items-center gap-2;}
+    .pane-meta {@apply flex items-center gap-2 px-4 py-2 border-b;}
+    .file-input {@apply flex-1 border rounded px-2 py-1;}
+    .title-input {@apply flex-1 border rounded px-2 py-1;}
+    .primary {@apply px-3 py-1 bg-blue-600 text-white rounded;}
+    .mono {@apply font-mono;}
+  </style>
 </head>
 <body class="h-screen flex flex-col bg-gray-50 text-gray-800 overflow-x-hidden">
   <header class="flex items-center gap-4 p-4 bg-white shadow">
@@ -873,18 +883,25 @@ if (isset($_GET['api'])) {
   <main class="flex-1 overflow-auto md:overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-4 md:gap-4 md:h-[calc(100vh-64px)] min-h-0">
     <!-- FIND -->
     <section id="pane-find" class="order-1 bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
-      <div class="flex items-center gap-2 p-4 border-b">
-        <h2 class="font-semibold flex-1">FIND</h2>
-        <button onclick="mkdirPrompt()" class="p-2 text-gray-600 hover:text-gray-800" title="New Folder">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/></svg>
-        </button>
-        <label class="p-2 text-gray-600 hover:text-gray-800 cursor-pointer" title="Upload Folder">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
-          <input type="file" webkitdirectory multiple class="hidden" onchange="uploadFolder(this)">
-        </label>
-        <button class="ml-2 md:hidden" onclick="toggleSection('findBody', this)">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
-        </button>
+      <header class="pane-header">
+        <h3 class="pane-title">FIND</h3>
+        <div class="pane-controls">
+          <button onclick="mkdirPrompt()" class="p-2 text-gray-600 hover:text-gray-800" title="New Folder">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/></svg>
+          </button>
+          <label class="p-2 text-gray-600 hover:text-gray-800 cursor-pointer" title="Upload Folder">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+            <input type="file" webkitdirectory multiple class="hidden" onchange="uploadFolder(this)">
+          </label>
+          <button class="ml-2 md:hidden" onclick="toggleSection('findBody', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+      </header>
+      <div class="pane-meta">
+        <input id="meta-file-FIND" class="file-input mono" />
+        <input id="meta-title-FIND" class="title-input" />
+        <button id="meta-save-FIND" class="primary">Save</button>
       </div>
       <div id="findBody" class="flex-1 flex flex-col overflow-hidden min-h-0">
         <div class="flex gap-2 p-4">
@@ -899,35 +916,42 @@ if (isset($_GET['api'])) {
 
     <!-- STRUCTURE -->
     <section id="pane-structure" class="order-2 bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
-      <div class="flex items-center gap-2 p-4 border-b">
-        <h2 class="font-semibold flex-1">STRUCTURE</h2>
-        <button onclick="newFilePrompt()" class="p-2 text-gray-600 hover:text-gray-800" title="New File">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-        </button>
-        <label class="p-2 text-gray-600 hover:text-gray-800 cursor-pointer" title="Upload File">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
-          <input type="file" class="hidden" onchange="uploadFile(this)">
-        </label>
-        <button id="pasteBtn" class="p-2 text-gray-600 hover:text-gray-800 hidden" title="Paste">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5h7.5m-7.5 0A2.25 2.25 0 006 6.75v11.25A2.25 2.25 0 008.25 20.25h7.5A2.25 2.25 0 0018 18V6.75a2.25 2.25 0 00-2.25-2.25m-7.5 0V3.75A2.25 2.25 0 0110.5 1.5h3a2.25 2.25 0 012.25 2.25V4.5"/></svg>
-        </button>
-        <div class="ml-auto flex gap-2">
-          <button id="structListBtn" type="button" class="px-2 py-1 text-sm border rounded">List</button>
-          <button id="structTreeBtn" type="button" class="px-2 py-1 text-sm border rounded" title="Show OPML ARK" disabled>ARK</button>
-          <div class="relative">
-            <button id="sort-btn" class="hidden px-2 py-1 text-sm border rounded" title="Sort">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9M3 12h5m4 0l4 4m0 0l4-4m-4 4V4"/></svg>
-            </button>
-            <div id="sort-menu" class="hidden absolute right-0 mt-1 bg-white border rounded shadow text-sm z-10">
-              <button data-sort="name" class="block w-full text-left px-3 py-1 hover:bg-gray-100">Name</button>
-              <button data-sort="size" class="block w-full text-left px-3 py-1 hover:bg-gray-100">Size</button>
-              <button data-sort="date" class="block w-full text-left px-3 py-1 hover:bg-gray-100">Date</button>
+      <header class="pane-header">
+        <h3 class="pane-title">STRUCTURE</h3>
+        <div class="pane-controls">
+          <button onclick="newFilePrompt()" class="p-2 text-gray-600 hover:text-gray-800" title="New File">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+          </button>
+          <label class="p-2 text-gray-600 hover:text-gray-800 cursor-pointer" title="Upload File">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+            <input type="file" class="hidden" onchange="uploadFile(this)">
+          </label>
+          <button id="pasteBtn" class="p-2 text-gray-600 hover:text-gray-800 hidden" title="Paste">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5h7.5m-7.5 0A2.25 2.25 0 006 6.75v11.25A2.25 2.25 0 008.25 20.25h7.5A2.25 2.25 0 0018 18V6.75a2.25 2.25 0 00-2.25-2.25m-7.5 0V3.75A2.25 2.25 0 0110.5 1.5h3a2.25 2.25 0 012.25 2.25V4.5"/></svg>
+          </button>
+          <div class="ml-auto flex gap-2">
+            <button id="structListBtn" type="button" class="px-2 py-1 text-sm border rounded">List</button>
+            <button id="structTreeBtn" type="button" class="px-2 py-1 text-sm border rounded" title="Show OPML ARK" disabled>ARK</button>
+            <div class="relative">
+              <button id="sort-btn" class="hidden px-2 py-1 text-sm border rounded" title="Sort">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9M3 12h5m4 0l4 4m0 0l4-4m-4 4V4"/></svg>
+              </button>
+              <div id="sort-menu" class="hidden absolute right-0 mt-1 bg-white border rounded shadow text-sm z-10">
+                <button data-sort="name" class="block w-full text-left px-3 py-1 hover:bg-gray-100">Name</button>
+                <button data-sort="size" class="block w-full text-left px-3 py-1 hover:bg-gray-100">Size</button>
+                <button data-sort="date" class="block w-full text-left px-3 py-1 hover:bg-gray-100">Date</button>
+              </div>
             </div>
           </div>
+          <button class="ml-2 md:hidden" onclick="toggleSection('structBody', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+          </button>
         </div>
-        <button class="ml-2 md:hidden" onclick="toggleSection('structBody', this)">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
-        </button>
+      </header>
+      <div class="pane-meta">
+        <input id="meta-file-STRUCTURE" class="file-input mono" />
+        <input id="meta-title-STRUCTURE" class="title-input" />
+        <button id="meta-save-STRUCTURE" class="primary">Save</button>
       </div>
       <div id="structBody" class="p-4 flex-1 flex flex-col overflow-hidden min-h-0">
         <ul id="fileList" class="flex-1 overflow-auto divide-y text-sm min-h-0"></ul>
@@ -938,34 +962,41 @@ if (isset($_GET['api'])) {
     
     <!-- CONTENT -->
     <section id="pane-content" class="order-3 bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
-      <div class="flex flex-wrap items-center gap-2 p-4 border-b">
-        <h2 class="font-semibold">CONTENT</h2>
-        <input id="fileTitle" class="hidden text-sm bg-gray-100 rounded px-2 py-1" />
-        <button id="fileRenameBtn" class="hidden p-2 text-green-600 hover:text-green-800" title="Rename">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-        </button>
-        <button onclick="showCurrentInfo()" id="infoBtn" disabled class="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Info">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </button>
-        <div id="contentTabs" class="hidden flex gap-2">
-          <button id="codeTab" class="px-2 py-1 text-sm border rounded bg-gray-200">Code</button>
-          <button id="previewTab" class="px-2 py-1 text-sm border rounded">Preview</button>
-          <button id="edit-mode-btn" class="px-2 py-1 text-sm border rounded">Edit</button>
+      <header class="pane-header">
+        <h3 class="pane-title">CONTENT</h3>
+        <div class="pane-controls">
+          <input id="fileTitle" class="hidden text-sm bg-gray-100 rounded px-2 py-1" />
+          <button id="fileRenameBtn" class="hidden p-2 text-green-600 hover:text-green-800" title="Rename">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          </button>
+          <button onclick="showCurrentInfo()" id="infoBtn" disabled class="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Info">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </button>
+          <div id="contentTabs" class="hidden flex gap-2">
+            <button id="codeTab" class="px-2 py-1 text-sm border rounded bg-gray-200">Code</button>
+            <button id="previewTab" class="px-2 py-1 text-sm border rounded">Preview</button>
+            <button id="edit-mode-btn" class="px-2 py-1 text-sm border rounded">Edit</button>
+          </div>
+          <div class="ml-auto flex gap-2 flex-wrap">
+            <button onclick="downloadFile()" id="downloadBtn" disabled class="p-2 rounded text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Download">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 9l4.5 4.5 4.5-4.5M12 13.5V3"/></svg>
+            </button>
+            <button onclick="save()" id="saveBtn" disabled class="p-2 rounded text-blue-600 hover:text-blue-800 disabled:opacity-50" title="Save">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 11.25l4.5 4.5 4.5-4.5M12 15.75V3"/></svg>
+            </button>
+            <button onclick="del()" id="delBtn" disabled class="p-2 rounded text-red-600 hover:text-red-800 disabled:opacity-50" title="Delete">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+            </button>
+          </div>
+          <button class="ml-2 md:hidden" onclick="toggleSection('contentBody', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+          </button>
         </div>
-        <div class="ml-auto flex gap-2 flex-wrap">
-          <button onclick="downloadFile()" id="downloadBtn" disabled class="p-2 rounded text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Download">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 9l4.5 4.5 4.5-4.5M12 13.5V3"/></svg>
-          </button>
-          <button onclick="save()" id="saveBtn" disabled class="p-2 rounded text-blue-600 hover:text-blue-800 disabled:opacity-50" title="Save">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 11.25l4.5 4.5 4.5-4.5M12 15.75V3"/></svg>
-          </button>
-          <button onclick="del()" id="delBtn" disabled class="p-2 rounded text-red-600 hover:text-red-800 disabled:opacity-50" title="Delete">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
-          </button>
-        </div>
-        <button class="ml-2 md:hidden" onclick="toggleSection('contentBody', this)">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
-        </button>
+      </header>
+      <div class="pane-meta">
+        <input id="meta-file-CONTENT" class="file-input mono" />
+        <input id="meta-title-CONTENT" class="title-input" />
+        <button id="meta-save-CONTENT" class="primary">Save</button>
       </div>
       <div id="contentBody" class="flex-1 flex flex-col overflow-hidden min-h-0">
         <div id="nodeTitleRow" class="hidden flex items-center gap-2 p-4 border-b">
@@ -984,16 +1015,23 @@ if (isset($_GET['api'])) {
 
 <!-- PREVIEW -->
     <section id="pane-preview" class="order-4 bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
-      <div class="flex items-center gap-2 p-4 border-b">
-        <h2 class="font-semibold">PREVIEW</h2>
-        <div class="flex gap-2">
-          <button id="preview-web-btn" class="px-2 py-1 text-sm border rounded bg-gray-200">WEB</button>
-          <button id="preview-raw-btn" class="px-2 py-1 text-sm border rounded">RAW</button>
-          <button id="preview-save" class="px-2 py-1 text-sm border rounded bg-blue-600 text-white hidden">Save</button>
+      <header class="pane-header">
+        <h3 class="pane-title">PREVIEW</h3>
+        <div class="pane-controls">
+          <div class="flex gap-2">
+            <button id="preview-web-btn" class="px-2 py-1 text-sm border rounded bg-gray-200">WEB</button>
+            <button id="preview-raw-btn" class="px-2 py-1 text-sm border rounded">RAW</button>
+            <button id="preview-save" class="px-2 py-1 text-sm border rounded bg-blue-600 text-white hidden">Save</button>
+          </div>
+          <button class="ml-auto md:hidden" onclick="toggleSection('previewBody', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+          </button>
         </div>
-        <button class="ml-auto md:hidden" onclick="toggleSection('previewBody', this)">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
-        </button>
+      </header>
+      <div class="pane-meta">
+        <input id="meta-file-PREVIEW" class="file-input mono" />
+        <input id="meta-title-PREVIEW" class="title-input" />
+        <button id="meta-save-PREVIEW" class="primary">Save</button>
       </div>
       <div id="previewBody" class="flex-1 flex flex-col overflow-hidden min-h-0">
         <div id="preview-web" class="flex-1 overflow-auto p-4"></div>
@@ -1023,6 +1061,17 @@ const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='', currentOutlinePath='', currentFileInfo=null;
 let clipboardPath='';
+function updateMeta(){
+  const path=currentFile || currentDir || '';
+  const title=currentFile ? (document.getElementById('fileTitle')?.value || '') : '';
+  ['FIND','STRUCTURE','CONTENT','PREVIEW'].forEach(p=>{
+    const f=document.getElementById('meta-file-'+p);
+    const t=document.getElementById('meta-title-'+p);
+    if(f) f.value=path;
+    if(t) t.value=title;
+  });
+}
+updateMeta();
 const icons={
   folder:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/></svg>',
   file:'<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>',
@@ -1679,6 +1728,7 @@ async function openDir(rel){
     else if(fileSort.criterion==='date') cmp=(a.mtime||0)-(b.mtime||0);
     return fileSort.direction==='asc'?cmp:-cmp;
   }).forEach(f=>FI.appendChild(ent(f.name,f.rel,false,f.size,f.mtime)));
+  updateMeta();
 }
 function jump(){ const p=document.getElementById('pathInput').value.trim(); openDir(p); }
 function fmtSize(b){ if(b<1024) return b+' B'; let u=['KB','MB','GB']; let i=-1; do{b/=1024;i++;}while(b>=1024&&i<2); return b.toFixed(1)+' '+u[i]; }
@@ -1704,6 +1754,7 @@ async function openFile(rel,name,size,mtime){
   renameBtn.classList.remove('hidden');
   titleInput.value=name;
   infoBtn.disabled=false;
+  updateMeta();
   const ext=name.toLowerCase().split('.').pop();
   const isImg=['png','jpg','jpeg','gif','webp','svg'].includes(ext);
   if(isImg){
@@ -2385,6 +2436,7 @@ on('documentChanged',()=>{
 });
 document.getElementById('fileRenameBtn').addEventListener('click', renameCurrent);
 document.getElementById('fileTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); renameCurrent(); }});
+document.getElementById('fileTitle').addEventListener('input', updateMeta);
 document.getElementById('titleSaveBtn').addEventListener('click', saveTitle);
 const nodeTitleInput=document.getElementById('nodeTitle');
 nodeTitleInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); saveTitle(); }});
