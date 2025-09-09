@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "basic-0001",
+  "metadata": { "title": "Basic Note" },
+  "root": [
+    {
+      "id": "basic-root",
+      "type": "note",
+      "content": "Hello from basic example.",
+      "metadata": { "title": "Hello" },
+      "children": []
+    }
+  ]
+}

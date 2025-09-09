@@ -103,7 +103,8 @@ footer{position:fixed;right:10px;bottom:8px;opacity:.5}
 const CSRF = '{{CSRF}}';
 const api=(act,params)=>fetch('api/'+act+'?'+new URLSearchParams(params||{}));
 let currentDir='', currentFile='';
-let opmlDoc=null, editMode=false;
+let opmlDoc=null, jsonDoc=null, editMode=false;
+let currentMode='text';
 const newExts=['.json','.txt','.html','.md','.opml'];
 let newExtIndex=0;
 const listBtn=document.getElementById('structListBtn');
@@ -141,10 +142,15 @@ function showPreviewView(){
   codeTab.classList.remove('selected');
   ta.style.display='none';
   opmlPreview.style.display='block';
-  if(ta.value && !editBtn.disabled){
-    try{ opmlDoc=new DOMParser().parseFromString(ta.value,'application/xml'); }catch{}
+  if(currentMode==='opml'){
+    if(ta.value && !editBtn.disabled){
+      try{ opmlDoc=new DOMParser().parseFromString(ta.value,'application/xml'); }catch{}
+    }
+    renderOpmlPreview();
+  }else if(currentMode==='json'){
+    try{ jsonDoc=ta.value?JSON.parse(ta.value):[]; renderJsonPreview(jsonDoc); }
+    catch{ opmlPreview.textContent='JSON parse error.'; }
   }
-  renderOpmlPreview();
 }
 function escapeHtml(str){return str.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 function mdLinks(str){return str.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');}
@@ -245,6 +251,28 @@ function serializeAndSave(){
   renderOpmlPreview();
 }
 
+function renderJsonPreview(doc){
+  const getRoot=(d)=>Array.isArray(d)?d:(Array.isArray(d.root)?d.root:(Array.isArray(d.items)?d.items:[]));
+  const getTitle=(n)=>n?.title||n?.metadata?.title||n?.content||n?.note||'';
+  const root=getRoot(doc);
+  opmlPreview.innerHTML='';
+  const walk=(node,level)=>{
+    const wrap=document.createElement('div');
+    const heading=document.createElement(level===0?'h2':'h3');
+    heading.textContent=getTitle(node);
+    wrap.appendChild(heading);
+    const note=node?.note||(node?.content&& (node.title||node.metadata?.title)?node.content:'');
+    if(note){
+      const div=document.createElement('div');
+      div.innerHTML=mdLinks(escapeHtml(note));
+      wrap.appendChild(div);
+    }
+    if(Array.isArray(node?.children)) node.children.forEach(c=>wrap.appendChild(walk(c,level+1)));
+    return wrap;
+  };
+  root.forEach(n=>opmlPreview.appendChild(walk(n,0)));
+}
+
 function toggleEdit(){
   if(!opmlDoc) return;
   editMode=!editMode;
@@ -288,7 +316,9 @@ async function openFile(rel,name,size,mtime){
   if(!r.ok){ alert(r.error||'Cannot open'); ta.value=''; ta.disabled=true; btns(false); contentTabs.style.display='none'; opmlPreview.style.display='none'; return; }
   ta.value=r.content; ta.disabled=false; btns(true);
   const ext=name.toLowerCase().split('.').pop();
+  const isJson=ext==='json';
   const isOpml=['opml','xml'].includes(ext);
+  currentMode=isJson?'json':(isOpml?'opml':'text');
   document.getElementById('structTreeBtn').disabled = !isOpml;
   hideTree();
   if(isOpml){
@@ -302,13 +332,21 @@ async function openFile(rel,name,size,mtime){
       editBtn.textContent='Edit';
       renderOpmlPreview();
     }catch{ opmlPreview.textContent='OPML parse error.'; }
+  }else if(isJson){
+    contentTabs.style.display='flex';
+    showCodeView();
+    try{ jsonDoc=JSON.parse(r.content); renderJsonPreview(jsonDoc); }
+    catch{ jsonDoc=null; opmlPreview.textContent='JSON parse error.'; }
+    editMode=false;
+    editBtn.disabled=true;
   }else{
     contentTabs.style.display='none';
     opmlPreview.style.display='none';
     ta.style.display='';
-    opmlDoc=null;
+    opmlDoc=null; jsonDoc=null;
     editMode=false;
     editBtn.disabled=true;
+    currentMode='text';
   }
 }
 function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; }

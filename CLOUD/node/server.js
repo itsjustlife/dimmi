@@ -190,6 +190,26 @@ app.post('/api/upload', upload.single('file'), (req,res)=>{
   res.json({ok:true});
 });
 
+app.get('/api/json_tree', async (req,res)=>{
+  const abs = safeAbs(req.query.file || '');
+  if(!abs || !fs.existsSync(abs)) return bad(res,400,'Not found');
+  try{
+    const txt = await fsp.readFile(abs,'utf8');
+    const doc = JSON.parse(txt);
+    const getRoot = (d)=>{
+      if(Array.isArray(d)) return d;
+      if(d && Array.isArray(d.root)) return d.root;
+      if(d && Array.isArray(d.items)) return d.items;
+      return [];
+    };
+    const getTitle = (n)=>{
+      if(!n || typeof n!== 'object') return '';
+      return n.title || (n.metadata && n.metadata.title) || n.content || n.note || '';
+    };
+    res.json({ok:true, root:getRoot(doc), title:getTitle(doc)});
+  }catch(e){ bad(res,400,'JSON parse error'); }
+});
+
 app.get('/api/opml_tree', async (req,res)=>{
   const abs = safeAbs(req.query.file || '');
   if(!abs || !fs.existsSync(abs)) return bad(res,400,'Not found');
