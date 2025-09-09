@@ -201,25 +201,40 @@ function renderOpmlPreview(){
   if(!editMode) attachPreviewLinks();
 }
 function attachPreviewLinks(){
-  opmlPreview.querySelectorAll('a').forEach(a=>{
-    a.addEventListener('click',e=>{
-      e.preventDefault();
-      const data=a.dataset.link;
-      if(data){
-        try{
-          const l=JSON.parse(data);
-          if(l.type==='folder') openDir(l.target);
-          else if(l.type==='file') openFile(l.target,l.target.split('/').pop(),0,0);
-          else if(l.type==='url'){ let u=l.target||''; if(!/^https?:\/\//i.test(u)) u='https://'+u; window.open(u,'_blank'); }
-        }catch{}
-        return;
+  if(attachPreviewLinks.initialized) return;
+  attachPreviewLinks.initialized=true;
+  const handler=e=>{
+    const a=e.target.closest('a');
+    if(!a || !opmlPreview.contains(a)) return;
+    e.preventDefault();
+    const data=a.dataset.link;
+    if(data){
+      try{
+        const l=JSON.parse(data);
+        if(l.type==='folder') openDir(l.target);
+        else if(l.type==='file') openFile(l.target,l.target.split('/').pop(),0,0);
+        else if(l.type==='url'){ let u=l.target||''; if(!/^https?:\/\//i.test(u)) u='https://'+u; window.open(u,'_blank'); }
+      }catch{}
+      return;
+    }
+    const href=a.getAttribute('href')||'';
+    if(/^https?:\/\//i.test(href)) window.open(href,'_blank');
+    else if(href.endsWith('/')) openDir(href.replace(/\/$/,''));
+    else openFile(href, href.split('/').pop(),0,0);
+  };
+  opmlPreview.addEventListener('click',handler);
+  const process=root=>{
+    root.querySelectorAll('a').forEach(a=>{ if(!a.dataset.link) a.dataset.link=a.getAttribute('href')||''; });
+  };
+  process(opmlPreview);
+  new MutationObserver(muts=>{
+    muts.forEach(m=>m.addedNodes.forEach(node=>{
+      if(node.nodeType===1){
+        if(node.tagName==='A' && !node.dataset.link) node.dataset.link=node.getAttribute('href')||'';
+        node.querySelectorAll&&node.querySelectorAll('a').forEach(a=>{ if(!a.dataset.link) a.dataset.link=a.getAttribute('href')||''; });
       }
-      const href=a.getAttribute('href')||'';
-      if(/^https?:\/\//i.test(href)) window.open(href,'_blank');
-      else if(href.endsWith('/')) openDir(href.replace(/\/$/,''));
-      else openFile(href, href.split('/').pop(),0,0);
-    });
-  });
+    }));
+  }).observe(opmlPreview,{childList:true,subtree:true});
 }
 
 function serializeAndSave(){
