@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "links-0001",
+  "metadata": { "title": "Linked Notes" },
+  "root": [
+    {
+      "id": "node-a",
+      "type": "note",
+      "content": "See node B",
+      "metadata": { "title": "Node A" },
+      "links": [ { "title": "Go to B", "target": "node-b" } ],
+      "children": []
+    },
+    {
+      "id": "node-b",
+      "type": "note",
+      "content": "This is node B.",
+      "metadata": { "title": "Node B" },
+      "children": []
+    }
+  ]
+}

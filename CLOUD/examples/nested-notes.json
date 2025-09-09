@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "nested-0001",
+  "metadata": { "title": "Nested Notes" },
+  "root": [
+    {
+      "id": "parent",
+      "type": "note",
+      "content": "Parent note",
+      "metadata": { "title": "Parent" },
+      "children": [
+        {
+          "id": "child1",
+          "type": "note",
+          "content": "First child",
+          "metadata": { "title": "Child One" },
+          "children": []
+        },
+        {
+          "id": "child2",
+          "type": "note",
+          "content": "Second child",
+          "metadata": { "title": "Child Two" },
+          "children": []
+        }
+      ]
+    }
+  ]
+}
