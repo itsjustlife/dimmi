@@ -972,11 +972,7 @@ if (isset($_GET['api'])) {
           <button onclick="showCurrentInfo()" id="infoBtn" disabled class="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Info">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </button>
-          <div id="contentTabs" class="hidden flex gap-2">
-            <button id="codeTab" class="px-2 py-1 text-sm border rounded bg-gray-200">Code</button>
-            <button id="previewTab" class="px-2 py-1 text-sm border rounded">Preview</button>
-            <button id="edit-mode-btn" class="px-2 py-1 text-sm border rounded">Edit</button>
-          </div>
+          <div id="contentTabs" class="hidden flex gap-2"></div>
           <div class="ml-auto flex gap-2 flex-wrap">
             <button onclick="downloadFile()" id="downloadBtn" disabled class="p-2 rounded text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Download">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 9l4.5 4.5 4.5-4.5M12 13.5V3"/></svg>
@@ -988,7 +984,7 @@ if (isset($_GET['api'])) {
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
             </button>
           </div>
-          <button class="ml-2 md:hidden" onclick="toggleSection('contentBody', this)">
+          <button class="ml-2 md:hidden" onclick="toggleSection('content-body', this)">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
           </button>
         </div>
@@ -998,18 +994,33 @@ if (isset($_GET['api'])) {
         <input id="meta-title-CONTENT" class="title-input" />
         <button id="meta-save-CONTENT" class="primary">Save</button>
       </div>
-      <div id="contentBody" class="flex-1 flex flex-col overflow-hidden min-h-0">
-        <div id="nodeTitleRow" class="hidden flex items-center gap-2 p-4 border-b">
-          <input id="nodeTitle" type="text" class="flex-1 border rounded px-2 py-1" placeholder="Title">
-          <button id="titleSaveBtn" class="p-2 text-green-600 hover:text-green-800" title="Save Title">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-          </button>
+      <div id="content-body">
+        <label>Notes</label>
+        <textarea id="content-note" rows="12"></textarea>
+
+        <div id="content-links">
+          <div class="links-toolbar">
+            <button id="link-add">Add</button>
+            <button id="link-edit" disabled>Edit</button>
+            <button id="link-del" disabled>Delete</button>
+          </div>
+          <ul id="link-list"></ul>
+          <div id="link-editor" hidden>
+            <input id="link-title" placeholder="Title (optional)"/>
+            <select id="link-type">
+              <option value="relation">Node</option>
+              <option value="url">URL</option>
+              <option value="file">File</option>
+              <option value="structure">Structure</option>
+              <option value="folder">Folder</option>
+            </select>
+            <select id="link-target-node" hidden></select>
+            <input id="link-target-text" hidden placeholder="Target (URL/path)"/>
+            <input id="link-anchor" placeholder="Anchor (optional)"/>
+            <button id="link-save">Save Link</button>
+            <button id="link-cancel" type="button">Cancel</button>
+          </div>
         </div>
-        <div id="imgPreviewWrap" class="hidden flex-1 overflow-auto items-center justify-center min-h-[16rem]"><img id="imgPreview" class="max-w-full" /></div>
-        <div id="content-preview" class="p-4 flex-1 overflow-auto hidden"></div>
-        <textarea id="content-editor" class="p-4 flex-1 overflow-auto hidden"></textarea>
-        <textarea id="ta" class="flex-1 w-full p-4 resize-none border-0 outline-none overflow-auto min-h-[16rem]" placeholder="Open a text file…" disabled></textarea>
-        <div id="linkList" class="hidden border-t p-2 flex flex-wrap text-sm"></div>
       </div>
     </section>
 
@@ -1082,11 +1093,15 @@ function applyMetaBindings(pane){
   if(pane==='CONTENT'){
     fileInput.readOnly=true;
     saveBtn.addEventListener('click',async()=>{
-      const title=titleInput.value.trim();
-      if(selectedId!==null){
-        await nodeOp('set_title',{title});
-        emit('documentChanged');
-      }
+      if(selectedId===null) return;
+      const node=findJsonNode(currentJsonRoot,selectedId);
+      if(!node) return;
+      const newTitle=titleInput.value.trim();
+      const newNote=contentNote?contentNote.value:'';
+      setNodeTitle(node,newTitle);
+      setNodeNote(node,newNote);
+      await saveDocument(currentFile,state.doc);
+      emit('documentChanged');
     });
     return;
   }
@@ -1144,18 +1159,28 @@ const downloadBtn=document.getElementById('downloadBtn');
 const infoBtn=document.getElementById('infoBtn');
 const ta=document.getElementById('ta');
 const contentTabs=document.getElementById('contentTabs');
-const codeTab=document.getElementById('codeTab');
-const previewTab=document.getElementById('previewTab');
 const opmlPreview=document.getElementById('preview-web');
 const sortBtn=document.getElementById('sort-btn');
 const sortMenu=document.getElementById('sort-menu');
-const contentPreview=document.getElementById('content-preview');
-const contentEditor=document.getElementById('content-editor');
-const editModeBtn=document.getElementById('edit-mode-btn');
 const previewRaw=document.getElementById('preview-raw');
 const previewWebBtn=document.getElementById('preview-web-btn');
 const previewRawBtn=document.getElementById('preview-raw-btn');
 const previewSave=document.getElementById('preview-save');
+const contentPreview=document.getElementById('content-preview');
+const contentEditor=document.getElementById('content-editor');
+const contentNote=document.getElementById('content-note');
+const linkList=document.getElementById('link-list');
+const linkAdd=document.getElementById('link-add');
+const linkEdit=document.getElementById('link-edit');
+const linkDel=document.getElementById('link-del');
+const linkEditor=document.getElementById('link-editor');
+const linkTitle=document.getElementById('link-title');
+const linkType=document.getElementById('link-type');
+const linkTargetNode=document.getElementById('link-target-node');
+const linkTargetText=document.getElementById('link-target-text');
+const linkAnchor=document.getElementById('link-anchor');
+const linkSave=document.getElementById('link-save');
+const linkCancel=document.getElementById('link-cancel');
 const bus=new EventTarget();
 const emit=(type,detail)=>bus.dispatchEvent(new CustomEvent(type,{detail}));
 const on=(type,handler)=>bus.addEventListener(type,handler);
@@ -1164,7 +1189,6 @@ let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[],
 let fileSort={criterion:'name',direction:'asc'};
 let originalRootOrder=[];
 let saveContentTimer=null, saveTitleTimer=null;
-let currentContentMode='edit';
 let previewMode='web';
 
 function getNodeTitle(node){
@@ -1318,10 +1342,6 @@ if(listBtn && treeBtn){
   treeBtn.onclick=()=>showTree();
 }
 
-if(codeTab && previewTab){
-  codeTab.addEventListener('click',()=>toggleContentMode('code'));
-  previewTab.addEventListener('click',()=>toggleContentMode('preview'));
-}
 if(previewWebBtn && previewRawBtn){
   previewWebBtn.addEventListener('click',()=>{
     previewMode='web';
@@ -1359,47 +1379,6 @@ if(previewSave){
       emit('documentChanged', parsed);
       previewWebBtn.click();
     }catch(e){ alert('Invalid JSON'); }
-  });
-}
-if(editModeBtn){
-  editModeBtn.addEventListener('click',()=>{
-    if(selectedId!==null){
-      const node=findJsonNode(currentJsonRoot,selectedId);
-      contentEditor.value=node?getNodeNote(node):'';
-    }
-    toggleContentMode('edit');
-  });
-}
-
-function toggleContentMode(mode){
-  currentContentMode=mode;
-  const previewEl=contentPreview;
-  [ta,contentEditor,contentPreview].forEach(el=>{ if(el) el.style.display='none'; });
-  if(mode==='code' && ta) ta.style.display='';
-  if(mode==='edit' && contentEditor) contentEditor.style.display='';
-  if(mode==='preview' && previewEl) previewEl.style.display='';
-  if(codeTab) codeTab.classList.toggle('bg-gray-200',mode==='code');
-  if(previewTab) previewTab.classList.toggle('bg-gray-200',mode==='preview');
-  if(editModeBtn) editModeBtn.classList.toggle('bg-gray-200',mode==='edit');
-}
-if(contentEditor){
-  contentEditor.addEventListener('input',()=>{
-    const node=findJsonNode(currentJsonRoot,selectedId);
-    if(node){
-      setNodeNote(node,contentEditor.value);
-      node.modified=new Date().toISOString();
-      const noteHtml=getNodeNote(node);
-      if(contentPreview) contentPreview.innerHTML=noteHtml;
-      const titleInput=document.getElementById('nodeTitle');
-      if(titleInput) titleInput.value=getNodeTitle(node);
-      const expanded=getExpanded();
-      const arkTree=cjsf_to_ark(currentJsonRoot);
-      renderTree(arkTree);
-      restoreExpanded(expanded);
-      renderOpmlPreview(arkTree);
-      clearTimeout(saveContentTimer);
-      saveContentTimer=setTimeout(()=>saveCurrentJsonStructure(),500);
-    }
   });
 }
 
@@ -1766,7 +1745,7 @@ async function openDir(rel){
   currentDir = rel || ''; crumb(currentDir);
   document.getElementById('fileTitle').classList.add('hidden');
   document.getElementById('fileRenameBtn').classList.add('hidden');
-  btns(false); infoBtn.disabled=true; currentFileInfo=null; document.getElementById('imgPreviewWrap').classList.add('hidden'); ta.classList.remove('hidden');
+  btns(false); infoBtn.disabled=true; currentFileInfo=null; document.getElementById('imgPreviewWrap').classList.add('hidden'); if(ta) ta.classList.remove('hidden');
   const FL=document.getElementById('folderList'); FL.innerHTML='';
   const r=await (await api('list',{path:currentDir})).json(); if(!r.ok){modalInfo('Error',r.error||'list failed');return;}
   if(currentDir){
@@ -1804,7 +1783,8 @@ function showInfo(rel,name,size,mtime){
 function showCurrentInfo(){ if(currentFileInfo) showInfo(currentFile,currentFileInfo.name,currentFileInfo.size,currentFileInfo.mtime); }
 async function openFile(rel,name,size,mtime){
   currentFile=rel; currentOutlinePath=''; selectedId=null; currentFileInfo={name,size,mtime};
-  document.getElementById('nodeTitleRow').classList.add('hidden');
+  const nodeTitleRow=document.getElementById('nodeTitleRow');
+  if(nodeTitleRow) nodeTitleRow.classList.add('hidden');
   const titleInput=document.getElementById('fileTitle');
   const renameBtn=document.getElementById('fileRenameBtn');
   const imgWrap=document.getElementById('imgPreviewWrap');
@@ -1817,34 +1797,30 @@ async function openFile(rel,name,size,mtime){
   const ext=name.toLowerCase().split('.').pop();
   const isImg=['png','jpg','jpeg','gif','webp','svg'].includes(ext);
   if(isImg){
-    ta.classList.add('hidden');
+    if(ta) ta.classList.add('hidden');
     imgWrap.classList.remove('hidden');
     img.src='?api=get_file&path='+encodeURIComponent(rel);
-    ta.value=''; ta.disabled=true;
+    if(ta){ ta.value=''; ta.disabled=true; }
     btns(false); delBtn.disabled=false; downloadBtn.disabled=false;
     document.getElementById('structTreeBtn').disabled=true;
-    contentTabs.classList.add('hidden');
+    if(contentTabs) contentTabs.classList.add('hidden');
     opmlPreview.classList.add('hidden');
     hideTree();
     return;
   }else{
-    imgWrap.classList.add('hidden'); img.src=''; ta.classList.remove('hidden');
+    imgWrap.classList.add('hidden'); img.src=''; if(ta) ta.classList.remove('hidden');
   }
   const r=await (await api('read',{path:rel})).json();
-  if (!r.ok) { ta.value=''; ta.disabled=true; btns(false); titleInput.classList.add('hidden'); renameBtn.classList.add('hidden'); infoBtn.disabled=true; contentTabs.classList.add('hidden'); opmlPreview.classList.add('hidden'); return; }
-  ta.value=r.content; ta.disabled=false; btns(true);
+  if (!r.ok) { if(ta){ ta.value=''; ta.disabled=true; } btns(false); titleInput.classList.add('hidden'); renameBtn.classList.add('hidden'); infoBtn.disabled=true; if(contentTabs) contentTabs.classList.add('hidden'); opmlPreview.classList.add('hidden'); return; }
+  if(ta){ ta.value=r.content; ta.disabled=false; } btns(true);
   const extLower=ext.toLowerCase();
   const isStruct=['opml','xml','json'].includes(extLower);
   document.getElementById('structTreeBtn').disabled = !isStruct;
   hideTree();
   if(isStruct){
-    contentTabs.classList.remove('hidden');
-    opmlPreview.classList.remove('hidden');
-    contentPreview.classList.add('hidden');
-    // Default to showing the raw code when a structured file is opened
-    // This replaces the old showCodeView() call which wasn't defined here
-    // and was causing the script to stop before the preview was rendered.
-    toggleContentMode('code');
+    if(contentTabs) contentTabs.classList.remove('hidden');
+    if(opmlPreview) opmlPreview.classList.remove('hidden');
+    if(contentPreview) contentPreview.classList.add('hidden');
     try{
       const isJson=extLower==='json';
       if(isJson){
@@ -1867,15 +1843,17 @@ async function openFile(rel,name,size,mtime){
       }else opmlPreview.textContent=p.error||'Structure parse error.';
     }catch{ opmlPreview.textContent='Structure load error.'; }
   }else{
-    contentTabs.classList.add('hidden');
-    opmlPreview.classList.add('hidden');
-    contentPreview.classList.add('hidden');
+    if(contentTabs) contentTabs.classList.add('hidden');
+    if(opmlPreview) opmlPreview.classList.add('hidden');
+    if(contentPreview) contentPreview.classList.add('hidden');
   }
 }
 function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; downloadBtn.disabled=!on; }
 async function save(){
   if(!currentFile) return;
-  const content=document.getElementById('ta').value;
+  const taEl=document.getElementById('ta');
+  if(!taEl) return;
+  const content=taEl.value;
   if(currentOutlinePath){
     const r=await (await fetch(`?api=set_note&`+new URLSearchParams({file:currentFile,path:currentOutlinePath}),{
       method:'POST',headers:{'X-CSRF':CSRF},body:JSON.stringify({note:content})
@@ -1896,7 +1874,7 @@ async function del(){
     if(!ok) return;
     const r=await (await fetch(`?api=delete&`+new URLSearchParams({path:currentFile}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
     if(!r.ok){modalInfo('Error',r.error||'Delete failed');return;}
-    ta.value=''; ta.disabled=true; btns(false); openDir(currentDir);
+    if(ta){ ta.value=''; ta.disabled=true; } btns(false); openDir(currentDir);
   });
 }
 async function renameCurrent(){
@@ -2015,7 +1993,7 @@ async function deleteItem(ev,rel){
     if(!ok) return;
     const r=await (await fetch(`?api=delete&`+new URLSearchParams({path:rel}),{method:'POST',headers:{'X-CSRF':CSRF}})).json();
     if(!r.ok){modalInfo('Error',r.error||'delete failed');return;}
-    if(currentFile===rel){ document.getElementById('ta').value=''; document.getElementById('ta').disabled=true; btns(false); currentFile=''; }
+    if(currentFile===rel){ const taEl=document.getElementById('ta'); if(taEl){ taEl.value=''; taEl.disabled=true; } btns(false); currentFile=''; }
     openDir(currentDir);
   });
 }
@@ -2036,6 +2014,112 @@ function restoreExpanded(set){
     }
   });
 }
+
+let selectedLinkIndex=null;
+
+function renderLinkList(){
+  if(!linkList) return;
+  linkList.innerHTML='';
+  (currentLinks||[]).forEach((l,i)=>{
+    const li=document.createElement('li');
+    li.textContent=l.metadata?.title || l.title || l.target || '';
+    li.dataset.index=i;
+    li.addEventListener('click',()=>{ selectedLinkIndex=i; updateLinkSelection(); });
+    linkList.appendChild(li);
+  });
+  updateLinkSelection();
+}
+
+function updateLinkSelection(){
+  if(!linkList) return;
+  Array.from(linkList.children).forEach(li=>{
+    li.classList.toggle('selected', Number(li.dataset.index)===selectedLinkIndex);
+  });
+  if(linkEdit) linkEdit.disabled = selectedLinkIndex===null;
+  if(linkDel) linkDel.disabled = selectedLinkIndex===null;
+}
+
+function populateNodeOptions(){
+  if(!linkTargetNode) return;
+  linkTargetNode.innerHTML='';
+  Object.entries(nodeMap).forEach(([id,n])=>{
+    const opt=document.createElement('option');
+    opt.value=id;
+    opt.textContent=n.t;
+    linkTargetNode.appendChild(opt);
+  });
+}
+
+function openLinkEditor(existing=null,index=null){
+  populateNodeOptions();
+  linkEditor.hidden=false;
+  linkTitle.value=existing? (existing.metadata?.title || existing.title || '') : '';
+  linkType.value=existing? (existing.type || 'relation') : 'relation';
+  linkAnchor.value=existing? (existing.anchor || '') : '';
+  if(linkType.value==='relation'){
+    linkTargetNode.hidden=false;
+    linkTargetText.hidden=true;
+    linkTargetNode.value=existing? (existing.target || '') : '';
+  }else{
+    linkTargetNode.hidden=true;
+    linkTargetText.hidden=false;
+    linkTargetText.value=existing? (existing.target || '') : '';
+  }
+  selectedLinkIndex=index;
+}
+
+if(linkType) linkType.addEventListener('change',()=>{
+  const t=linkType.value;
+  if(t==='relation'){
+    linkTargetNode.hidden=false; linkTargetText.hidden=true;
+  }else{
+    linkTargetNode.hidden=true; linkTargetText.hidden=false;
+  }
+});
+
+if(linkAdd) linkAdd.addEventListener('click',()=>{ selectedLinkIndex=null; openLinkEditor(); });
+if(linkEdit) linkEdit.addEventListener('click',()=>{ if(selectedLinkIndex!==null) openLinkEditor(currentLinks[selectedLinkIndex], selectedLinkIndex); });
+if(linkDel) linkDel.addEventListener('click',async()=>{
+  if(selectedLinkIndex===null || selectedId===null) return;
+  const node=findJsonNode(currentJsonRoot,selectedId);
+  if(!node || !node.links) return;
+  node.links.splice(selectedLinkIndex,1);
+  await saveDocument(currentFile,state.doc);
+  emit('documentChanged');
+  currentLinks=node.links;
+  selectedLinkIndex=null;
+  renderLinkList();
+});
+
+if(linkSave) linkSave.addEventListener('click',async()=>{
+  if(selectedId===null) return;
+  const node=findJsonNode(currentJsonRoot,selectedId);
+  if(!node) return;
+  node.links=node.links||[];
+  const obj={type:linkType.value, target: linkType.value==='relation'?linkTargetNode.value:linkTargetText.value};
+  const t=linkTitle.value.trim(); if(t) obj.metadata={title:t};
+  const a=linkAnchor.value.trim(); if(a) obj.anchor=a;
+  if(selectedLinkIndex!==null) node.links[selectedLinkIndex]=obj; else node.links.push(obj);
+  await saveDocument(currentFile,state.doc);
+  emit('documentChanged');
+  currentLinks=node.links;
+  linkEditor.hidden=true;
+  selectedLinkIndex=null;
+  renderLinkList();
+});
+
+if(linkCancel) linkCancel.addEventListener('click',()=>{ linkEditor.hidden=true; selectedLinkIndex=null; });
+
+on('selectionChanged', e=>{
+  if(selectedId===null || !contentNote) return;
+  const node=findJsonNode(currentJsonRoot,selectedId);
+  if(!node) return;
+  document.getElementById('meta-title-CONTENT').value=getNodeTitle(node);
+  contentNote.value=getNodeNote(node);
+  currentLinks=node.links||[];
+  selectedLinkIndex=null;
+  renderLinkList();
+});
 function addChild(id){
   modalPrompt('Enter title for new node','',async t=>{
     if(t===null) return;
@@ -2098,7 +2182,8 @@ function deleteNode(id){
       renderTree(cjsf_to_ark(currentJsonRoot));
       restoreExpanded(expanded);
       selectedId=null;
-      document.getElementById('nodeTitleRow').classList.add('hidden');
+      const nodeTitleRow=document.getElementById('nodeTitleRow');
+      if(nodeTitleRow) nodeTitleRow.classList.add('hidden');
       if(contentPreview) contentPreview.innerHTML='';
       renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
     }else{
@@ -2278,21 +2363,8 @@ async function loadTree(expanded=null){
     if(expanded) restoreExpanded(expanded);
   }catch(e){ treeWrap.textContent='Structure load error.'; }
 }
-function selectNode(id,title,note,links=[]){
+function selectNode(id){
   selectedId=id;
-  currentLinks=links||[];
-  const titleRow=document.getElementById('nodeTitleRow');
-  const titleInput=document.getElementById('nodeTitle');
-  titleInput.value=title||'';
-  titleRow.classList.remove('hidden');
-  if(contentTabs) contentTabs.classList.remove('hidden');
-  const node=findJsonNode(currentJsonRoot,id);
-  const nodeNote=node?getNodeNote(node):(note||'');
-  if(contentPreview) contentPreview.innerHTML=nodeNote;
-  if(contentEditor) contentEditor.value=nodeNote;
-  const mode=currentContentMode==='edit'?'edit':'preview';
-  toggleContentMode(mode);
-  renderLinks();
   emit('selectionChanged',{id});
 }
 async function nodeOp(op,extra={},id=selectedId){
@@ -2318,26 +2390,6 @@ async function nodeOp(op,extra={},id=selectedId){
   if(n){ selectNode(selectedId,n.t,n.note,n.links||[]); }
 }
 
-function renderLinks(){
-  const wrap=document.getElementById('linkList');
-  if(!currentLinks || currentLinks.length===0){ wrap.classList.add('hidden'); wrap.innerHTML=''; return; }
-  wrap.innerHTML='';
-  currentLinks.forEach(l=>{
-    const item=document.createElement('div');
-    item.className='flex items-center bg-gray-100 border rounded-md px-2 py-1 mr-2 mb-2 cursor-pointer';
-    item.onclick=()=>followLink(l);
-    const title=document.createElement('span');
-    title.textContent=l.title||l.target;
-    item.appendChild(title);
-    const edit=document.createElement('button');
-    edit.innerHTML=icons.edit;
-    edit.className='ml-2 text-gray-500 hover:text-blue-600';
-    edit.onclick=(e)=>{e.stopPropagation(); openLinkModal(selectedId,l);};
-    item.appendChild(edit);
-    wrap.appendChild(item);
-  });
-  wrap.classList.remove('hidden');
-}
 
 function gotoNodeByPath(path){
   const parts=path.split('/');
