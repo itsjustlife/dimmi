@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "f26b652a-d5f1-4260-ac3a-a1c26e595ef3",
+  "metadata": {
+    "title": "New"
+  },
+  "content": "Start a blank structure",
+  "links": [],
+  "root": [
+    {
+      "id": "9a463f2c-757b-4f39-9daf-3e1552704561",
+      "title": "arkhivist.py",
+      "type": "note",
+      "content": "Script that launches the desktop app",
+      "created": "2025-09-09T00:28:30.395669Z",
+      "modified": "2025-09-09T00:28:30.395669Z",
+      "metadata": {},
+      "links": [],
+      "children": []
+    },
+    {
+      "id": "8f919b99-60ff-4c45-8362-cb1969366752",
+      "title": "arkhiver",
+      "type": "note",
+      "content": "Python package containing the GUI",
+      "created": "2025-09-09T00:28:30.395669Z",
+      "modified": "2025-09-09T00:28:30.395669Z",
+      "metadata": {},
+      "links": [],
+      "children": [
+        {
+          "id": "46dc39bf-9386-4678-92ab-1b53bd1c0634",
+          "title": "app.py",
+          "type": "note",
+          "content": "Builds window, menus, panes",
+          "created": "2025-09-09T00:28:30.395669Z",
+          "modified": "2025-09-09T00:28:30.395669Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "388b936d-4f8b-4b41-900e-42f438376b8c",
+          "title": "file_browser.py",
+          "type": "note",
+          "content": "Manages Find pane",
+          "created": "2025-09-09T00:28:30.395669Z",
+          "modified": "2025-09-09T00:28:30.395669Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "d0eed779-eb20-4df0-8d85-07fa7da65c97",
+          "title": "model.py",
+          "type": "note",
+          "content": "Defines outline nodes and links",
+          "created": "2025-09-09T00:28:30.395669Z",
+          "modified": "2025-09-09T00:28:30.395669Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "61289d74-640e-40cd-b6a6-91d0e475461f",
+      "title": "web_ui",
+      "type": "note",
+      "content": "Web-based interface",
+      "created": "2025-09-09T00:28:30.395669Z",
+      "modified": "2025-09-09T00:28:30.395669Z",
+      "metadata": {},
+      "links": [],
+      "children": []
+    },
+    {
+      "id": "8f3eae44-1715-4455-8c24-9d1c60ace7fe",
+      "title": "samples",
+      "type": "note",
+      "content": "Example JSON structures",
+      "created": "2025-09-09T00:28:30.395669Z",
+      "modified": "2025-09-09T00:28:30.395669Z",
+      "metadata": {},
+      "links": [],
+      "children": []
+    },
+    {
+      "id": "38b5a144-7a14-40f2-a47c-a5f1895e5e0e",
+      "title": "schemas",
+      "type": "note",
+      "content": "Data format definitions",
+      "created": "2025-09-09T00:28:30.395669Z",
+      "modified": "2025-09-09T00:28:30.395669Z",
+      "metadata": {},
+      "links": [],
+      "children": []
+    },
+    {
+      "id": "0d586b01-0d28-4c18-a5e8-c4768b943098",
+      "title": "tools",
+      "type": "note",
+      "content": "Helper scripts",
+      "created": "2025-09-09T00:28:30.395669Z",
+      "modified": "2025-09-09T00:28:30.395669Z",
+      "metadata": {},
+      "links": [],
+      "children": []
+    },
+    {
+      "id": "e026fd25-a55c-4859-9b9b-08aa596f3dc6",
+      "title": "PROPROMPTS",
+      "type": "note",
+      "content": "Prompt templates",
+      "created": "2025-09-09T00:28:30.395669Z",
+      "modified": "2025-09-09T00:28:30.395669Z",
+      "metadata": {},
+      "links": [],
+      "children": []
+    },
+    {
+      "id": "cc5c4ac5-10ff-407a-88f9-0a09160bd956",
+      "title": "DOOR",
+      "type": "note",
+      "content": "Sentence Builder demo",
+      "created": "2025-09-09T00:28:30.395669Z",
+      "modified": "2025-09-09T00:28:30.395669Z",
+      "metadata": {},
+      "links": [],
+      "children": []
+    },
+    {
+      "id": "95a05a50-cafe-4577-95b9-eb8633199a50",
+      "title": "INFO",
+      "type": "note",
+      "content": "Learning guides and maps",
+      "created": "2025-09-09T00:28:30.395669Z",
+      "modified": "2025-09-09T00:28:30.395669Z",
+      "metadata": {},
+      "links": [],
+      "children": []
+    }
+  ]
+}

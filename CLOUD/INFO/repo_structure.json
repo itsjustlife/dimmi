@@ -1,0 +1,21 @@
+{
+  "root": [
+    {"name": "arkhivist.py", "description": "Entry script that launches the GUI."},
+    {"name": "arkhiver", "description": "Main package with UI code and data model.",
+     "items": [
+       {"name": "app.py", "description": "Builds window, menus, panes."},
+       {"name": "file_browser.py", "description": "Implements Find pane."},
+       {"name": "model.py", "description": "Outline nodes and links."}
+     ]},
+    {"name": "web_ui", "description": "Optional web interface."},
+    {"name": "samples", "description": "Example structures."},
+    {"name": "schemas", "description": "JSON schema for structures."},
+    {"name": "tools", "description": "Helper scripts."},
+    {"name": "PROPROMPTS", "description": "Notes and prompts for future work."},
+    {"name": "DOOR", "description": "Prototype Sentence Builder."},
+    {"name": "README.md", "description": "Project overview."},
+    {"name": "INSTRUCTIONS.md", "description": "Basic usage tips."},
+    {"name": "VERSION_LOG.md", "description": "Change history."},
+    {"name": "AGENTS.md", "description": "Contributor guidelines."}
+  ]
+}

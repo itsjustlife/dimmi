@@ -1,0 +1,571 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "9bdfe800-5b05-450f-9ce8-ccc5376b3102",
+  "metadata": {
+    "title": "Menu Bar - Name Save?"
+  },
+  "content": "Top actions",
+  "links": [],
+  "root": [
+    {
+      "id": "22324165-deec-4143-abfe-9fdb178a8e31",
+      "title": "Menu Bar - Name Save?",
+      "type": "note",
+      "content": "Top actions",
+      "created": "2025-09-09T00:24:40.831653Z",
+      "modified": "2025-09-09T00:24:40.831653Z",
+      "metadata": {},
+      "links": [],
+      "children": [
+        {
+          "id": "505a4c71-d381-4932-8f0e-3be37d7daa33",
+          "title": "New",
+          "type": "note",
+          "content": "Start a blank structure",
+          "created": "2025-09-09T00:24:40.831653Z",
+          "modified": "2025-09-09T00:24:40.831653Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "6178e68d-c602-4c15-b865-9728292172c5",
+          "title": "Load",
+          "type": "note",
+          "content": "Open existing data",
+          "created": "2025-09-09T00:24:40.831653Z",
+          "modified": "2025-09-09T00:24:40.831653Z",
+          "metadata": {},
+          "links": [],
+          "children": [
+            {
+              "id": "348d4207-8529-4316-8a3d-9836c910b22d",
+              "title": "From File",
+              "type": "note",
+              "content": "Load structure JSON file",
+              "created": "2025-09-09T00:24:40.831653Z",
+              "modified": "2025-09-09T00:24:40.831653Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            },
+            {
+              "id": "dd480780-5ef0-49ef-9066-8e9d8a854d45",
+              "title": "From Folder",
+              "type": "note",
+              "content": "Load all files in a folder",
+              "created": "2025-09-09T00:24:40.831653Z",
+              "modified": "2025-09-09T00:24:40.831653Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            },
+            {
+              "id": "f4cf3d1b-bb2b-4b7c-8713-69cf4787e337",
+              "title": "From Clipboard",
+              "type": "note",
+              "content": "Import structure from clipboard",
+              "created": "2025-09-09T00:24:40.831653Z",
+              "modified": "2025-09-09T00:24:40.831653Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            },
+            {
+              "id": "c163fb35-b050-46f7-bb9f-5015beb64026",
+              "title": "Choose Folder",
+              "type": "note",
+              "content": "Pick folder to browse",
+              "created": "2025-09-09T00:24:40.831653Z",
+              "modified": "2025-09-09T00:24:40.831653Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            },
+            {
+              "id": "07fd9e53-ff59-4c75-9524-7913854b8885",
+              "title": "Open Selected",
+              "type": "note",
+              "content": "Open highlighted item",
+              "created": "2025-09-09T00:24:40.831653Z",
+              "modified": "2025-09-09T00:24:40.831653Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            },
+            {
+              "id": "9b3f2e91-3d89-4788-aa53-d77acd68abc5",
+              "title": "Reveal Selected",
+              "type": "note",
+              "content": "Show item in file explorer",
+              "created": "2025-09-09T00:24:40.831653Z",
+              "modified": "2025-09-09T00:24:40.831653Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "31318c88-88c5-4e1e-9f82-82f560ed14ba",
+          "title": "Send",
+          "type": "note",
+          "content": "Export or share",
+          "created": "2025-09-09T00:24:40.831653Z",
+          "modified": "2025-09-09T00:24:40.831653Z",
+          "metadata": {},
+          "links": [],
+          "children": [
+            {
+              "id": "6960abac-2dde-41af-8d48-f53e0557c914",
+              "title": "Structure",
+              "type": "note",
+              "content": "Export structure formats",
+              "created": "2025-09-09T00:24:40.831653Z",
+              "modified": "2025-09-09T00:24:40.831653Z",
+              "metadata": {},
+              "links": [],
+              "children": [
+                {
+                  "id": "73c38ee5-4271-4cef-8360-628bc2de369b",
+                  "title": "OPML",
+                  "type": "note",
+                  "content": "Outline file",
+                  "created": "2025-09-09T00:24:40.831653Z",
+                  "modified": "2025-09-09T00:24:40.831653Z",
+                  "metadata": {},
+                  "links": [],
+                  "children": []
+                },
+                {
+                  "id": "0ee9fdf4-8856-45da-bfc3-aa363dd6ae5a",
+                  "title": "JSON",
+                  "type": "note",
+                  "content": "Save as JSON",
+                  "created": "2025-09-09T00:24:40.831653Z",
+                  "modified": "2025-09-09T00:24:40.831653Z",
+                  "metadata": {},
+                  "links": [],
+                  "children": []
+                },
+                {
+                  "id": "afe02b3e-564a-4b1e-bc41-4028fe07c70e",
+                  "title": "HTML",
+                  "type": "note",
+                  "content": "Create HTML preview",
+                  "created": "2025-09-09T00:24:40.831653Z",
+                  "modified": "2025-09-09T00:24:40.831653Z",
+                  "metadata": {},
+                  "links": [],
+                  "children": []
+                },
+                {
+                  "id": "c4542d6e-83e5-465c-a92c-99858d35aa3b",
+                  "title": "Folders",
+                  "type": "note",
+                  "content": "Generate file folders",
+                  "created": "2025-09-09T00:24:40.831653Z",
+                  "modified": "2025-09-09T00:24:40.831653Z",
+                  "metadata": {},
+                  "links": [],
+                  "children": []
+                },
+                {
+                  "id": "b8c9ce12-52c0-4ccd-bcdd-38c91c47b1ab",
+                  "title": "Clipboard",
+                  "type": "note",
+                  "content": "Copy to clipboard",
+                  "created": "2025-09-09T00:24:40.831653Z",
+                  "modified": "2025-09-09T00:24:40.831653Z",
+                  "metadata": {},
+                  "links": [],
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "f2846f90-7e8c-4e7a-9fd2-caf075720d0b",
+              "title": "Create",
+              "type": "note",
+              "content": "Build web project",
+              "created": "2025-09-09T00:24:40.831653Z",
+              "modified": "2025-09-09T00:24:40.831653Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            },
+            {
+              "id": "3f5b156d-4b0b-408c-b7d0-ca9ff1a58843",
+              "title": "Save",
+              "type": "note",
+              "content": "Save current structure",
+              "created": "2025-09-09T00:24:40.831653Z",
+              "modified": "2025-09-09T00:24:40.831653Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "3f6041cd-51ae-4e93-8417-e146752256fe",
+          "title": "Settings",
+          "type": "note",
+          "content": "App options like home directory",
+          "created": "2025-09-09T00:24:40.831653Z",
+          "modified": "2025-09-09T00:24:40.831653Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "1f4d632b-83aa-4e7b-902a-72c8490f001f",
+          "title": "ID",
+          "type": "note",
+          "content": "About the app",
+          "created": "2025-09-09T00:24:40.831653Z",
+          "modified": "2025-09-09T00:24:40.831653Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "b0af304d-98a0-4b79-a685-0e09e5c92dd9",
+      "title": "Find Pane",
+      "type": "note",
+      "content": "Browse files and folders",
+      "created": "2025-09-09T00:24:40.831653Z",
+      "modified": "2025-09-09T00:24:40.831653Z",
+      "metadata": {},
+      "links": [],
+      "children": [
+        {
+          "id": "ddd60428-5ad3-4d02-b401-1574e24765bb",
+          "title": "Back",
+          "type": "note",
+          "content": "Go to previous folder",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "88a834fc-2258-4623-8bba-72598dc0ee60",
+          "title": "Up",
+          "type": "note",
+          "content": "Go up one level",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "9e8ae9ad-cbf1-46b4-8607-2478069e4f51",
+          "title": "Home",
+          "type": "note",
+          "content": "Jump to home directory",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "5bab0e99-82a1-4e9f-aa75-93736b610a11",
+          "title": "Load Structure",
+          "type": "note",
+          "content": "Open a structure file",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "f0df43ec-fb05-40b3-a76b-288d4be25dc5",
+          "title": "Address Field",
+          "type": "note",
+          "content": "Shows current path",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "48a47955-e553-46eb-9f64-1c76901b4a37",
+          "title": "Folder Viewer",
+          "type": "note",
+          "content": "List of files and folders",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": [
+            {
+              "id": "e6116965-3dc1-480e-b229-95b7db89a51b",
+              "title": "Open",
+              "type": "note",
+              "content": "Open selected item",
+              "created": "2025-09-09T00:24:40.832654Z",
+              "modified": "2025-09-09T00:24:40.832654Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            },
+            {
+              "id": "1a201be8-6fd1-42a1-a662-9e5564f65965",
+              "title": "Reveal",
+              "type": "note",
+              "content": "Show item in file explorer",
+              "created": "2025-09-09T00:24:40.832654Z",
+              "modified": "2025-09-09T00:24:40.832654Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            },
+            {
+              "id": "c1534cf4-d442-4d7d-9937-82eba1aaaad4",
+              "title": "Attach Link",
+              "type": "note",
+              "content": "Link item to structure",
+              "created": "2025-09-09T00:24:40.832654Z",
+              "modified": "2025-09-09T00:24:40.832654Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "80bfe3b9-fc89-4435-84c7-64960b89918f",
+          "title": "Links Menu",
+          "type": "note",
+          "content": "Manage file links",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": [
+            {
+              "id": "788c09a6-ecdb-4919-bca3-d5627b8dd8b5",
+              "title": "Add Link to Folder",
+              "type": "note",
+              "content": "Attach link to folder",
+              "created": "2025-09-09T00:24:40.832654Z",
+              "modified": "2025-09-09T00:24:40.832654Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            },
+            {
+              "id": "fe4140ad-d7ff-4344-9800-71e077725739",
+              "title": "Add Link to File",
+              "type": "note",
+              "content": "Attach link to file",
+              "created": "2025-09-09T00:24:40.832654Z",
+              "modified": "2025-09-09T00:24:40.832654Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            },
+            {
+              "id": "45cd186d-3b3e-47b9-add0-d88e1743e455",
+              "title": "Edit Link",
+              "type": "note",
+              "content": "Change link title",
+              "created": "2025-09-09T00:24:40.832654Z",
+              "modified": "2025-09-09T00:24:40.832654Z",
+              "metadata": {},
+              "links": [],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ea264154-5907-4c50-9cc1-48919eee1b65",
+      "title": "Structure Pane",
+      "type": "note",
+      "content": "Outline of nodes",
+      "created": "2025-09-09T00:24:40.832654Z",
+      "modified": "2025-09-09T00:24:40.832654Z",
+      "metadata": {},
+      "links": [],
+      "children": [
+        {
+          "id": "ba35aa86-fa4e-4a88-81e2-e05bc9cb8501",
+          "title": "Add Sub",
+          "type": "note",
+          "content": "Create child node",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "2c77823b-c201-4172-a313-3999c2aa8e0e",
+          "title": "Add Same",
+          "type": "note",
+          "content": "Add sibling node",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "6e6a3a0e-212f-4eaa-90fd-b1e756b8163b",
+          "title": "Add Link",
+          "type": "note",
+          "content": "Link node to file or URL",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "bbdd8bff-be23-4504-82c7-821d4ae21735",
+          "title": "Copy",
+          "type": "note",
+          "content": "Copy node",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "5a2d2a6b-6df4-4414-9479-e58c544faa7d",
+          "title": "Cut",
+          "type": "note",
+          "content": "Remove and copy node",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "cdbd6323-3926-414e-a7d0-d0a35e841e7f",
+          "title": "Paste",
+          "type": "note",
+          "content": "Insert node",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "bcc9e7ab-7ca3-49e7-be22-de798b24710e",
+          "title": "Save Structure",
+          "type": "note",
+          "content": "Save outline",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "98a31d6d-afc6-4d4d-a91a-d86123ab69b5",
+          "title": "Delete",
+          "type": "note",
+          "content": "Remove node",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "d8d158b6-c790-4db0-bc05-60173403b1e1",
+      "title": "Preview Pane",
+      "type": "note",
+      "content": "Shows node content",
+      "created": "2025-09-09T00:24:40.832654Z",
+      "modified": "2025-09-09T00:24:40.832654Z",
+      "metadata": {},
+      "links": [],
+      "children": [
+        {
+          "id": "914ec0d0-a4fe-4d00-ab57-ff5fafc475f9",
+          "title": "Content View",
+          "type": "note",
+          "content": "Interactive preview",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "4a32f6d3-d588-415f-b9df-3f1382f74eb2",
+          "title": "Code Mode",
+          "type": "note",
+          "content": "Edit raw text",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "c53ce550-7ddf-4d2a-a5f1-5dbab735dfff",
+      "title": "Status Bar",
+      "type": "note",
+      "content": "Displays progress and messages",
+      "created": "2025-09-09T00:24:40.832654Z",
+      "modified": "2025-09-09T00:24:40.832654Z",
+      "metadata": {},
+      "links": [],
+      "children": [
+        {
+          "id": "5b3d8cea-a085-42e7-a1c1-a9b46c16b8d2",
+          "title": "Progress Bar",
+          "type": "note",
+          "content": "Shows save or load progress",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "3a7e6c16-bf61-4e00-b73e-def0d490ce33",
+          "title": "Start",
+          "type": "note",
+          "content": "Create structure from folder",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        },
+        {
+          "id": "16e39b3b-bd01-4e10-b0c2-64fa22df3184",
+          "title": "Open",
+          "type": "note",
+          "content": "Open structure file",
+          "created": "2025-09-09T00:24:40.832654Z",
+          "modified": "2025-09-09T00:24:40.832654Z",
+          "metadata": {},
+          "links": [],
+          "children": []
+        }
+      ]
+    }
+  ]
+}
