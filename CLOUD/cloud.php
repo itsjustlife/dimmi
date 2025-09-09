@@ -1037,6 +1037,7 @@ let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[],
 let fileSort={criterion:'name',direction:'asc'};
 let originalRootOrder=[];
 let saveContentTimer=null, saveTitleTimer=null;
+let currentContentMode='code';
 
 function getNodeTitle(node){
   return node.title || (node.metadata&&node.metadata.title) || node.content || node.note || '';
@@ -1188,6 +1189,7 @@ if(editModeBtn){
 }
 
 function toggleContentMode(mode){
+  currentContentMode=mode;
   const isStruct=currentFile && ['opml','xml','json'].includes(currentFile.split('.').pop().toLowerCase());
   const previewEl=isStruct?opmlPreview:contentPreview;
   [ta,contentEditor,contentPreview,opmlPreview].forEach(el=>{ if(el) el.style.display='none'; });
@@ -1204,8 +1206,15 @@ if(contentEditor){
     if(node){
       setNodeNote(node,contentEditor.value);
       node.modified=new Date().toISOString();
-      if(contentPreview) contentPreview.innerHTML=getNodeNote(node);
-      renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
+      const noteHtml=getNodeNote(node);
+      if(contentPreview) contentPreview.innerHTML=noteHtml;
+      const titleInput=document.getElementById('nodeTitle');
+      if(titleInput) titleInput.value=getNodeTitle(node);
+      const expanded=getExpanded();
+      const arkTree=cjsf_to_ark(currentJsonRoot);
+      renderTree(arkTree);
+      restoreExpanded(expanded);
+      renderOpmlPreview(arkTree);
       clearTimeout(saveContentTimer);
       saveContentTimer=setTimeout(()=>saveCurrentJsonStructure(),500);
     }
@@ -2092,10 +2101,11 @@ function selectNode(id,title,note,links=[]){
   titleRow.classList.remove('hidden');
   if(contentTabs) contentTabs.classList.remove('hidden');
   const node=findJsonNode(currentJsonRoot,id);
-  if(node && contentPreview){
-    contentPreview.innerHTML=getNodeNote(node);
-  }
-  toggleContentMode('preview');
+  const nodeNote=node?getNodeNote(node):(note||'');
+  if(contentPreview) contentPreview.innerHTML=nodeNote;
+  if(contentEditor) contentEditor.value=nodeNote;
+  const mode=currentContentMode==='edit'?'edit':'preview';
+  toggleContentMode(mode);
   renderLinks();
 }
 async function nodeOp(op,extra={},id=selectedId){
