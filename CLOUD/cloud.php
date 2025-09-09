@@ -531,7 +531,8 @@ if (isset($_GET['api'])) {
     $raw = @file_get_contents($fileAbs); if($raw===false) bad('Read error',500);
     $doc = json_decode($raw,true);
     $key=null; $root=json_get_root($doc,$key);
-    j(['ok'=>true,'root'=>$root]);
+    $title=json_get_title($doc);
+    j(['ok'=>true,'root'=>$root,'title'=>$title]);
   }
 
   if ($action==='get_all_json_nodes') {
@@ -941,9 +942,11 @@ if (isset($_GET['api'])) {
         </div>
       </header>
       <div class="pane-meta">
-        <input id="meta-file-STRUCTURE" class="file-input mono" />
-        <input id="meta-title-STRUCTURE" class="title-input" />
-        <button id="meta-save-STRUCTURE" class="primary">Save</button>
+        <label>File Name <input id="meta-file-STRUCTURE" class="file-input mono" /></label>
+        <label>Structure Title <input id="meta-title-STRUCTURE" class="title-input" /></label>
+        <button id="meta-save-STRUCTURE" class="primary" title="Save">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 11.25l4.5 4.5 4.5-4.5M12 15.75V3"/></svg>
+        </button>
       </div>
       <div id="structBody" class="p-4 flex-1 flex flex-col overflow-hidden min-h-0">
         <ul id="fileList" class="flex-1 overflow-auto divide-y text-sm min-h-0"></ul>
@@ -1834,7 +1837,14 @@ async function openFile(rel,name,size,mtime){
       const endpoint=isJson?'json_tree':'opml_tree';
       const p=await (await api(endpoint,{file:rel})).json();
       if(p.ok){
-        if(isJson){ currentJsonRoot=p.root||currentJsonRoot; if(currentJsonDoc) currentJsonDoc[currentJsonRootKey]=currentJsonRoot; }
+        if(isJson){
+          currentJsonRoot=p.root||currentJsonRoot;
+          if(currentJsonDoc) currentJsonDoc[currentJsonRootKey]=currentJsonRoot;
+          const metaTitle=document.getElementById('meta-title-STRUCTURE');
+          const fname=name.replace(/\.[^/.]+$/,'');
+          const t=(p.title||'').trim() || fname;
+          if(metaTitle) metaTitle.value=t;
+        }
         const tree=isJson? cjsf_to_ark(currentJsonRoot) : (p.tree||[]);
         renderOpmlPreview(tree);
         state.doc=currentJsonRootKey===null?currentJsonRoot:currentJsonDoc;
