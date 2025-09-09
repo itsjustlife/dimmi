@@ -872,7 +872,7 @@ if (isset($_GET['api'])) {
   </header>
   <main class="flex-1 overflow-auto md:overflow-hidden p-4 space-y-4 md:space-y-0 md:grid md:grid-cols-4 md:gap-4 md:h-[calc(100vh-64px)] min-h-0">
     <!-- FIND -->
-    <section class="bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
+    <section id="pane-find" class="order-1 bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
       <div class="flex items-center gap-2 p-4 border-b">
         <h2 class="font-semibold flex-1">FIND</h2>
         <button onclick="mkdirPrompt()" class="p-2 text-gray-600 hover:text-gray-800" title="New Folder">
@@ -898,7 +898,7 @@ if (isset($_GET['api'])) {
     </section>
 
     <!-- STRUCTURE -->
-    <section class="bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
+    <section id="pane-structure" class="order-2 bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
       <div class="flex items-center gap-2 p-4 border-b">
         <h2 class="font-semibold flex-1">STRUCTURE</h2>
         <button onclick="newFilePrompt()" class="p-2 text-gray-600 hover:text-gray-800" title="New File">
@@ -935,27 +935,9 @@ if (isset($_GET['api'])) {
       </div>
     </section>
 
-    <!-- PREVIEW -->
-    <section id="pane-preview" class="bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
-      <div class="flex items-center gap-2 p-4 border-b">
-        <h2 class="font-semibold">PREVIEW</h2>
-        <div class="flex gap-2">
-          <button id="preview-web-btn" class="px-2 py-1 text-sm border rounded bg-gray-200">WEB</button>
-          <button id="preview-raw-btn" class="px-2 py-1 text-sm border rounded">RAW</button>
-          <button id="preview-save" class="px-2 py-1 text-sm border rounded bg-blue-600 text-white hidden">Save</button>
-        </div>
-        <button class="ml-auto md:hidden" onclick="toggleSection('previewBody', this)">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
-        </button>
-      </div>
-      <div id="previewBody" class="flex-1 flex flex-col overflow-hidden min-h-0">
-        <div id="preview-web" class="flex-1 overflow-auto p-4"></div>
-        <textarea id="preview-raw" class="hidden flex-1 p-4 font-mono overflow-auto"></textarea>
-      </div>
-    </section>
-
+    
     <!-- CONTENT -->
-    <section class="bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
+    <section id="pane-content" class="order-3 bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
       <div class="flex flex-wrap items-center gap-2 p-4 border-b">
         <h2 class="font-semibold">CONTENT</h2>
         <input id="fileTitle" class="hidden text-sm bg-gray-100 rounded px-2 py-1" />
@@ -999,6 +981,26 @@ if (isset($_GET['api'])) {
         <div id="linkList" class="hidden border-t p-2 flex flex-wrap text-sm"></div>
       </div>
     </section>
+
+<!-- PREVIEW -->
+    <section id="pane-preview" class="order-4 bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
+      <div class="flex items-center gap-2 p-4 border-b">
+        <h2 class="font-semibold">PREVIEW</h2>
+        <div class="flex gap-2">
+          <button id="preview-web-btn" class="px-2 py-1 text-sm border rounded bg-gray-200">WEB</button>
+          <button id="preview-raw-btn" class="px-2 py-1 text-sm border rounded">RAW</button>
+          <button id="preview-save" class="px-2 py-1 text-sm border rounded bg-blue-600 text-white hidden">Save</button>
+        </div>
+        <button class="ml-auto md:hidden" onclick="toggleSection('previewBody', this)">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </div>
+      <div id="previewBody" class="flex-1 flex flex-col overflow-hidden min-h-0">
+        <div id="preview-web" class="flex-1 overflow-auto p-4"></div>
+        <textarea id="preview-raw" class="hidden flex-1 p-4 font-mono overflow-auto"></textarea>
+      </div>
+    </section>
+
   </main>
 
   <div id="modalOverlay" class="fixed inset-0 hidden bg-black bg-opacity-40 flex items-center justify-center">
