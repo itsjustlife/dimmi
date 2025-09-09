@@ -1059,12 +1059,14 @@ const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
 let currentDir='', currentFile='', currentOutlinePath='', currentFileInfo=null;
 let clipboardPath='';
 function updateMeta(){
-  const path=currentFile || currentDir || '';
   const title=currentFile ? (document.getElementById('content-title')?.textContent || '') : '';
   ['FIND','STRUCTURE','CONTENT','PREVIEW'].forEach(p=>{
     const f=document.getElementById('meta-file-'+p);
     const t=document.getElementById('meta-title-'+p);
-    if(f) f.value=path;
+    if(f){
+      if(p==='FIND') f.value=currentDir || '';
+      else f.value=currentFile || currentDir || '';
+    }
     if(t) t.value=title;
   });
 }
@@ -1707,8 +1709,6 @@ function crumb(rel){
     a.onclick=(e)=>{e.preventDefault(); openDir(acc);};
     c.appendChild(a);
   });
-  const pb=document.getElementById('meta-file-FIND');
-  if(pb) pb.value = rel || '';
 }
 async function init(){
   openDir('');
@@ -1770,7 +1770,9 @@ function ent(name,rel,isDir,size,mtime){
   return li;
 }
 async function openDir(rel){
-  currentDir = rel || ''; crumb(currentDir);
+  currentDir = rel || '';
+  currentFile='';
+  crumb(currentDir);
   const ct=document.getElementById('content-title'); if(ct) ct.textContent='';
   btns(false); infoBtn.disabled=true; currentFileInfo=null;
   const imgWrap = document.getElementById('imgPreviewWrap');
