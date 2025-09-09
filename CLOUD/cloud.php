@@ -899,17 +899,9 @@ if (isset($_GET['api'])) {
         </div>
       </header>
       <div class="pane-meta">
-        <input id="meta-file-FIND" class="file-input mono" />
-        <input id="meta-title-FIND" class="title-input" />
-        <button id="meta-save-FIND" class="primary">Save</button>
+        <input id="meta-file-FIND" class="file-input mono flex-1" placeholder="path/to/directory" />
       </div>
       <div id="findBody" class="flex-1 flex flex-col overflow-hidden min-h-0">
-        <div class="flex gap-2 p-4">
-          <input id="pathInput" class="flex-1 border rounded px-2 py-1" placeholder="jump to path (rel)">
-          <button onclick="jump()" class="p-2 text-blue-600 hover:text-blue-800" title="Open">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12l-7.5 7.5M21 12H3"/></svg>
-          </button>
-        </div>
         <ul id="folderList" class="flex-1 overflow-auto divide-y text-sm min-h-0"></ul>
       </div>
     </section>
@@ -1089,6 +1081,19 @@ function applyMetaBindings(pane){
   const fileInput=document.getElementById(`meta-file-${pane}`);
   const titleInput=document.getElementById(`meta-title-${pane}`);
   const saveBtn=document.getElementById(`meta-save-${pane}`);
+
+  if(pane==='FIND'){
+    if(fileInput){
+      fileInput.addEventListener('keydown',e=>{
+        if(e.key==='Enter'){
+          const newPath=fileInput.value.trim();
+          if(newPath) openDir(newPath);
+        }
+      });
+    }
+    return;
+  }
+
   if(!fileInput || !titleInput || !saveBtn) return;
 
   if(pane==='CONTENT'){
@@ -1102,20 +1107,6 @@ function applyMetaBindings(pane){
       setNodeTitle(node,newTitle);
       setNodeNote(node,newNote);
       await saveDocument(currentFile,state.doc);
-      emit('documentChanged');
-    });
-    return;
-  }
-
-  if(pane==='FIND'){
-    saveBtn.addEventListener('click',async()=>{
-      const newPath=fileInput.value.trim();
-      if(!newPath) return;
-      if(newPath!==currentDir){
-        await renameDocument(currentDir,newPath);
-        currentDir=newPath;
-      }
-      openDir(newPath);
       emit('documentChanged');
     });
     return;
@@ -1681,7 +1672,8 @@ function crumb(rel){
     a.onclick=(e)=>{e.preventDefault(); openDir(acc);};
     c.appendChild(a);
   });
-  document.getElementById('pathInput').value = rel || '';
+  const pb=document.getElementById('meta-file-FIND');
+  if(pb) pb.value = rel || '';
 }
 async function init(){
   openDir('');
@@ -1773,7 +1765,7 @@ async function openDir(rel){
   }).forEach(f=>FI.appendChild(ent(f.name,f.rel,false,f.size,f.mtime)));
   updateMeta();
 }
-function jump(){ const p=document.getElementById('pathInput').value.trim(); openDir(p); }
+function jump(){ const p=document.getElementById('meta-file-FIND').value.trim(); openDir(p); }
 function fmtSize(b){ if(b<1024) return b+' B'; let u=['KB','MB','GB']; let i=-1; do{b/=1024;i++;}while(b>=1024&&i<2); return b.toFixed(1)+' '+u[i]; }
 function showInfo(rel,name,size,mtime){
   const parts=rel.split('/');
