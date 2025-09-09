@@ -958,17 +958,11 @@ if (isset($_GET['api'])) {
     <!-- CONTENT -->
     <section id="pane-content" class="order-3 bg-white rounded shadow flex flex-col overflow-hidden min-h-0">
       <header class="pane-header">
-        <h3 class="pane-title">CONTENT</h3>
+        <h3 id="content-title" class="pane-title"></h3>
         <div class="pane-controls">
-          <input id="fileTitle" class="hidden text-sm bg-gray-100 rounded px-2 py-1" />
-          <button id="fileRenameBtn" class="hidden p-2 text-green-600 hover:text-green-800" title="Rename">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-          </button>
-          <button id="titleSaveBtn" class="hidden p-2 text-blue-600 hover:text-blue-800" title="Save">Save</button>
           <button onclick="showCurrentInfo()" id="infoBtn" disabled class="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Info">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25h1.5v5.25h-1.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </button>
-          <div id="contentTabs" class="hidden flex gap-2"></div>
           <div class="ml-auto flex gap-2 flex-wrap">
             <button onclick="downloadFile()" id="downloadBtn" disabled class="p-2 rounded text-gray-600 hover:text-gray-800 disabled:opacity-50" title="Download">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 9l4.5 4.5 4.5-4.5M12 13.5V3"/></svg>
@@ -985,22 +979,17 @@ if (isset($_GET['api'])) {
           </button>
         </div>
       </header>
-      <div class="pane-meta">
-        <input id="meta-file-CONTENT" class="file-input mono" />
-        <input id="meta-title-CONTENT" class="title-input" />
-        <button id="meta-save-CONTENT" class="primary">Save</button>
-      </div>
       <div id="content-body">
         <label>Notes</label>
         <textarea id="content-note" rows="12"></textarea>
 
         <div id="content-links">
-          <div class="links-toolbar">
-            <button id="link-add">Add</button>
-            <button id="link-edit" disabled>Edit</button>
-            <button id="link-del" disabled>Delete</button>
-          </div>
           <ul id="link-list"></ul>
+          <div class="mt-2 flex gap-2">
+            <button id="link-add">Add Link</button>
+            <button id="link-edit" class="hidden" disabled>Edit</button>
+            <button id="link-del" class="hidden" disabled>Delete</button>
+          </div>
           <div id="link-editor" hidden>
             <input id="link-title" placeholder="Title (optional)"/>
             <select id="link-type">
@@ -1070,7 +1059,7 @@ let currentDir='', currentFile='', currentOutlinePath='', currentFileInfo=null;
 let clipboardPath='';
 function updateMeta(){
   const path=currentFile || currentDir || '';
-  const title=currentFile ? (document.getElementById('fileTitle')?.value || '') : '';
+  const title=currentFile ? (document.getElementById('content-title')?.textContent || '') : '';
   ['FIND','STRUCTURE','CONTENT','PREVIEW'].forEach(p=>{
     const f=document.getElementById('meta-file-'+p);
     const t=document.getElementById('meta-title-'+p);
@@ -1739,9 +1728,7 @@ function ent(name,rel,isDir,size,mtime){
 }
 async function openDir(rel){
   currentDir = rel || ''; crumb(currentDir);
-  const ft=document.getElementById('fileTitle'); if(ft) ft.classList.add('hidden');
-  const fr=document.getElementById('fileRenameBtn'); if(fr) fr.classList.add('hidden');
-  const ts=document.getElementById('titleSaveBtn'); if(ts) ts.classList.add('hidden');
+  const ct=document.getElementById('content-title'); if(ct) ct.textContent='';
   btns(false); infoBtn.disabled=true; currentFileInfo=null;
   const imgWrap = document.getElementById('imgPreviewWrap');
   if (imgWrap) imgWrap.classList.add('hidden');
@@ -1785,13 +1772,10 @@ async function openFile(rel,name,size,mtime){
   currentFile=rel; currentOutlinePath=''; selectedId=null; currentFileInfo={name,size,mtime};
   const nodeTitleRow=document.getElementById('nodeTitleRow');
   if(nodeTitleRow) nodeTitleRow.classList.add('hidden');
-  const titleInput=document.getElementById('fileTitle');
-  const renameBtn=document.getElementById('fileRenameBtn');
   const imgWrap=document.getElementById('imgPreviewWrap');
   const img=document.getElementById('imgPreview');
-  titleInput.classList.remove('hidden');
-  renameBtn.classList.remove('hidden');
-  titleInput.value=name;
+  const ct=document.getElementById('content-title');
+  if(ct) ct.textContent=name;
   infoBtn.disabled=false;
   updateMeta();
   const ext=name.toLowerCase().split('.').pop();
@@ -1813,7 +1797,14 @@ async function openFile(rel,name,size,mtime){
     if(ta) ta.classList.remove('hidden');
   }
   const r=await (await api('read',{path:rel})).json();
-  if (!r.ok) { if(ta){ ta.value=''; ta.disabled=true; } btns(false); titleInput.classList.add('hidden'); renameBtn.classList.add('hidden'); infoBtn.disabled=true; if(contentTabs) contentTabs.classList.add('hidden'); opmlPreview.classList.add('hidden'); return; }
+  if (!r.ok) {
+    if(ta){ ta.value=''; ta.disabled=true; }
+    btns(false); infoBtn.disabled=true;
+    const ct=document.getElementById('content-title'); if(ct) ct.textContent='';
+    if(contentTabs) contentTabs.classList.add('hidden');
+    opmlPreview.classList.add('hidden');
+    return;
+  }
   if(ta){ ta.value=r.content; ta.disabled=false; } btns(true);
   const extLower=ext.toLowerCase();
   const isStruct=['opml','xml','json'].includes(extLower);
@@ -1888,7 +1879,7 @@ async function del(){
 }
 async function renameCurrent(){
   if(!currentFile) return;
-  const name=document.getElementById('fileTitle').value.trim();
+  const name=document.getElementById('content-title')?.textContent.trim();
   if(!name) return;
   const dir=currentFile.split('/').slice(0,-1).join('/');
   const target=(dir? dir+'/' : '')+name.replace(/^\/+/,'');
@@ -1902,7 +1893,7 @@ async function renameCurrent(){
 }
 function downloadFile(){
   if(!currentFile) return;
-  downloadItem(null,currentFile,document.getElementById('fileTitle').value || 'download');
+  downloadItem(null,currentFile,document.getElementById('content-title')?.textContent || 'download');
 }
 async function mkdirPrompt(){
   modalPrompt('New folder name','',async name=>{
@@ -2033,7 +2024,7 @@ function renderLinkList(){
     const li=document.createElement('li');
     li.textContent=l.metadata?.title || l.title || l.target || '';
     li.dataset.index=i;
-    li.addEventListener('click',()=>{ selectedLinkIndex=i; updateLinkSelection(); });
+    li.addEventListener('click',()=>{ selectedLinkIndex=i; updateLinkSelection(); followLink(l); });
     linkList.appendChild(li);
   });
   updateLinkSelection();
@@ -2044,8 +2035,14 @@ function updateLinkSelection(){
   Array.from(linkList.children).forEach(li=>{
     li.classList.toggle('selected', Number(li.dataset.index)===selectedLinkIndex);
   });
-  if(linkEdit) linkEdit.disabled = selectedLinkIndex===null;
-  if(linkDel) linkDel.disabled = selectedLinkIndex===null;
+  if(linkEdit){
+    linkEdit.disabled = selectedLinkIndex===null;
+    linkEdit.classList.toggle('hidden', selectedLinkIndex===null);
+  }
+  if(linkDel){
+    linkDel.disabled = selectedLinkIndex===null;
+    linkDel.classList.toggle('hidden', selectedLinkIndex===null);
+  }
 }
 
 function populateNodeOptions(){
@@ -2093,7 +2090,6 @@ if(linkDel) linkDel.addEventListener('click',async()=>{
   const node=findJsonNode(currentJsonRoot,selectedId);
   if(!node || !node.links) return;
   node.links.splice(selectedLinkIndex,1);
-  await saveDocument(currentFile,state.doc);
   emit('documentChanged');
   currentLinks=node.links;
   selectedLinkIndex=null;
@@ -2109,7 +2105,6 @@ if(linkSave) linkSave.addEventListener('click',async()=>{
   const t=linkTitle.value.trim(); if(t) obj.metadata={title:t};
   const a=linkAnchor.value.trim(); if(a) obj.anchor=a;
   if(selectedLinkIndex!==null) node.links[selectedLinkIndex]=obj; else node.links.push(obj);
-  await saveDocument(currentFile,state.doc);
   emit('documentChanged');
   currentLinks=node.links;
   linkEditor.hidden=true;
@@ -2123,11 +2118,13 @@ on('selectionChanged', e=>{
   if(selectedId===null || !contentNote) return;
   const node=findJsonNode(currentJsonRoot,selectedId);
   if(!node) return;
-  document.getElementById('meta-title-CONTENT').value=getNodeTitle(node);
+  const ct=document.getElementById('content-title');
+  if(ct) ct.textContent=getNodeTitle(node);
   contentNote.value=getNodeNote(node);
   currentLinks=node.links||[];
   selectedLinkIndex=null;
   renderLinkList();
+  updateMeta();
 });
 function addChild(id){
   modalPrompt('Enter title for new node','',async t=>{
@@ -2556,24 +2553,19 @@ on('documentChanged',()=>{
 });
 window.addEventListener('DOMContentLoaded',()=>{
   ['FIND','STRUCTURE','CONTENT','PREVIEW'].forEach(applyMetaBindings);
-
-  const renameBtn=document.getElementById('fileRenameBtn');
-  if(renameBtn) renameBtn.addEventListener('click', renameCurrent);
-
-  const fileTitle=document.getElementById('fileTitle');
-  if(fileTitle){
-    fileTitle.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); renameCurrent(); }});
-    fileTitle.addEventListener('input', updateMeta);
-  }
-
-  const saveBtn=document.getElementById('titleSaveBtn');
-  if(saveBtn) saveBtn.addEventListener('click', saveTitle);
-
   nodeTitleInput=document.getElementById('nodeTitle');
   if(nodeTitleInput){
     nodeTitleInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); saveTitle(); }});
     nodeTitleInput.addEventListener('input',()=>{ clearTimeout(saveTitleTimer); saveTitleTimer=setTimeout(saveTitle,500); });
     nodeTitleInput.addEventListener('blur',saveTitle);
+  }
+
+  if(contentNote){
+    contentNote.addEventListener('input',()=>{
+      if(selectedId===null) return;
+      const node=findJsonNode(currentJsonRoot,selectedId);
+      if(node) setNodeNote(node, contentNote.value);
+    });
   }
 });
 async function saveTitle(){
