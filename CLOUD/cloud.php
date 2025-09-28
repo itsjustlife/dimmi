@@ -1127,6 +1127,21 @@ if (isset($_GET['api'])) {
     $ok=move_uploaded_file($tmp,$dst); audit('upload',rel_of($dst),$ok); j(['ok'=>$ok,'name'=>$name]);
   }
 
+  if ($action==='rebuild_door' && $method==='POST') {
+    $script=$ROOT.'/scripts/build_door_nodes.php';
+    if(!is_file($script)) bad('Script not found',500);
+    $cmd=escapeshellarg(PHP_BINARY).' '.escapeshellarg($script);
+    $desc=[1=>['pipe','w'], 2=>['pipe','w']];
+    $proc=@proc_open($cmd,$desc,$pipes,$ROOT);
+    if(!is_resource($proc)) bad('Failed to launch script',500);
+    $stdout=stream_get_contents($pipes[1]); fclose($pipes[1]);
+    $stderr=stream_get_contents($pipes[2]); fclose($pipes[2]);
+    $code=proc_close($proc);
+    $ok=$code===0;
+    audit('exec','scripts/build_door_nodes.php',$ok);
+    j(['ok'=>$ok,'exitCode'=>$code,'stdout'=>$stdout,'stderr'=>$stderr]);
+  }
+
   if ($action==='download_folder') {
     if (!is_dir($abs)) bad('Not a directory');
     if (!class_exists('ZipArchive')) bad('ZipArchive not available',500);
@@ -1622,6 +1637,19 @@ if ($doorMode) {
     .primary {@apply px-3 py-1 bg-blue-600 text-white rounded;}
     .mono {@apply font-mono;}
   </style>
+  <style>
+    #doorTree .door-node-entry button {transition:background-color .15s ease, color .15s ease;}
+    #doorTree .door-node-entry button.active {background-color:#dbeafe;color:#1d4ed8;font-weight:600;}
+    #doorContent h1,#doorContent h2,#doorContent h3{margin-top:1.5rem;font-weight:600;color:#1f2937;}
+    #doorContent p{margin-top:0.75rem;color:#374151;}
+    #doorContent ul{margin-top:0.75rem;margin-left:1.25rem;list-style:disc;color:#374151;}
+    #doorContent li{margin-top:0.25rem;}
+    #doorContent hr{margin:1.5rem 0;border:0;border-top:1px solid #e5e7eb;}
+    #doorContent pre{background:#111827;color:#f9fafb;padding:0.75rem;border-radius:0.5rem;overflow:auto;margin-top:0.75rem;font-size:0.875rem;}
+    #doorContent code{background:#e5e7eb;color:#1f2937;padding:0.1rem 0.25rem;border-radius:0.25rem;}
+    #doorTeleports button{transition:background-color .15s ease,color .15s ease;}
+    #doorTeleports button:hover{background:#dbeafe;color:#1d4ed8;}
+  </style>
 </head>
 <body class="h-screen flex flex-col bg-gray-50 text-gray-800 overflow-x-hidden">
   <header class="flex items-center gap-4 p-4 bg-white shadow">
@@ -1630,6 +1658,7 @@ if ($doorMode) {
       <span class="sr-only">Home</span>
     </button>
     <nav id="crumb" class="flex items-center gap-2 text-sm text-gray-600"></nav>
+    <button id="doorModeBtn" type="button" onclick="toggleDoorMode()" class="px-3 py-1 text-sm border border-blue-200 text-blue-600 rounded hover:bg-blue-50">Door</button>
     <div class="ml-auto relative">
       <button id="settingsBtn" class="p-2 rounded hover:bg-gray-100" title="Settings">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5M3.75 12h16.5m-16.5 6.75h16.5"/></svg>
@@ -1785,6 +1814,35 @@ if ($doorMode) {
 
   </main>
 
+  <div id="doorMode" class="hidden flex-1 flex flex-col p-4 gap-4">
+    <div class="bg-white rounded shadow p-4 flex flex-wrap items-center gap-3">
+      <h2 class="text-lg font-semibold text-gray-700">DOOR MODE</h2>
+      <button id="doorRebuildBtn" type="button" onclick="rebuildDoorSeeds()" class="px-3 py-1 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-500">Rebuild Seeds</button>
+      <span id="doorStatus" class="text-sm text-gray-500"></span>
+      <div class="ml-auto flex gap-2">
+        <button type="button" onclick="refreshDoorDataset()" class="px-3 py-1 border rounded text-sm text-gray-600 hover:bg-gray-100">Refresh</button>
+        <button type="button" onclick="exitDoorMode()" class="px-3 py-1 border rounded text-sm text-gray-600 hover:bg-gray-100">Back to Editor</button>
+      </div>
+    </div>
+    <div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 min-h-0">
+      <div class="bg-white rounded shadow flex flex-col min-h-0">
+        <div class="px-4 py-3 border-b font-semibold text-gray-700">Atlas</div>
+        <div id="doorTree" class="flex-1 overflow-auto text-sm divide-y"></div>
+      </div>
+      <div class="bg-white rounded shadow flex flex-col md:col-span-3 min-h-0">
+        <div class="px-4 py-3 border-b">
+          <h3 id="doorTitle" class="text-xl font-semibold text-gray-800">Select a room</h3>
+          <div id="doorMeta" class="text-sm text-gray-500 mt-1"></div>
+        </div>
+        <div id="doorContent" class="flex-1 overflow-auto p-4 text-sm leading-relaxed bg-gray-50"></div>
+        <div id="doorTeleports" class="px-4 py-3 border-t">
+          <h4 class="font-semibold text-gray-700 mb-2">Teleports</h4>
+          <p id="doorTeleportEmpty" class="text-sm text-gray-500">No teleports yet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="modalOverlay" class="fixed inset-0 hidden bg-black bg-opacity-40 flex items-center justify-center">
     <div class="bg-white rounded p-6 w-80 max-w-full">
       <h3 id="modalTitle" class="font-semibold mb-2"></h3>
@@ -1807,6 +1865,7 @@ let currentDir='', currentFile='', currentOutlinePath='', currentFileInfo=null;
 let clipboardPath='';
 const state={doc:null};
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null, currentJsonRootKey=null;
+const doorState={active:false,ready:false,loading:false,nodes:{},rootId:null,selectedId:null,contentCache:{}};
 function updateMeta(){
   const node = selectedId!==null ? findJsonNode(currentJsonRoot, selectedId) : null;
   const title = node ? getNodeTitle(node) : '';
@@ -2123,6 +2182,337 @@ function escapeHtml(str){
 }
 function mdLinks(str){
   return str.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
+}
+
+function toggleDoorMode(){ doorState.active ? exitDoorMode() : enterDoorMode(); }
+
+function enterDoorMode(){
+  if(doorState.active) return;
+  doorState.active=true;
+  const main=document.querySelector('main');
+  if(main) main.classList.add('hidden');
+  const door=document.getElementById('doorMode');
+  if(door) door.classList.remove('hidden');
+  const btn=document.getElementById('doorModeBtn');
+  if(btn){
+    btn.classList.add('bg-blue-600','text-white','border-blue-600');
+    btn.classList.remove('text-blue-600','border-blue-200');
+  }
+  renderDoorPlaceholder('Loading dataset…');
+  loadDoorDataset();
+}
+
+function exitDoorMode(){
+  if(!doorState.active) return;
+  doorState.active=false;
+  const main=document.querySelector('main');
+  if(main) main.classList.remove('hidden');
+  const door=document.getElementById('doorMode');
+  if(door) door.classList.add('hidden');
+  const btn=document.getElementById('doorModeBtn');
+  if(btn){
+    btn.classList.remove('bg-blue-600','text-white','border-blue-600');
+    btn.classList.add('text-blue-600','border-blue-200');
+  }
+}
+
+function renderDoorPlaceholder(message){
+  const title=document.getElementById('doorTitle');
+  const meta=document.getElementById('doorMeta');
+  const content=document.getElementById('doorContent');
+  const teleports=document.getElementById('doorTeleports');
+  if(title) title.textContent = message || 'Select a room';
+  if(meta) meta.textContent = '';
+  if(content) content.innerHTML = `<p class="text-sm text-gray-500">${escapeHtml(message || 'Pick a node from the atlas tree to begin.')}</p>`;
+  if(teleports){
+    teleports.innerHTML = '<h4 class="font-semibold text-gray-700 mb-2">Teleports</h4><p class="text-sm text-gray-500">No teleports yet.</p>';
+  }
+}
+
+async function loadDoorDataset(force=false){
+  if(doorState.loading) return;
+  if(!force && doorState.ready) return;
+  doorState.loading=true;
+  const status=document.getElementById('doorStatus');
+  if(status) status.textContent='Loading seeds…';
+  try{
+    const indexData=await fetchDoorJson('DATA/door/index.json');
+    const nodeData=await fetchDoorJson('DATA/door/nodes.json');
+    const map={};
+    (nodeData.nodes||[]).forEach(n=>{ map[n.id]=n; });
+    doorState.nodes=map;
+    doorState.rootId=indexData.root||'mind-atlas';
+    doorState.ready=true;
+    doorState.contentCache={};
+    doorState.selectedId=null;
+    buildDoorTree();
+    if(Object.keys(map).length){
+      selectDoorNode(doorState.rootId);
+      if(status){
+        const count=Object.keys(map).length;
+        status.textContent=`Loaded ${count} room${count===1?'':'s'}.`;
+      }
+    }else{
+      renderDoorPlaceholder('Dataset is empty. Run “Rebuild Seeds”.');
+      if(status) status.textContent='Dataset is empty.';
+    }
+  }catch(err){
+    console.error(err);
+    doorState.ready=false;
+    renderDoorPlaceholder('Unable to load door dataset. Run “Rebuild Seeds”.');
+    if(status) status.textContent='Load failed: '+err.message;
+  }finally{
+    doorState.loading=false;
+  }
+}
+
+async function fetchDoorJson(path){
+  const res=await api('read',{path});
+  if(!res.ok) throw new Error('Request failed');
+  const data=await res.json();
+  if(!data.ok) throw new Error(data.error || `Unable to read ${path}`);
+  try{
+    return data.content ? JSON.parse(data.content) : {};
+  }catch(err){
+    throw new Error(`Invalid JSON in ${path}`);
+  }
+}
+
+async function loadDoorContent(node){
+  if(!node || !node.contentPath) return '';
+  if(doorState.contentCache[node.id]) return doorState.contentCache[node.id];
+  const res=await api('read',{path:node.contentPath});
+  if(!res.ok) throw new Error('Request failed');
+  const data=await res.json();
+  if(!data.ok) throw new Error(data.error || 'Unable to load room content');
+  const content=data.content || '';
+  doorState.contentCache[node.id]=content;
+  return content;
+}
+
+function buildDoorTree(){
+  const tree=document.getElementById('doorTree');
+  if(!tree) return;
+  tree.innerHTML='';
+  if(!doorState.ready){
+    tree.innerHTML='<div class="p-4 text-sm text-gray-500">Dataset not loaded.</div>';
+    return;
+  }
+  if(!doorState.rootId || !doorState.nodes[doorState.rootId]){
+    tree.innerHTML='<div class="p-4 text-sm text-gray-500">Root node missing.</div>';
+    return;
+  }
+  appendDoorNode(doorState.rootId, tree, 0, new Set());
+  highlightDoorTreeSelection();
+}
+
+function appendDoorNode(id, container, depth, visited){
+  if(!id || visited.has(id)) return;
+  const node=doorState.nodes[id];
+  if(!node) return;
+  const entry=document.createElement('div');
+  entry.className='door-node-entry';
+  entry.style.paddingLeft=`${depth*16}px`;
+  const btn=document.createElement('button');
+  btn.type='button';
+  btn.dataset.node=id;
+  btn.className='w-full text-left px-2 py-1 rounded text-sm text-gray-700 hover:bg-blue-50';
+  btn.textContent=node.title || id;
+  btn.onclick=()=>selectDoorNode(id);
+  entry.appendChild(btn);
+  container.appendChild(entry);
+  const nextVisited=new Set(visited);
+  nextVisited.add(id);
+  (node.children||[]).forEach(child=>{
+    if(child && child!==id) appendDoorNode(child, container, depth+1, new Set(nextVisited));
+  });
+}
+
+function highlightDoorTreeSelection(){
+  const tree=document.getElementById('doorTree');
+  if(!tree) return;
+  tree.querySelectorAll('button[data-node]').forEach(btn=>{
+    if(btn.dataset.node===doorState.selectedId) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+}
+
+async function selectDoorNode(id){
+  if(!doorState.ready) return;
+  const node=doorState.nodes[id];
+  if(!node) return;
+  doorState.selectedId=id;
+  highlightDoorTreeSelection();
+  const title=document.getElementById('doorTitle');
+  const meta=document.getElementById('doorMeta');
+  const contentEl=document.getElementById('doorContent');
+  const status=document.getElementById('doorStatus');
+  if(title) title.textContent=node.title || id;
+  if(meta){
+    const tags=[];
+    if(node.branch) tags.push(node.branch);
+    if(node.kind) tags.push(node.kind==='dir'?'Branch':'Entry');
+    if(node.missing) tags.push('Stub');
+    if(node.contentPath) tags.push(node.contentPath);
+    meta.textContent=tags.join(' · ');
+  }
+  if(status) status.textContent=`Loading ${node.title || id}…`;
+  try{
+    const content=await loadDoorContent(node);
+    if(contentEl) contentEl.innerHTML=renderDoorMarkdown(content);
+  }catch(err){
+    if(contentEl) contentEl.innerHTML=`<p class="text-sm text-red-600">${escapeHtml(err.message)}</p>`;
+  }finally{
+    if(status) status.textContent='';
+  }
+  renderDoorTeleports(node);
+}
+
+function renderDoorInline(text){
+  if(!text) return '';
+  const segments=[];
+  let last=0; let match;
+  const codeRe=/`([^`]+)`/g;
+  while((match=codeRe.exec(text))){
+    if(match.index>last) segments.push({type:'text', value:text.slice(last, match.index)});
+    segments.push({type:'code', value:match[1]});
+    last=codeRe.lastIndex;
+  }
+  if(last<text.length) segments.push({type:'text', value:text.slice(last)});
+  return segments.map(seg=>{
+    if(seg.type==='code') return `<code>${escapeHtml(seg.value)}</code>`;
+    let result=''; let pos=0; let linkMatch;
+    const linkRe=/\[([^\]]+)\]\(([^)]+)\)/g;
+    while((linkMatch=linkRe.exec(seg.value))){
+      if(linkMatch.index>pos) result+=escapeHtml(seg.value.slice(pos, linkMatch.index));
+      const label=escapeHtml(linkMatch[1]);
+      const href=escapeHtml(linkMatch[2]);
+      result+=`<a href="${href}" target="_blank" rel="noopener" class="text-blue-600 hover:underline">${label}</a>`;
+      pos=linkRe.lastIndex;
+    }
+    if(pos<seg.value.length) result+=escapeHtml(seg.value.slice(pos));
+    return result;
+  }).join('');
+}
+
+function renderDoorMarkdown(md){
+  if(!md) return '<p class="text-sm text-gray-500">No content yet.</p>';
+  const lines=md.replace(/\r\n/g,'\n').split('\n');
+  let html='';
+  let inList=false;
+  let inCode=false;
+  let codeLines=[];
+  for(const line of lines){
+    if(line.startsWith('```')){
+      if(inCode){
+        html+=`<pre><code>${escapeHtml(codeLines.join('\n'))}</code></pre>`;
+        inCode=false; codeLines=[];
+      }else{
+        inCode=true; codeLines=[];
+      }
+      continue;
+    }
+    if(inCode){ codeLines.push(line); continue; }
+    if(/^\s*[-*]\s+/.test(line)){
+      if(!inList){ html+='<ul>'; inList=true; }
+      html+=`<li>${renderDoorInline(line.replace(/^\s*[-*]\s+/,''))}</li>`;
+      continue;
+    }
+    if(inList){ html+='</ul>'; inList=false; }
+    if(/^#{1,3}\s+/.test(line)){
+      const level=line.match(/^#{1,3}/)[0].length;
+      const text=line.replace(/^#{1,3}\s+/,'');
+      html+=`<h${level}>${renderDoorInline(text)}</h${level}>`;
+    }else if(/^---+$/.test(line.trim())){
+      html+='<hr />';
+    }else if(line.trim()===''){
+      html+='';
+    }else{
+      html+=`<p>${renderDoorInline(line)}</p>`;
+    }
+  }
+  if(inList) html+='</ul>';
+  if(inCode) html+=`<pre><code>${escapeHtml(codeLines.join('\n'))}</code></pre>`;
+  return html;
+}
+
+function renderDoorTeleports(node){
+  const wrap=document.getElementById('doorTeleports');
+  if(!wrap) return;
+  wrap.innerHTML='<h4 class="font-semibold text-gray-700 mb-2">Teleports</h4>';
+  const links=node.links||[];
+  if(!links.length){
+    const p=document.createElement('p');
+    p.className='text-sm text-gray-500';
+    p.textContent='No teleports yet.';
+    wrap.appendChild(p);
+    return;
+  }
+  const ul=document.createElement('ul');
+  ul.className='space-y-2';
+  links.forEach(link=>{
+    const li=document.createElement('li');
+    if(link.type==='node' && doorState.nodes[link.target]){
+      const target=doorState.nodes[link.target];
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='px-3 py-1 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700';
+      btn.textContent=link.title || target.title || link.target;
+      btn.onclick=()=>selectDoorNode(link.target);
+      li.appendChild(btn);
+      if(link.path){
+        const meta=document.createElement('div');
+        meta.className='text-xs text-gray-500 mt-1';
+        meta.textContent=link.path;
+        li.appendChild(meta);
+      }
+    }else if(link.type==='url'){
+      const a=document.createElement('a');
+      a.href=link.target;
+      a.target='_blank';
+      a.rel='noopener';
+      a.className='text-blue-600 hover:underline text-sm';
+      a.textContent=link.title || link.target;
+      li.appendChild(a);
+    }else{
+      const span=document.createElement('span');
+      span.className='text-sm text-gray-600';
+      span.textContent=`${link.title || link.target} → ${link.target}`;
+      li.appendChild(span);
+    }
+    ul.appendChild(li);
+  });
+  wrap.appendChild(ul);
+}
+
+async function rebuildDoorSeeds(){
+  const btn=document.getElementById('doorRebuildBtn');
+  const status=document.getElementById('doorStatus');
+  if(btn) btn.disabled=true;
+  if(status) status.textContent='Rebuilding seeds…';
+  try{
+    const res=await fetch(`?api=rebuild_door`,{method:'POST',headers:{'X-CSRF':CSRF}});
+    if(!res.ok) throw new Error('Request failed');
+    const data=await res.json();
+    if(!data.ok){
+      const msg=(data.stderr||data.error||'Script failed').trim();
+      throw new Error(msg||'Script failed');
+    }
+    doorState.ready=false;
+    doorState.nodes={};
+    doorState.contentCache={};
+    if(status) status.textContent=(data.stdout||'Seeds rebuilt.').trim();
+    await loadDoorDataset(true);
+  }catch(err){
+    console.error(err);
+    if(status) status.textContent='Rebuild failed: '+err.message;
+  }finally{
+    if(btn) btn.disabled=false;
+  }
+}
+
+async function refreshDoorDataset(){
+  await loadDoorDataset(true);
 }
 function renderOpmlPreview(nodes){
   const jsonMode=currentFile.toLowerCase().endsWith('.json');
