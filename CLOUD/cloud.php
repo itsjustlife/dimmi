@@ -344,6 +344,21 @@ if (isset($_GET['api'])) {
     $ok=move_uploaded_file($tmp,$dst); audit('upload',rel_of($dst),$ok); j(['ok'=>$ok,'name'=>$name]);
   }
 
+  if ($action==='rebuild_door' && $method==='POST') {
+    $script=$ROOT.'/scripts/build_door_nodes.php';
+    if(!is_file($script)) bad('Script not found',500);
+    $cmd=escapeshellarg(PHP_BINARY).' '.escapeshellarg($script);
+    $desc=[1=>['pipe','w'], 2=>['pipe','w']];
+    $proc=@proc_open($cmd,$desc,$pipes,$ROOT);
+    if(!is_resource($proc)) bad('Failed to launch script',500);
+    $stdout=stream_get_contents($pipes[1]); fclose($pipes[1]);
+    $stderr=stream_get_contents($pipes[2]); fclose($pipes[2]);
+    $code=proc_close($proc);
+    $ok=$code===0;
+    audit('exec','scripts/build_door_nodes.php',$ok);
+    j(['ok'=>$ok,'exitCode'=>$code,'stdout'=>$stdout,'stderr'=>$stderr]);
+  }
+
   if ($action==='download_folder') {
     if (!is_dir($abs)) bad('Not a directory');
     if (!class_exists('ZipArchive')) bad('ZipArchive not available',500);
@@ -856,6 +871,30 @@ if (isset($_GET['api'])) {
     .primary {@apply px-3 py-1 bg-blue-600 text-white rounded;}
     .mono {@apply font-mono;}
   </style>
+  <style>
+    #doorTree .door-tree{margin:0;padding:0;list-style:none;}
+    #doorTree .door-tree li{margin:0;padding:0;}
+    #doorTree .door-node-row{display:flex;align-items:center;gap:0.25rem;padding:0.125rem 0.25rem 0.125rem 0.5rem;border-radius:0.375rem;margin:0.125rem 0;}
+    #doorTree .door-node-row:hover{background:#f3f4f6;}
+    #doorTree .door-select{flex:1;text-align:left;padding:0.25rem 0.5rem;border-radius:0.375rem;transition:background-color .15s ease,color .15s ease;font-size:0.875rem;color:#374151;}
+    #doorTree .door-select:hover{background:#e5e7eb;}
+    #doorTree .door-select.active{background:#dbeafe;color:#1d4ed8;font-weight:600;}
+    #doorTree .door-toggle{width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;border-radius:0.375rem;border:1px solid transparent;color:#6b7280;transition:background-color .15s ease,color .15s ease,transform .15s ease;}
+    #doorTree .door-toggle:hover{background:#e5e7eb;color:#374151;}
+    #doorTree .door-toggle.open svg{transform:rotate(90deg);}
+    #doorTree .door-children{margin-left:0.75rem;padding-left:0.75rem;border-left:1px solid #e5e7eb;}
+    #doorContent h1,#doorContent h2,#doorContent h3{margin-top:1.5rem;font-weight:600;color:#1f2937;}
+    #doorContent p{margin-top:0.75rem;color:#374151;}
+    #doorContent ul{margin-top:0.75rem;margin-left:1.25rem;list-style:disc;color:#374151;}
+    #doorContent li{margin-top:0.25rem;}
+    #doorContent hr{margin:1.5rem 0;border:0;border-top:1px solid #e5e7eb;}
+    #doorContent pre{background:#111827;color:#f9fafb;padding:0.75rem;border-radius:0.5rem;overflow:auto;margin-top:0.75rem;font-size:0.875rem;}
+    #doorContent code{background:#e5e7eb;color:#1f2937;padding:0.1rem 0.25rem;border-radius:0.25rem;}
+    #doorTeleports button{transition:background-color .15s ease,color .15s ease;}
+    #doorTeleports button:hover{background:#dbeafe;color:#1d4ed8;}
+    #doorEditor{flex:1;width:100%;padding:1rem;border:1px solid #d1d5db;border-radius:0.5rem;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:0.875rem;resize:none;min-height:0;}
+    #doorEditor:disabled{background:#f9fafb;color:#9ca3af;}
+  </style>
 </head>
 <body class="h-screen flex flex-col bg-gray-50 text-gray-800 overflow-x-hidden">
   <header class="flex items-center gap-4 p-4 bg-white shadow">
@@ -864,6 +903,7 @@ if (isset($_GET['api'])) {
       <span class="sr-only">Home</span>
     </button>
     <nav id="crumb" class="flex items-center gap-2 text-sm text-gray-600"></nav>
+    <button id="doorModeBtn" type="button" onclick="toggleDoorMode()" class="px-3 py-1 text-sm border border-blue-200 text-blue-600 rounded hover:bg-blue-50">Door</button>
     <div class="ml-auto relative">
       <button id="settingsBtn" class="p-2 rounded hover:bg-gray-100" title="Settings">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5M3.75 12h16.5m-16.5 6.75h16.5"/></svg>
@@ -1019,6 +1059,54 @@ if (isset($_GET['api'])) {
 
   </main>
 
+  <div id="doorMode" class="hidden flex-1 flex flex-col p-4 gap-4">
+    <div class="bg-white rounded shadow p-4 flex flex-wrap items-center gap-3">
+      <h2 class="text-lg font-semibold text-gray-700">DOOR MODE</h2>
+      <button id="doorRebuildBtn" type="button" onclick="rebuildDoorSeeds()" class="px-3 py-1 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-500">Rebuild Seeds</button>
+      <span id="doorStatus" class="text-sm text-gray-500"></span>
+      <div class="ml-auto flex gap-2">
+        <button type="button" onclick="refreshDoorDataset()" class="px-3 py-1 border rounded text-sm text-gray-600 hover:bg-gray-100">Refresh</button>
+        <button type="button" onclick="exitDoorMode()" class="px-3 py-1 border rounded text-sm text-gray-600 hover:bg-gray-100">Back to Editor</button>
+      </div>
+    </div>
+    <div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 min-h-0">
+      <div class="bg-white rounded shadow flex flex-col min-h-0">
+        <div class="px-4 py-3 border-b font-semibold text-gray-700">Atlas</div>
+        <div class="flex-1 overflow-auto">
+          <div id="doorTree" class="px-2 py-2"></div>
+        </div>
+      </div>
+      <div class="bg-white rounded shadow flex flex-col md:col-span-3 min-h-0">
+        <div class="px-4 py-3 border-b">
+          <h3 id="doorTitle" class="text-xl font-semibold text-gray-800">Select a room</h3>
+          <div id="doorMeta" class="text-sm text-gray-500 mt-1"></div>
+        </div>
+        <div class="px-4 py-2 border-b flex items-center gap-2 flex-wrap">
+          <div class="inline-flex rounded border border-gray-200 overflow-hidden">
+            <button id="doorTabPreview" type="button" class="px-3 py-1 text-sm bg-gray-200 text-gray-700">Preview</button>
+            <button id="doorTabEdit" type="button" class="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100">Edit</button>
+          </div>
+          <span id="doorContentPath" class="text-xs text-gray-500 truncate"></span>
+          <div class="ml-auto flex items-center gap-2">
+            <button id="doorSaveBtn" type="button" class="px-3 py-1 text-sm bg-blue-600 text-white rounded shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>Save</button>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col min-h-0">
+          <div id="doorContentWrap" class="flex-1 overflow-auto">
+            <div id="doorContent" class="min-h-full p-4 text-sm leading-relaxed bg-gray-50"></div>
+          </div>
+          <div id="doorEditorWrap" class="hidden flex-1 flex flex-col min-h-0 p-4 bg-gray-50">
+            <textarea id="doorEditor" class="flex-1" spellcheck="false"></textarea>
+          </div>
+        </div>
+        <div id="doorTeleports" class="px-4 py-3 border-t">
+          <h4 class="font-semibold text-gray-700 mb-2">Teleports</h4>
+          <p id="doorTeleportEmpty" class="text-sm text-gray-500">No teleports yet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="modalOverlay" class="fixed inset-0 hidden bg-black bg-opacity-40 flex items-center justify-center">
     <div class="bg-white rounded p-6 w-80 max-w-full">
       <h3 id="modalTitle" class="font-semibold mb-2"></h3>
@@ -1041,6 +1129,37 @@ let currentDir='', currentFile='', currentOutlinePath='', currentFileInfo=null;
 let clipboardPath='';
 const state={doc:null};
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null, currentJsonRootKey=null;
+const doorState={
+  active:false,
+  ready:false,
+  loading:false,
+  nodes:{},
+  rootId:null,
+  selectedId:null,
+  contentCache:{},
+  parentMap:{},
+  contentIndex:{},
+  expanded:new Set(),
+  view:'preview',
+  editorOriginal:''
+};
+const doorTabPreview=document.getElementById('doorTabPreview');
+const doorTabEdit=document.getElementById('doorTabEdit');
+const doorSaveBtn=document.getElementById('doorSaveBtn');
+const doorEditor=document.getElementById('doorEditor');
+const doorEditorWrap=document.getElementById('doorEditorWrap');
+const doorContentWrap=document.getElementById('doorContentWrap');
+const doorContentPath=document.getElementById('doorContentPath');
+if(doorTabPreview) doorTabPreview.addEventListener('click',()=>setDoorView('preview'));
+if(doorTabEdit) doorTabEdit.addEventListener('click',()=>{ if(!doorTabEdit.disabled) setDoorView('edit'); });
+if(doorSaveBtn) doorSaveBtn.addEventListener('click',saveDoorContent);
+if(doorEditor) doorEditor.addEventListener('input',()=>{
+  if(doorEditor.disabled) return;
+  setDoorDirty(doorEditor.value!==doorState.editorOriginal);
+});
+setDoorView('preview');
+setDoorEditorAvailability(false);
+setDoorDirty(false);
 function updateMeta(){
   const node = selectedId!==null ? findJsonNode(currentJsonRoot, selectedId) : null;
   const title = node ? getNodeTitle(node) : '';
@@ -1357,6 +1476,595 @@ function escapeHtml(str){
 }
 function mdLinks(str){
   return str.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
+}
+
+function toggleDoorMode(){ doorState.active ? exitDoorMode() : enterDoorMode(); }
+
+function enterDoorMode(){
+  if(doorState.active) return;
+  doorState.active=true;
+  const main=document.querySelector('main');
+  if(main) main.classList.add('hidden');
+  const door=document.getElementById('doorMode');
+  if(door) door.classList.remove('hidden');
+  const btn=document.getElementById('doorModeBtn');
+  if(btn){
+    btn.classList.add('bg-blue-600','text-white','border-blue-600');
+    btn.classList.remove('text-blue-600','border-blue-200');
+  }
+  setDoorView('preview');
+  setDoorEditorAvailability(false);
+  setDoorDirty(false);
+  if(doorEditor) doorEditor.value='';
+  if(doorContentPath) doorContentPath.textContent='';
+  doorState.editorOriginal='';
+  renderDoorPlaceholder('Loading dataset…');
+  loadDoorDataset();
+}
+
+function exitDoorMode(){
+  if(!doorState.active) return;
+  doorState.active=false;
+  const main=document.querySelector('main');
+  if(main) main.classList.remove('hidden');
+  const door=document.getElementById('doorMode');
+  if(door) door.classList.add('hidden');
+  const btn=document.getElementById('doorModeBtn');
+  if(btn){
+    btn.classList.remove('bg-blue-600','text-white','border-blue-600');
+    btn.classList.add('text-blue-600','border-blue-200');
+  }
+}
+
+function renderDoorPlaceholder(message){
+  const title=document.getElementById('doorTitle');
+  const meta=document.getElementById('doorMeta');
+  const content=document.getElementById('doorContent');
+  const teleports=document.getElementById('doorTeleports');
+  if(doorEditor) doorEditor.value='';
+  if(doorContentPath) doorContentPath.textContent='';
+  doorState.editorOriginal='';
+  setDoorDirty(false);
+  setDoorEditorAvailability(false);
+  setDoorView('preview');
+  if(title) title.textContent = message || 'Select a room';
+  if(meta) meta.textContent = '';
+  if(content) content.innerHTML = `<p class="text-sm text-gray-500">${escapeHtml(message || 'Pick a node from the atlas tree to begin.')}</p>`;
+  if(teleports){
+    teleports.innerHTML = '<h4 class="font-semibold text-gray-700 mb-2">Teleports</h4><p class="text-sm text-gray-500">No teleports yet.</p>';
+  }
+}
+
+async function loadDoorDataset(force=false){
+  if(doorState.loading) return;
+  if(!force && doorState.ready) return;
+  doorState.loading=true;
+  const status=document.getElementById('doorStatus');
+  if(status) status.textContent='Loading seeds…';
+  try{
+    const indexData=await fetchDoorJson('DATA/door/index.json');
+    const nodeData=await fetchDoorJson('DATA/door/nodes.json');
+    const map={};
+    (nodeData.nodes||[]).forEach(n=>{ if(n && n.id) map[n.id]=n; });
+    doorState.nodes=map;
+    doorState.rootId=indexData.root||'mind-atlas';
+    doorState.ready=true;
+    doorState.contentCache={};
+    doorState.selectedId=null;
+    buildDoorRelationships();
+    doorState.expanded=new Set([doorState.rootId]);
+    buildDoorTree();
+    if(Object.keys(map).length){
+      selectDoorNode(doorState.rootId);
+      if(status){
+        const count=Object.keys(map).length;
+        status.textContent=`Loaded ${count} room${count===1?'':'s'}.`;
+      }
+    }else{
+      renderDoorPlaceholder('Dataset is empty. Run “Rebuild Seeds”.');
+      if(status) status.textContent='Dataset is empty.';
+    }
+  }catch(err){
+    console.error(err);
+    doorState.ready=false;
+    renderDoorPlaceholder('Unable to load door dataset. Run “Rebuild Seeds”.');
+    if(status) status.textContent='Load failed: '+err.message;
+  }finally{
+    doorState.loading=false;
+  }
+}
+
+async function fetchDoorJson(path){
+  const res=await api('read',{path});
+  if(!res.ok) throw new Error('Request failed');
+  const data=await res.json();
+  if(!data.ok) throw new Error(data.error || `Unable to read ${path}`);
+  try{
+    return data.content ? JSON.parse(data.content) : {};
+  }catch(err){
+    throw new Error(`Invalid JSON in ${path}`);
+  }
+}
+
+function normalizeDoorPath(path){
+  if(!path) return '';
+  let clean=String(path).trim();
+  clean=clean.replace(/^door:/i,'').replace(/^node:/i,'');
+  clean=clean.replace(/\\/g,'/');
+  clean=clean.replace(/^\.\//,'');
+  clean=clean.replace(/^DATA\/door\/content\//i,'');
+  return clean.toLowerCase();
+}
+
+function getDoorContentKeys(path){
+  const keys=new Set();
+  const normalized=normalizeDoorPath(path);
+  if(!normalized) return keys;
+  keys.add(normalized);
+  const segments=normalized.split('/');
+  const file=segments.pop();
+  if(file){
+    keys.add(file);
+    const noExt=file.replace(/\.[^.]+$/,'');
+    if(noExt) keys.add(noExt);
+  }
+  return keys;
+}
+
+function buildDoorRelationships(){
+  const parentMap={};
+  const contentIndex={};
+  Object.values(doorState.nodes).forEach(node=>{
+    if(!node) return;
+    (node.children||[]).forEach(child=>{
+      if(child && doorState.nodes[child]) parentMap[child]=node.id;
+    });
+    if(node.contentPath){
+      const keys=getDoorContentKeys(node.contentPath);
+      keys.forEach(key=>{ if(key && !contentIndex[key]) contentIndex[key]=node.id; });
+    }
+  });
+  doorState.parentMap=parentMap;
+  doorState.contentIndex=contentIndex;
+}
+
+async function loadDoorContent(node){
+  if(!node || !node.contentPath) return '';
+  if(doorState.contentCache[node.id]) return doorState.contentCache[node.id];
+  const res=await api('read',{path:node.contentPath});
+  if(!res.ok) throw new Error('Request failed');
+  const data=await res.json();
+  if(!data.ok) throw new Error(data.error || 'Unable to load room content');
+  const content=data.content || '';
+  doorState.contentCache[node.id]=content;
+  return content;
+}
+
+function buildDoorTree(){
+  const tree=document.getElementById('doorTree');
+  if(!tree) return;
+  tree.innerHTML='';
+  if(!doorState.ready){
+    tree.innerHTML='<div class="p-4 text-sm text-gray-500">Dataset not loaded.</div>';
+    return;
+  }
+  if(!doorState.rootId || !doorState.nodes[doorState.rootId]){
+    tree.innerHTML='<div class="p-4 text-sm text-gray-500">Root node missing.</div>';
+    return;
+  }
+  const list=document.createElement('ul');
+  list.className='door-tree space-y-1';
+  const rootEl=createDoorTreeNode(doorState.rootId, new Set());
+  if(rootEl) list.appendChild(rootEl);
+  tree.appendChild(list);
+  highlightDoorTreeSelection();
+}
+
+function createDoorTreeNode(id, visited){
+  if(!id || visited.has(id)) return null;
+  const node=doorState.nodes[id];
+  if(!node) return null;
+  const nextVisited=new Set(visited);
+  nextVisited.add(id);
+  const children=(node.children||[]).filter(child=>child && child!==id && doorState.nodes[child]);
+  const li=document.createElement('li');
+  li.dataset.node=id;
+  const row=document.createElement('div');
+  row.className='door-node-row';
+  const caretSvg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 transition-transform"><path d="M7 5l6 5-6 5V5z"/></svg>';
+  if(children.length){
+    const toggle=document.createElement('button');
+    toggle.type='button';
+    toggle.className='door-toggle';
+    toggle.innerHTML=caretSvg;
+    const expanded=doorState.expanded.has(id);
+    if(expanded) toggle.classList.add('open');
+    toggle.setAttribute('aria-expanded',expanded?'true':'false');
+    toggle.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(doorState.expanded.has(id)) doorState.expanded.delete(id);
+      else doorState.expanded.add(id);
+      highlightDoorTreeSelection();
+    });
+    row.appendChild(toggle);
+  }else{
+    const spacer=document.createElement('span');
+    spacer.className='door-toggle opacity-0 pointer-events-none';
+    spacer.innerHTML=caretSvg;
+    row.appendChild(spacer);
+  }
+  const btn=document.createElement('button');
+  btn.type='button';
+  btn.dataset.node=id;
+  btn.className='door-select';
+  btn.textContent=node.title || id;
+  btn.addEventListener('click',e=>{ e.stopPropagation(); selectDoorNode(id); });
+  row.appendChild(btn);
+  li.appendChild(row);
+  if(children.length){
+    const childList=document.createElement('ul');
+    childList.className='door-children door-tree space-y-1';
+    if(!doorState.expanded.has(id)) childList.classList.add('hidden');
+    children.forEach(child=>{
+      const childEl=createDoorTreeNode(child, nextVisited);
+      if(childEl) childList.appendChild(childEl);
+    });
+    if(childList.children.length) li.appendChild(childList);
+  }
+  return li;
+}
+
+function expandDoorAncestors(id){
+  let current=id;
+  const guard=new Set();
+  while(current && !guard.has(current)){
+    guard.add(current);
+    if(current) doorState.expanded.add(current);
+    current=doorState.parentMap[current];
+  }
+}
+
+function highlightDoorTreeSelection(){
+  const tree=document.getElementById('doorTree');
+  if(!tree) return;
+  if(doorState.selectedId) expandDoorAncestors(doorState.selectedId);
+  tree.querySelectorAll('.door-select').forEach(btn=>{
+    if(btn.dataset.node===doorState.selectedId) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+  tree.querySelectorAll('li[data-node]').forEach(li=>{
+    const id=li.dataset.node;
+    const expanded=doorState.expanded.has(id);
+    const toggle=li.querySelector(':scope > .door-node-row .door-toggle');
+    const childList=li.querySelector(':scope > ul');
+    if(toggle){
+      toggle.classList.toggle('open',expanded);
+      toggle.setAttribute('aria-expanded',expanded?'true':'false');
+    }
+    if(childList){
+      childList.classList.toggle('hidden',!expanded);
+    }
+  });
+  const active=tree.querySelector('.door-select.active');
+  if(active) active.scrollIntoView({block:'nearest'});
+}
+
+async function selectDoorNode(id){
+  if(!doorState.ready) return;
+  if(doorSaveBtn && !doorSaveBtn.disabled && doorState.selectedId && doorState.selectedId!==id){
+    const discard=confirm('You have unsaved changes. Discard them?');
+    if(!discard) return;
+  }
+  const node=doorState.nodes[id];
+  if(!node) return;
+  doorState.selectedId=id;
+  doorState.editorOriginal='';
+  setDoorDirty(false);
+  highlightDoorTreeSelection();
+  const title=document.getElementById('doorTitle');
+  const meta=document.getElementById('doorMeta');
+  const contentEl=document.getElementById('doorContent');
+  const status=document.getElementById('doorStatus');
+  if(title) title.textContent=node.title || id;
+  if(meta){
+    const tags=[];
+    if(node.branch) tags.push(node.branch);
+    if(node.kind) tags.push(node.kind==='dir'?'Branch':'Entry');
+    if(node.missing) tags.push('Stub');
+    meta.textContent=tags.join(' · ');
+  }
+  if(doorContentPath) doorContentPath.textContent=node.contentPath || '';
+  const hasContent=!!node.contentPath;
+  setDoorEditorAvailability(hasContent);
+  if(hasContent && doorEditor && !doorEditor.disabled) doorEditor.value='';
+  if(status) status.textContent=`Loading ${node.title || id}…`;
+  try{
+    const content=await loadDoorContent(node);
+    if(doorState.selectedId!==id) return;
+    doorState.editorOriginal=content;
+    setDoorDirty(false);
+    if(doorEditor && !doorEditor.disabled) doorEditor.value=content;
+    if(contentEl){
+      contentEl.innerHTML=renderDoorMarkdown(content);
+      attachDoorContentLinks();
+    }
+  }catch(err){
+    if(doorState.selectedId===id){
+      if(contentEl) contentEl.innerHTML=`<p class="text-sm text-red-600">${escapeHtml(err.message)}</p>`;
+      if(doorEditor) doorEditor.value='';
+      doorState.editorOriginal='';
+      setDoorDirty(false);
+      setDoorEditorAvailability(false);
+    }
+  }finally{
+    if(status && doorState.selectedId===id) status.textContent='';
+  }
+  renderDoorTeleports(node);
+}
+
+function renderDoorInline(text){
+  if(!text) return '';
+  const segments=[];
+  let last=0; let match;
+  const codeRe=/`([^`]+)`/g;
+  while((match=codeRe.exec(text))){
+    if(match.index>last) segments.push({type:'text', value:text.slice(last, match.index)});
+    segments.push({type:'code', value:match[1]});
+    last=codeRe.lastIndex;
+  }
+  if(last<text.length) segments.push({type:'text', value:text.slice(last)});
+  return segments.map(seg=>{
+    if(seg.type==='code') return `<code>${escapeHtml(seg.value)}</code>`;
+    let result=''; let pos=0; let linkMatch;
+    const linkRe=/\[([^\]]+)\]\(([^)]+)\)/g;
+    while((linkMatch=linkRe.exec(seg.value))){
+      if(linkMatch.index>pos) result+=escapeHtml(seg.value.slice(pos, linkMatch.index));
+      const label=escapeHtml(linkMatch[1]);
+      const href=escapeHtml(linkMatch[2]);
+      result+=`<a href="${href}" target="_blank" rel="noopener" class="text-blue-600 hover:underline">${label}</a>`;
+      pos=linkRe.lastIndex;
+    }
+    if(pos<seg.value.length) result+=escapeHtml(seg.value.slice(pos));
+    return result;
+  }).join('');
+}
+
+function renderDoorMarkdown(md){
+  if(!md) return '<p class="text-sm text-gray-500">No content yet.</p>';
+  const lines=md.replace(/\r\n/g,'\n').split('\n');
+  let html='';
+  let inList=false;
+  let inCode=false;
+  let codeLines=[];
+  for(const line of lines){
+    if(line.startsWith('```')){
+      if(inCode){
+        html+=`<pre><code>${escapeHtml(codeLines.join('\n'))}</code></pre>`;
+        inCode=false; codeLines=[];
+      }else{
+        inCode=true; codeLines=[];
+      }
+      continue;
+    }
+    if(inCode){ codeLines.push(line); continue; }
+    if(/^\s*[-*]\s+/.test(line)){
+      if(!inList){ html+='<ul>'; inList=true; }
+      html+=`<li>${renderDoorInline(line.replace(/^\s*[-*]\s+/,''))}</li>`;
+      continue;
+    }
+    if(inList){ html+='</ul>'; inList=false; }
+    if(/^#{1,3}\s+/.test(line)){
+      const level=line.match(/^#{1,3}/)[0].length;
+      const text=line.replace(/^#{1,3}\s+/,'');
+      html+=`<h${level}>${renderDoorInline(text)}</h${level}>`;
+    }else if(/^---+$/.test(line.trim())){
+      html+='<hr />';
+    }else if(line.trim()===''){
+      html+='';
+    }else{
+      html+=`<p>${renderDoorInline(line)}</p>`;
+    }
+  }
+  if(inList) html+='</ul>';
+  if(inCode) html+=`<pre><code>${escapeHtml(codeLines.join('\n'))}</code></pre>`;
+  return html;
+}
+
+function renderDoorTeleports(node){
+  const wrap=document.getElementById('doorTeleports');
+  if(!wrap) return;
+  wrap.innerHTML='<h4 class="font-semibold text-gray-700 mb-2">Teleports</h4>';
+  const links=node.links||[];
+  if(!links.length){
+    const p=document.createElement('p');
+    p.className='text-sm text-gray-500';
+    p.textContent='No teleports yet.';
+    wrap.appendChild(p);
+    return;
+  }
+  const ul=document.createElement('ul');
+  ul.className='space-y-2';
+  links.forEach(link=>{
+    const li=document.createElement('li');
+    if(link.type==='node' && doorState.nodes[link.target]){
+      const target=doorState.nodes[link.target];
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='px-3 py-1 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700';
+      btn.textContent=link.title || target.title || link.target;
+      btn.onclick=()=>selectDoorNode(link.target);
+      li.appendChild(btn);
+      if(link.path){
+        const meta=document.createElement('div');
+        meta.className='text-xs text-gray-500 mt-1';
+        meta.textContent=link.path;
+        li.appendChild(meta);
+      }
+    }else if(link.type==='url'){
+      const a=document.createElement('a');
+      a.href=link.target;
+      a.target='_blank';
+      a.rel='noopener';
+      a.className='text-blue-600 hover:underline text-sm';
+      a.textContent=link.title || link.target;
+      li.appendChild(a);
+    }else{
+      const span=document.createElement('span');
+      span.className='text-sm text-gray-600';
+      span.textContent=`${link.title || link.target} → ${link.target}`;
+      li.appendChild(span);
+    }
+    ul.appendChild(li);
+  });
+  wrap.appendChild(ul);
+}
+
+function setDoorView(mode){
+  let target=mode==='edit' ? 'edit' : 'preview';
+  if(target==='edit' && doorTabEdit && doorTabEdit.disabled) target='preview';
+  doorState.view=target;
+  if(doorTabPreview){
+    if(target==='preview'){
+      doorTabPreview.classList.add('bg-gray-200','text-gray-700');
+      doorTabPreview.classList.remove('text-gray-600');
+    }else{
+      doorTabPreview.classList.remove('bg-gray-200','text-gray-700');
+      doorTabPreview.classList.add('text-gray-600');
+    }
+  }
+  if(doorTabEdit){
+    if(target==='edit'){
+      doorTabEdit.classList.add('bg-gray-200','text-gray-700');
+      doorTabEdit.classList.remove('text-gray-600');
+    }else{
+      doorTabEdit.classList.remove('bg-gray-200','text-gray-700');
+      doorTabEdit.classList.add('text-gray-600');
+    }
+  }
+  if(doorContentWrap) doorContentWrap.classList.toggle('hidden',target==='edit');
+  if(doorEditorWrap) doorEditorWrap.classList.toggle('hidden',target!=='edit');
+  if(target==='preview' && doorEditor && !doorEditor.disabled && doorEditor.value!==doorState.editorOriginal){
+    const contentEl=document.getElementById('doorContent');
+    if(contentEl){
+      contentEl.innerHTML=renderDoorMarkdown(doorEditor.value);
+      attachDoorContentLinks();
+    }
+  }
+}
+
+function setDoorEditorAvailability(enabled){
+  if(doorTabEdit){
+    doorTabEdit.disabled=!enabled;
+    doorTabEdit.classList.toggle('opacity-50',!enabled);
+    doorTabEdit.classList.toggle('cursor-not-allowed',!enabled);
+  }
+  if(doorEditor) doorEditor.disabled=!enabled;
+  if(!enabled) setDoorView('preview');
+}
+
+function setDoorDirty(dirty){
+  if(doorSaveBtn) doorSaveBtn.disabled=!dirty;
+}
+
+function attachDoorContentLinks(){
+  const wrap=document.getElementById('doorContent');
+  if(!wrap) return;
+  wrap.querySelectorAll('a').forEach(a=>{
+    if(!a.dataset.doorHref) a.dataset.doorHref=a.getAttribute('href')||'';
+  });
+  if(attachDoorContentLinks.bound) return;
+  attachDoorContentLinks.bound=true;
+  wrap.addEventListener('click',e=>{
+    const anchor=e.target.closest('a');
+    if(!anchor || !wrap.contains(anchor)) return;
+    const href=anchor.dataset.doorHref || anchor.getAttribute('href') || '';
+    if(!href) return;
+    if(/^mailto:/i.test(href)) return;
+    if(href.startsWith('#')) return;
+    e.preventDefault();
+    if(/^https?:\/\//i.test(href)){ window.open(href,'_blank','noopener'); return; }
+    const raw=href.replace(/^door:/i,'').replace(/^node:/i,'');
+    if(doorState.nodes[raw]){ selectDoorNode(raw); return; }
+    const normalized=normalizeDoorPath(href);
+    if(doorState.nodes[normalized]){ selectDoorNode(normalized); return; }
+    const rawLower=typeof raw==='string'?raw.toLowerCase():raw;
+    const mapped=doorState.contentIndex[normalized] || doorState.contentIndex[rawLower];
+    if(mapped){ selectDoorNode(mapped); return; }
+    exitDoorMode();
+    if(href.endsWith('/')) openDir(href.replace(/\/$/,''));
+    else openFile(href, href.split('/').pop()||href,0,0);
+  });
+  new MutationObserver(muts=>{
+    muts.forEach(m=>{
+      m.addedNodes.forEach(node=>{
+        if(node.nodeType===1){
+          const el=node;
+          if(el.tagName==='A' && !el.dataset.doorHref) el.dataset.doorHref=el.getAttribute('href')||'';
+          el.querySelectorAll && el.querySelectorAll('a').forEach(a=>{ if(!a.dataset.doorHref) a.dataset.doorHref=a.getAttribute('href')||''; });
+        }
+      });
+    });
+  }).observe(wrap,{childList:true,subtree:true});
+}
+
+async function saveDoorContent(){
+  if(!doorState.selectedId) return;
+  const node=doorState.nodes[doorState.selectedId];
+  if(!node || !node.contentPath) return;
+  if(!doorEditor) return;
+  const content=doorEditor.value;
+  const status=document.getElementById('doorStatus');
+  if(status) status.textContent='Saving…';
+  try{
+    const res=await fetch(`?api=write&`+new URLSearchParams({path:node.contentPath}),{
+      method:'POST',
+      headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},
+      body:JSON.stringify({content})
+    });
+    const data=await res.json();
+    if(!res.ok || !data.ok) throw new Error(data.error || 'Save failed');
+    doorState.contentCache[node.id]=content;
+    doorState.editorOriginal=content;
+    setDoorDirty(false);
+    const contentEl=document.getElementById('doorContent');
+    if(contentEl){
+      contentEl.innerHTML=renderDoorMarkdown(content);
+      attachDoorContentLinks();
+    }
+    if(status) status.textContent='Saved.';
+  }catch(err){
+    if(status) status.textContent='Save failed: '+err.message;
+  }
+}
+
+async function rebuildDoorSeeds(){
+  const btn=document.getElementById('doorRebuildBtn');
+  const status=document.getElementById('doorStatus');
+  if(btn) btn.disabled=true;
+  if(status) status.textContent='Rebuilding seeds…';
+  try{
+    const res=await fetch(`?api=rebuild_door`,{method:'POST',headers:{'X-CSRF':CSRF}});
+    if(!res.ok) throw new Error('Request failed');
+    const data=await res.json();
+    if(!data.ok){
+      const msg=(data.stderr||data.error||'Script failed').trim();
+      throw new Error(msg||'Script failed');
+    }
+    doorState.ready=false;
+    doorState.nodes={};
+    doorState.contentCache={};
+    if(status) status.textContent=(data.stdout||'Seeds rebuilt.').trim();
+    await loadDoorDataset(true);
+  }catch(err){
+    console.error(err);
+    if(status) status.textContent='Rebuild failed: '+err.message;
+  }finally{
+    if(btn) btn.disabled=false;
+  }
+}
+
+async function refreshDoorDataset(){
+  await loadDoorDataset(true);
 }
 function renderOpmlPreview(nodes){
   const jsonMode=currentFile.toLowerCase().endsWith('.json');

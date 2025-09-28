@@ -1,0 +1,17 @@
+# Historical Cities
+
+Title: Historical Cities
+Type: Index
+Parent: WHERE / Physical Geography / Cities & Settlements / Historical Cities
+Aliases: [Historical_Cities]
+Tags: [WHERE]
+Links: []
+
+Index of Historical Cities.
+
+---
+Source: ARKHIVE/Where/Physical Geography/Cities & Settlements/Historical Cities/README.md
+
+/// === PROPROMPT:BEGIN ===
+see: MIND/ProPrompts/Library/DOOR-Seeds.md
+/// === PROPROMPT:END ===
