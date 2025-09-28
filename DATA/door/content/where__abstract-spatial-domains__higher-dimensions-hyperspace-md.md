@@ -1,0 +1,37 @@
+# Higher Dimensions & Hyperspace
+
+Title: Higher Dimensions & Hyperspace
+Type: Concept
+Parent: WHERE / Abstract Spatial Domains
+Aliases: [Higher_Dimensions_Hyperspace]
+Tags: [WHERE, abstract]
+Links: [WHO:../../Who/README.md, WHAT:../../What/README.md, WHEN:../../When/README.md, WHY:../../Why/README.md]
+
+Spatial dimensions beyond the familiar three, explored in mathematics and physics to model complex phenomena.
+
+_Context:_ Conceptual realms beyond observable space.
+_History:_
+- 19th century: Non-Euclidean geometry expands spatial understanding (WHEN:../../When/README.md).
+- 20th century: String theory proposes extra dimensions (WHAT:../../What/README.md).
+_Links:_
+- WHO: [Theoretical Physicists](../../Who/README.md)
+- WHAT: [Physics](../../What/README.md)
+- WHEN: [Modern Physics](../../When/README.md)
+- WHY: [Model Reality](../../Why/README.md)
+- WHERE: [Abstract Spatial Domains](README.md)
+_See also:_ [Parallel Universes & Multiverse](Parallel-Universes-Multiverse.md)
+
+## Teleports
+- Theoretical Physicists → Who/README.md
+- Physics → What/README.md
+- Modern Physics → When/README.md
+- Model Reality → Why/README.md
+- Abstract Spatial Domains → Where/Abstract Spatial Domains/README.md
+- Parallel Universes & Multiverse → `Parallel Universes Multiverse` (where__abstract-spatial-domains__parallel-universes-multiverse-md)
+
+---
+Source: ARKHIVE/Where/Abstract Spatial Domains/Higher-Dimensions-&-Hyperspace.md
+
+/// === PROPROMPT:BEGIN ===
+see: MIND/ProPrompts/Library/DOOR-Seeds.md
+/// === PROPROMPT:END ===

@@ -1,0 +1,42 @@
+{
+    "schemaVersion": "1.0.0",
+    "generatedAt": "2025-09-28T09:43:28+00:00",
+    "root": "mind-atlas",
+    "branches": [
+        {
+            "id": "who",
+            "title": "Who",
+            "exists": true
+        },
+        {
+            "id": "what",
+            "title": "What",
+            "exists": true
+        },
+        {
+            "id": "where",
+            "title": "Where",
+            "exists": true
+        },
+        {
+            "id": "when",
+            "title": "When",
+            "exists": true
+        },
+        {
+            "id": "why",
+            "title": "Why",
+            "exists": true
+        },
+        {
+            "id": "how",
+            "title": "How",
+            "exists": true
+        }
+    ],
+    "counts": {
+        "nodes": 1345,
+        "links": 245
+    },
+    "contentBase": "DATA/door/content"
+}
