@@ -1646,6 +1646,9 @@ if ($doorMode) {
     #doorContent hr{margin:1.5rem 0;border:0;border-top:1px solid #e5e7eb;}
     #doorContent pre{background:#111827;color:#f9fafb;padding:0.75rem;border-radius:0.5rem;overflow:auto;margin-top:0.75rem;font-size:0.875rem;}
     #doorContent code{background:#e5e7eb;color:#1f2937;padding:0.1rem 0.25rem;border-radius:0.25rem;}
+    #doorContent .door-node-link{background:none;border:none;color:#2563eb;padding:0;font:inherit;cursor:pointer;text-decoration:none;}
+    #doorContent .door-node-link:hover{color:#1d4ed8;text-decoration:underline;}
+    #doorContent .door-node-link:focus{outline:2px solid rgba(59,130,246,0.4);outline-offset:2px;}
     #doorTeleports button{transition:background-color .15s ease,color .15s ease;}
     #doorTeleports button:hover{background:#dbeafe;color:#1d4ed8;}
   </style>
@@ -2179,6 +2182,10 @@ if(previewSave){
 function escapeHtml(str){
   return str.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 }
+const doorAttrEscapeMap={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+function escapeAttr(str){
+  return str.replace(/[&<>"']/g,c=>doorAttrEscapeMap[c]||c);
+}
 function mdLinks(str){
   return str.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
 }
@@ -2400,7 +2407,10 @@ async function selectDoorNode(id){
   if(status) status.textContent=`Loading ${node.title || id}…`;
   try{
     const content=await loadDoorContent(node);
-    if(contentEl) contentEl.innerHTML=renderDoorMarkdown(content);
+    if(contentEl){
+      contentEl.innerHTML=renderDoorMarkdown(content);
+      wireDoorContentLinks();
+    }
   }catch(err){
     if(contentEl) contentEl.innerHTML=`<p class="text-sm text-red-600">${escapeHtml(err.message)}</p>`;
   }finally{
@@ -2421,7 +2431,14 @@ function renderDoorInline(text){
   }
   if(last<text.length) segments.push({type:'text', value:text.slice(last)});
   return segments.map(seg=>{
-    if(seg.type==='code') return `<code>${escapeHtml(seg.value)}</code>`;
+    if(seg.type==='code'){
+      const nodeId=seg.value.trim();
+      if(nodeId && doorState.nodes && doorState.nodes[nodeId]){
+        const label=doorState.nodes[nodeId].title || nodeId;
+        return `<button type="button" class="door-node-link" data-door-target="${escapeAttr(nodeId)}">${escapeHtml(label)}</button>`;
+      }
+      return `<code>${escapeHtml(seg.value)}</code>`;
+    }
     let result=''; let pos=0; let linkMatch;
     const linkRe=/\[([^\]]+)\]\(([^)]+)\)/g;
     while((linkMatch=linkRe.exec(seg.value))){
@@ -2434,6 +2451,17 @@ function renderDoorInline(text){
     if(pos<seg.value.length) result+=escapeHtml(seg.value.slice(pos));
     return result;
   }).join('');
+}
+
+function wireDoorContentLinks(){
+  const content=document.getElementById('doorContent');
+  if(!content) return;
+  content.querySelectorAll('[data-door-target]').forEach(el=>{
+    const targetId=el.getAttribute('data-door-target');
+    if(!targetId || !doorState.nodes[targetId] || el.dataset.doorBound==='1') return;
+    el.dataset.doorBound='1';
+    el.addEventListener('click',()=>selectDoorNode(targetId));
+  });
 }
 
 function renderDoorMarkdown(md){
