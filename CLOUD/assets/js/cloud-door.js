@@ -20,6 +20,17 @@
   };
 
   const state = { currentId: null, breadcrumb: [], links: [], index: [] };
+  const searchState = {
+    wrap: null,
+    panel: null,
+    input: null,
+    container: null,
+    open: false,
+    timer: null,
+    token: 0,
+    lastQuery: '',
+    results: { nodes: [], files: [] }
+  };
   const statusEl = document.getElementById('door-status');
   const titleInput = document.getElementById('door-room-title');
   const noteInput = document.getElementById('door-room-note');
@@ -51,6 +62,160 @@
     if (!statusEl) return;
     statusEl.textContent = message || '';
     statusEl.classList.toggle('error', !!isError);
+  }
+
+  function toggleSearchPanel(force) {
+    if (!searchState.wrap || !searchState.panel) return;
+    const open = force === undefined ? !searchState.open : !!force;
+    searchState.open = open;
+    searchState.panel.classList.toggle('active', open);
+    searchState.wrap.style.display = open ? '' : 'none';
+    if (open && searchState.input) {
+      searchState.input.focus();
+      searchState.input.select();
+    }
+  }
+
+  function setSearchMessage(message) {
+    if (!searchState.container) return;
+    searchState.container.innerHTML = '';
+    const p = document.createElement('p');
+    p.className = 'door-search-empty';
+    p.textContent = message;
+    searchState.container.appendChild(p);
+  }
+
+  function makeSearchChip(label, variant) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'door-chip' + (variant === 'file' ? ' door-chip-file' : '');
+    btn.textContent = label;
+    return btn;
+  }
+
+  function renderSearchResults(results) {
+    if (!searchState.container) return;
+    searchState.container.innerHTML = '';
+    const nodes = Array.isArray(results?.nodes) ? results.nodes : [];
+    const files = Array.isArray(results?.files) ? results.files : [];
+    if (!nodes.length && !files.length) {
+      if (searchState.lastQuery) {
+        setSearchMessage(`No matches for "${searchState.lastQuery}".`);
+      } else {
+        setSearchMessage('Type to search rooms and files.');
+      }
+      return;
+    }
+    if (nodes.length) {
+      const section = document.createElement('div');
+      section.className = 'door-search-section';
+      const heading = document.createElement('div');
+      heading.className = 'door-search-heading';
+      heading.textContent = 'Rooms';
+      section.appendChild(heading);
+      const chips = document.createElement('div');
+      chips.className = 'door-search-chips';
+      nodes.forEach(node => {
+        const title = node.title || node.id || 'Room';
+        const chip = makeSearchChip(title);
+        chip.title = node.id || title;
+        chip.addEventListener('click', async () => {
+          if (!(await confirmNavigation())) return;
+          try {
+            await loadRoom(node.id || '');
+          } finally {
+            toggleSearchPanel(false);
+          }
+        });
+        chips.appendChild(chip);
+      });
+      section.appendChild(chips);
+      searchState.container.appendChild(section);
+    }
+    if (files.length) {
+      const section = document.createElement('div');
+      section.className = 'door-search-section';
+      const heading = document.createElement('div');
+      heading.className = 'door-search-heading';
+      heading.textContent = 'Files';
+      section.appendChild(heading);
+      const chips = document.createElement('div');
+      chips.className = 'door-search-chips';
+      files.forEach(file => {
+        const name = file.name || file.path || 'File';
+        const chip = makeSearchChip(name, 'file');
+        const rel = file.path || name;
+        chip.title = rel;
+        chip.addEventListener('click', async () => {
+          if (!(await confirmNavigation())) return;
+          try {
+            const openDirFn = typeof window.openDir === 'function' ? window.openDir : null;
+            const openFileFn = typeof window.openFile === 'function' ? window.openFile : null;
+            if (openDirFn) {
+              const parts = rel.split('/');
+              parts.pop();
+              const dir = parts.join('/');
+              await openDirFn(dir);
+            }
+            if (openFileFn) {
+              await openFileFn(rel, name, 0, 0);
+            }
+          } catch (err) {
+            console.error(err);
+            showStatus(err.message || 'Failed to open file.', true);
+          } finally {
+            toggleSearchPanel(false);
+          }
+        });
+        chips.appendChild(chip);
+      });
+      section.appendChild(chips);
+      searchState.container.appendChild(section);
+    }
+  }
+
+  async function performSearch(query) {
+    const nextQuery = (query || '').trim();
+    searchState.lastQuery = nextQuery;
+    if (!nextQuery) {
+      searchState.results = { nodes: [], files: [] };
+      renderSearchResults(searchState.results);
+      return;
+    }
+    const currentToken = ++searchState.token;
+    setSearchMessage('Searching…');
+    try {
+      const params = new URLSearchParams();
+      params.set('action', 'search');
+      params.set('q', nextQuery);
+      params.set('node_limit', '8');
+      params.set('file_limit', '6');
+      const res = await fetch(`${DOOR.base}?${params.toString()}`, { headers: { 'Accept': 'application/json' } });
+      const contentType = res.headers.get('content-type') || '';
+      const isJson = contentType.includes('application/json');
+      const data = isJson ? await res.json() : null;
+      if (!res.ok || !data || data.ok === false) {
+        const error = data && data.error ? data.error : 'Search failed';
+        throw new Error(error);
+      }
+      if (currentToken !== searchState.token) return;
+      searchState.results = {
+        nodes: Array.isArray(data.nodes) ? data.nodes.slice(0, 8) : [],
+        files: Array.isArray(data.files) ? data.files.slice(0, 6) : []
+      };
+      renderSearchResults(searchState.results);
+    } catch (err) {
+      if (currentToken !== searchState.token) return;
+      searchState.results = { nodes: [], files: [] };
+      setSearchMessage(err.message || 'Search failed.');
+      showStatus(err.message || 'Search failed.', true);
+    }
+  }
+
+  function scheduleSearch() {
+    if (!searchState.input) return;
+    clearTimeout(searchState.timer);
+    searchState.timer = setTimeout(() => performSearch(searchState.input.value), 250);
   }
 
   function renderLinks() {
@@ -198,6 +363,20 @@
     const grid = document.getElementById('door-grid');
     if (!grid) return;
     grid.innerHTML = '';
+    const searchTile = document.createElement('button');
+    searchTile.type = 'button';
+    searchTile.className = 'door-tile door-search';
+    searchTile.setAttribute('aria-label', 'Search rooms and files');
+    searchTile.innerHTML = '<span>🔍 Search</span>';
+    searchTile.addEventListener('click', () => {
+      toggleSearchPanel(true);
+      if (searchState.lastQuery) {
+        performSearch(searchState.lastQuery);
+      } else {
+        renderSearchResults(searchState.results);
+      }
+    });
+    grid.appendChild(searchTile);
     (children || []).forEach(child => {
       const tile = document.createElement('button');
       tile.type = 'button';
@@ -217,41 +396,27 @@
     grid.appendChild(add);
   }
 
-  function renderSearchResults(results) {
-    const list = document.getElementById('door-search-results');
-    if (!list) return;
-    list.innerHTML = '';
-    results.forEach(item => {
-      const li = document.createElement('li');
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.textContent = item.title || item.id;
-      btn.addEventListener('click', async () => {
-        if (!(await confirmNavigation())) return;
-        loadRoom(item.id);
-        list.innerHTML = '';
-      });
-      li.appendChild(btn);
-      list.appendChild(li);
-    });
-  }
-
   function initSearch() {
+    searchState.wrap = document.getElementById('door-search-wrap');
+    if (!searchState.wrap) return;
+    searchState.panel = searchState.wrap.querySelector('.door-search-panel');
+    searchState.input = document.getElementById('door-search-input');
+    searchState.container = document.getElementById('door-search-quick');
     const form = document.getElementById('door-search');
-    if (!form) return;
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      const input = document.getElementById('door-search-input');
-      const query = (input && input.value ? input.value : '').toLowerCase().trim();
-      if (!query) {
-        renderSearchResults([]);
-        return;
-      }
-      const results = state.index.filter(item => {
-        return (item.title || '').toLowerCase().includes(query) || (item.id || '').toLowerCase().includes(query);
-      }).slice(0, 20);
-      renderSearchResults(results);
-    });
+    if (searchState.wrap) searchState.wrap.style.display = 'none';
+    if (searchState.panel) searchState.panel.classList.remove('active');
+    if (searchState.container) {
+      renderSearchResults(searchState.results);
+    }
+    if (form) {
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        performSearch(searchState.input ? searchState.input.value : '');
+      });
+    }
+    if (searchState.input) {
+      searchState.input.addEventListener('input', () => scheduleSearch());
+    }
   }
 
   function currentParentId() {
