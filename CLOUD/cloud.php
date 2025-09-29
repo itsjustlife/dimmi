@@ -1817,13 +1817,29 @@ if ($doorMode) {
   </main>
 
   <div id="doorMode" class="hidden flex-1 flex flex-col p-4 gap-4">
-    <div class="bg-white rounded shadow p-4 flex flex-wrap items-center gap-3">
-      <h2 class="text-lg font-semibold text-gray-700">DOOR MODE</h2>
-      <button id="doorRebuildBtn" type="button" onclick="rebuildDoorSeeds()" class="px-3 py-1 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-500">Rebuild Seeds</button>
-      <span id="doorStatus" class="text-sm text-gray-500"></span>
-      <div class="ml-auto flex gap-2">
-        <button type="button" onclick="refreshDoorDataset()" class="px-3 py-1 border rounded text-sm text-gray-600 hover:bg-gray-100">Refresh</button>
-        <button type="button" onclick="exitDoorMode()" class="px-3 py-1 border rounded text-sm text-gray-600 hover:bg-gray-100">Back to Editor</button>
+    <div class="bg-white rounded shadow p-4 flex flex-col gap-3">
+      <div class="flex flex-wrap items-center gap-3">
+        <h2 class="text-lg font-semibold text-gray-700">DOOR MODE</h2>
+        <button id="doorRebuildBtn" type="button" onclick="rebuildDoorSeeds()" class="px-3 py-1 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-500">Rebuild Seeds</button>
+        <button id="doorHelpBtn" type="button" class="px-3 py-1 border border-blue-200 text-sm text-blue-600 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-300" aria-expanded="false" aria-controls="doorHelpPanel">How it works</button>
+        <a id="doorBuilderLink" href="cloud.php?mode=door" class="px-3 py-1 border rounded text-sm text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-blue-300">Open Door Builder</a>
+        <span id="doorStatus" class="text-sm text-gray-500 flex-1 min-w-[12rem]" role="status" aria-live="polite"></span>
+        <div class="ml-auto flex gap-2">
+          <button type="button" onclick="refreshDoorDataset()" class="px-3 py-1 border rounded text-sm text-gray-600 hover:bg-gray-100">Refresh</button>
+          <button type="button" onclick="exitDoorMode()" class="px-3 py-1 border rounded text-sm text-gray-600 hover:bg-gray-100">Back to Editor</button>
+        </div>
+      </div>
+      <div id="doorHelpPanel" class="hidden w-full bg-blue-50 border border-blue-200 rounded p-4 text-sm text-blue-900 space-y-3" role="region" aria-label="Door mode help" tabindex="-1">
+        <div class="flex items-start justify-between gap-2">
+          <p class="font-semibold">Door mode quick tour</p>
+          <button type="button" id="doorHelpClose" class="text-blue-700 hover:text-blue-900 focus:ring-2 focus:ring-blue-300 rounded px-2" aria-label="Close help panel">Close</button>
+        </div>
+        <ul class="list-disc list-inside space-y-1">
+          <li><span class="font-semibold">Atlas:</span> Expand the tree on the left and choose a room to load its notes.</li>
+          <li><span class="font-semibold">Child rooms:</span> Follow the room cards and teleport buttons to hop between related spaces.</li>
+          <li><span class="font-semibold">Editing:</span> Door mode is read-only. Use the editor panes or the Door Builder button for full CRUD tools.</li>
+        </ul>
+        <p class="text-xs text-blue-800">Tip: keyboard users can tab to the Atlas tree, use arrow keys to explore, and press Enter to open a room.</p>
       </div>
     </div>
     <div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 min-h-0">
@@ -1868,6 +1884,37 @@ let clipboardPath='';
 const state={doc:null};
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null, currentJsonRootKey=null;
 const doorState={active:false,ready:false,loading:false,nodes:{},rootId:null,selectedId:null,contentCache:{},expanded:new Set()};
+const doorHelpBtn=document.getElementById('doorHelpBtn');
+const doorHelpPanel=document.getElementById('doorHelpPanel');
+const doorHelpClose=document.getElementById('doorHelpClose');
+
+function setDoorHelpVisibility(show){
+  if(!doorHelpBtn || !doorHelpPanel) return;
+  doorHelpBtn.setAttribute('aria-expanded', show ? 'true' : 'false');
+  doorHelpPanel.classList.toggle('hidden', !show);
+  if(show){
+    doorHelpPanel.focus();
+  }
+}
+
+if(doorHelpBtn && doorHelpPanel){
+  doorHelpBtn.addEventListener('click',()=>{
+    const expanded=doorHelpBtn.getAttribute('aria-expanded')==='true';
+    setDoorHelpVisibility(!expanded);
+  });
+  if(doorHelpClose){
+    doorHelpClose.addEventListener('click',()=>{
+      setDoorHelpVisibility(false);
+      doorHelpBtn.focus();
+    });
+  }
+  doorHelpPanel.addEventListener('keydown',event=>{
+    if(event.key==='Escape'){
+      setDoorHelpVisibility(false);
+      doorHelpBtn.focus();
+    }
+  });
+}
 function updateMeta(){
   const node = selectedId!==null ? findJsonNode(currentJsonRoot, selectedId) : null;
   const title = node ? getNodeTitle(node) : '';
@@ -2204,6 +2251,7 @@ function enterDoorMode(){
     btn.classList.add('bg-blue-600','text-white','border-blue-600');
     btn.classList.remove('text-blue-600','border-blue-200');
   }
+  setDoorHelpVisibility(false);
   renderDoorPlaceholder('Loading dataset…');
   loadDoorDataset();
 }
@@ -2220,6 +2268,7 @@ function exitDoorMode(){
     btn.classList.remove('bg-blue-600','text-white','border-blue-600');
     btn.classList.add('text-blue-600','border-blue-200');
   }
+  setDoorHelpVisibility(false);
 }
 
 function renderDoorPlaceholder(message){
@@ -2227,9 +2276,27 @@ function renderDoorPlaceholder(message){
   const meta=document.getElementById('doorMeta');
   const content=document.getElementById('doorContent');
   const teleports=document.getElementById('doorTeleports');
+  const infoMessage=message && message.trim()!=='' ? `<p class="text-sm text-gray-500">${escapeHtml(message)}</p>` : '';
+  const rootId=escapeHtml(doorState.rootId || 'mind-atlas');
   if(title) title.textContent = message || 'Select a room';
   if(meta) meta.textContent = '';
-  if(content) content.innerHTML = `<p class="text-sm text-gray-500">${escapeHtml(message || 'Pick a node from the atlas tree to begin.')}</p>`;
+  if(content){
+    content.innerHTML = `
+      <div class="space-y-4 text-sm text-gray-600">
+        ${infoMessage}
+        <p><span class="font-semibold">1. Navigate:</span> Use the <strong>Atlas</strong> tree on the left to expand rooms and pick where to go next.</p>
+        <p><span class="font-semibold">2. Follow child rooms:</span> Click room cards or teleport buttons to jump to linked spaces.</p>
+        <p><span class="font-semibold">3. Edit content:</span> Door mode is a reader. Switch back to the editor panes or use <em>Open Door Builder</em> for full editing.</p>
+        <div class="space-y-2">
+          <p class="font-semibold text-gray-700">Try an example:</p>
+          <ul class="list-disc list-inside space-y-1 text-blue-700">
+            <li><button type="button" class="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-300 rounded" data-door-target="${rootId}">Open the root room</button></li>
+            <li><span class="text-gray-600">In any room, look for blue links or the teleport list to move deeper.</span></li>
+          </ul>
+        </div>
+      </div>`;
+    wireDoorContentLinks();
+  }
   if(teleports){
     teleports.innerHTML = '<h4 class="font-semibold text-gray-700 mb-2">Teleports</h4><p class="text-sm text-gray-500">No teleports yet.</p>';
   }
