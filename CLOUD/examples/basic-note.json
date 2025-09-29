@@ -1,13 +1,23 @@
 {
   "schemaVersion": "1.0.0",
   "id": "basic-0001",
-  "metadata": { "title": "Basic Note" },
+  "metadata": {
+    "title": "Basic Note"
+  },
+  "content": "",
+  "links": [],
   "root": [
     {
       "id": "basic-root",
+      "title": "Hello",
       "type": "note",
       "content": "Hello from basic example.",
-      "metadata": { "title": "Hello" },
+      "created": "2025-09-10T19:06:47.940788Z",
+      "modified": "2025-09-10T19:06:47.940795Z",
+      "metadata": {
+        "title": "Hello"
+      },
+      "links": [],
       "children": []
     }
   ]

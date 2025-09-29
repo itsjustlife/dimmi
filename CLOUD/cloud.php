@@ -4,7 +4,6 @@
     Security: session auth, CSRF, path jail ($ROOT), editable extensions whitelist
     Extras: breadcrumb + path bar, JSON/XML(OPML) formatter, audit log
 */
-
 /* ===== CONFIG ===== */
 $USER = getenv('WEBEDITOR_USER') ?: 'admin';
 $PASS = getenv('WEBEDITOR_PASS') ?: 'admin';
@@ -179,6 +178,789 @@ function json_new_node_like($ref,$title,$now){
   if(isset($ref['created'])) $n['created']=$now;
   if(isset($ref['modified'])) $n['modified']=$now;
   return $n;
+}
+
+function render_login_ui($title,$err=''){
+  $safeTitle=htmlspecialchars($title, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
+  $errMsg=trim((string)$err);
+  $errHtml=$errMsg!==''?'<div class="text-red-500 text-sm">'.htmlspecialchars($errMsg, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8').'</div>':'';
+  echo <<<HTML
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{$safeTitle} — Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .mobile-view li > div{padding:1rem;font-size:1.125rem;}
+    .mobile-view svg{width:1.5rem;height:1.5rem;}
+  </style>
+</head>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center">
+  <div class="bg-white p-6 rounded shadow w-80">
+    <h1 class="text-xl font-semibold mb-4 text-gray-800">{$safeTitle}</h1>
+    <form method="post" class="space-y-4">
+      <input name="u" placeholder="user" autofocus class="w-full border rounded px-3 py-2">
+      <input name="p" type="password" placeholder="password" class="w-full border rounded px-3 py-2">
+      <button name="do_login" value="1" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-500">Sign in</button>
+      {$errHtml}
+      <p class="text-xs text-gray-500">Set env vars WEBEDITOR_USER / WEBEDITOR_PASS for stronger creds.</p>
+    </form>
+  </div>
+</body>
+</html>
+HTML;
+  exit;
+}
+
+function door_data_file(){
+  global $ROOT;
+  if(!$ROOT) return null;
+  return rtrim($ROOT,'/').'/door.json';
+}
+
+function door_default_document(){
+  $now=gmdate('c');
+  $rootId=uuidv4();
+  return [
+    'schemaVersion'=>'door.v1',
+    'metadata'=>['title'=>'Dimmi Door'],
+    'root'=>[[
+      'id'=>$rootId,
+      'title'=>'Atrium',
+      'note'=>'Tap tiles to explore this archive.',
+      'created'=>$now,
+      'modified'=>$now,
+      'children'=>[],
+      'links'=>[]
+    ]]
+  ];
+}
+
+function door_ensure_document(){
+  $file=door_data_file();
+  if(!$file) return false;
+  $dir=dirname($file);
+  if(!is_dir($dir)) @mkdir($dir,0775,true);
+  if(!is_file($file)){
+    $doc=door_default_document();
+    @file_put_contents($file,json_encode($doc, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
+  }
+  return true;
+}
+
+function door_save_doc($doc){
+  $file=door_data_file();
+  if(!$file) bad('Door storage unavailable',500);
+  $dir=dirname($file);
+  if(!is_dir($dir)) @mkdir($dir,0775,true);
+  $json=json_encode($doc, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+  if($json===false) bad('Failed to encode door document',500);
+  if(@file_put_contents($file,$json,LOCK_EX)===false) bad('Failed to write door document',500);
+}
+
+function door_load_doc(){
+  $file=door_data_file();
+  if(!$file) bad('Door storage unavailable',500);
+  door_ensure_document();
+  $raw=@file_get_contents($file);
+  $doc=json_decode($raw,true);
+  if(!is_array($doc)) $doc=door_default_document();
+  $rootKey=null;
+  json_get_root($doc,$rootKey);
+  if($rootKey!==null && !isset($doc[$rootKey])) $doc[$rootKey]=[];
+  return [$doc,$rootKey];
+}
+
+function &door_root_ref(&$doc,$rootKey){
+  if(!is_array($doc)) $doc=[];
+  if($rootKey===null){
+    $ref=&$doc;
+  } else {
+    if(!isset($doc[$rootKey]) || !is_array($doc[$rootKey])) $doc[$rootKey]=[];
+    $ref=&$doc[$rootKey];
+  }
+  return $ref;
+}
+
+function door_flatten_nodes($items,&$out){
+  foreach($items as $node){
+    if(!is_array($node)) continue;
+    $out[]=[
+      'id'=>$node['id'] ?? '',
+      'title'=>json_get_title($node)
+    ];
+    if(!empty($node['children']) && is_array($node['children'])) door_flatten_nodes($node['children'],$out);
+  }
+}
+
+function door_build_breadcrumb($items,$target,$trail=[]){
+  foreach($items as $node){
+    if(!is_array($node)) continue;
+    $entry=['id'=>$node['id'] ?? '', 'title'=>json_get_title($node)];
+    $trail[]=$entry;
+    if(($node['id'] ?? '')===$target) return $trail;
+    if(!empty($node['children']) && is_array($node['children'])){
+      $found=door_build_breadcrumb($node['children'],$target,$trail);
+      if($found) return $found;
+    }
+    array_pop($trail);
+  }
+  return [];
+}
+
+function door_clean_link($link){
+  if(!is_array($link)) return null;
+  $target=trim((string)($link['target'] ?? ''));
+  if($target==='') return null;
+  $title=trim((string)($link['title'] ?? ''));
+  $type=trim((string)($link['type'] ?? ''));
+  return ['target'=>$target,'title'=>$title,'type'=>$type];
+}
+
+function door_clean_links($links){
+  $out=[];
+  foreach($links as $link){
+    $clean=door_clean_link($link);
+    if($clean) $out[]=$clean;
+  }
+  return $out;
+}
+
+function door_require_csrf(){
+  $hdr=$_SERVER['HTTP_X_CSRF'] ?? '';
+  if($hdr !== ($_SESSION['csrf'] ?? '')) bad('CSRF',403);
+}
+
+function door_template($name){
+  $key=strtolower((string)$name);
+  switch($key){
+    case 'grid':
+      return '<div class="door-grid" id="door-grid" role="list"></div>';
+    case 'breadcrumb':
+      return '<nav class="door-breadcrumb" id="door-breadcrumb" aria-label="Breadcrumb"></nav>';
+    case 'rail':
+      return '<div class="door-rail" id="door-rail" role="navigation" aria-label="Teleport rail"></div>';
+    case 'search':
+      return '<form id="door-search" class="door-search" autocomplete="off" role="search"><input type="search" id="door-search-input" placeholder="Search rooms" aria-label="Search rooms"><button type="submit">Go</button></form><ul id="door-search-results" class="door-search-results" role="listbox"></ul>';
+  }
+  return null;
+}
+
+function door_handle_data(){
+  [$doc,$rootKey]=door_load_doc();
+  $root=&door_root_ref($doc,$rootKey);
+  if(!is_array($root)) $root=[];
+  $target=$_GET['id'] ?? '';
+  if($target==='') $target=$root[0]['id'] ?? '';
+  $node=null;
+  if($target===''){
+    $node=$root[0] ?? null;
+  } else {
+    if(!cjsf_find_item_ref($root,$target,$node)) bad('Room not found',404);
+  }
+  if(!$node){
+    $index=[]; door_flatten_nodes($root,$index);
+    j(['ok'=>true,'node'=>null,'children'=>[],'links'=>[],'breadcrumb'=>[],'allNodes'=>$index,'rootId'=>$root[0]['id'] ?? null]);
+  }
+  $children=[];
+  if(!empty($node['children']) && is_array($node['children'])){
+    foreach($node['children'] as $child){
+      if(!is_array($child)) continue;
+      $children[]=[
+        'id'=>$child['id'] ?? '',
+        'title'=>json_get_title($child),
+        'note'=>json_get_note($child)
+      ];
+    }
+  }
+  $links=[];
+  if(!empty($node['links']) && is_array($node['links'])){
+    foreach($node['links'] as $link){
+      if(!is_array($link)) continue;
+      $links[]=[
+        'target'=>$link['target'] ?? '',
+        'title'=>$link['title'] ?? '',
+        'type'=>$link['type'] ?? ''
+      ];
+    }
+  }
+  $crumb=door_build_breadcrumb($root,$node['id'] ?? '');
+  if(!$crumb) $crumb=[['id'=>$node['id'] ?? '', 'title'=>json_get_title($node)]];
+  $index=[]; door_flatten_nodes($root,$index);
+  j([
+    'ok'=>true,
+    'node'=>[
+      'id'=>$node['id'] ?? '',
+      'title'=>json_get_title($node),
+      'note'=>json_get_note($node)
+    ],
+    'children'=>$children,
+    'links'=>$links,
+    'breadcrumb'=>$crumb,
+    'allNodes'=>$index,
+    'rootId'=>$root[0]['id'] ?? ''
+  ]);
+}
+
+function door_handle_create(){
+  door_require_csrf();
+  $payload=json_decode(file_get_contents('php://input'),true);
+  if(!is_array($payload)) bad('Bad JSON',400);
+  $parent=$payload['parent'] ?? '';
+  $title=trim((string)($payload['title'] ?? 'New Room'));
+  if($title==='') $title='New Room';
+  $note=(string)($payload['note'] ?? '');
+  [$doc,$rootKey]=door_load_doc();
+  $root=&door_root_ref($doc,$rootKey);
+  $now=gmdate('c');
+  if($parent===''){
+    $list=&$root;
+    $parentNode=null;
+  }else{
+    $parentNode=null;
+    if(!cjsf_find_item_ref($root,$parent,$parentNode)) bad('Parent not found',404);
+    if(!isset($parentNode['children']) || !is_array($parentNode['children'])) $parentNode['children']=[];
+    $list=&$parentNode['children'];
+  }
+  $ref=null;
+  if(!empty($list) && isset($list[0]) && is_array($list[0])) $ref=$list[0];
+  elseif($parentNode) $ref=$parentNode;
+  else $ref=['title'=>'Room','children'=>[]];
+  $new=json_new_node_like($ref,$title,$now);
+  $new['note']=$note;
+  $new['created']=$now;
+  $new['modified']=$now;
+  if(isset($payload['links']) && is_array($payload['links'])) $new['links']=door_clean_links($payload['links']);
+  $list[]=$new;
+  if(isset($parentNode)) $parentNode['modified']=$now;
+  door_save_doc($doc);
+  audit('door_create','door.json#'.($new['id'] ?? ''),true);
+  j(['ok'=>true,'node'=>['id'=>$new['id'] ?? '', 'title'=>$title,'note'=>$note]]);
+}
+
+function door_handle_update(){
+  door_require_csrf();
+  $payload=json_decode(file_get_contents('php://input'),true);
+  if(!is_array($payload)) bad('Bad JSON',400);
+  $id=trim((string)($payload['id'] ?? ''));
+  if($id==='') bad('Missing id',400);
+  [$doc,$rootKey]=door_load_doc();
+  $root=&door_root_ref($doc,$rootKey);
+  $node=null;
+  if(!cjsf_find_item_ref($root,$id,$node)) bad('Room not found',404);
+  $now=gmdate('c');
+  if(array_key_exists('title',$payload)) json_set_title($node,(string)$payload['title']);
+  if(array_key_exists('note',$payload)) json_set_note($node,(string)$payload['note']);
+  if(isset($payload['links']) && is_array($payload['links'])) $node['links']=door_clean_links($payload['links']);
+  $node['modified']=$now;
+  door_save_doc($doc);
+  audit('door_update','door.json#'.$id,true);
+  j(['ok'=>true,'node'=>['id'=>$node['id'] ?? '', 'title'=>json_get_title($node), 'note'=>json_get_note($node)]]);
+}
+
+function door_handle_delete(){
+  door_require_csrf();
+  $payload=json_decode(file_get_contents('php://input'),true);
+  if(!is_array($payload)) bad('Bad JSON',400);
+  $id=trim((string)($payload['id'] ?? ''));
+  if($id==='') bad('Missing id',400);
+  [$doc,$rootKey]=door_load_doc();
+  $root=&door_root_ref($doc,$rootKey);
+  $parentList=$index=$parentNode=null;
+  if(!cjsf_find_parent($root,$id,$parentList,$index,$parentNode)) bad('Room not found',404);
+  $removed=$parentList[$index] ?? null;
+  array_splice($parentList,$index,1);
+  $now=gmdate('c');
+  if(is_array($parentNode)) $parentNode['modified']=$now;
+  door_save_doc($doc);
+  $next=null;
+  if(is_array($parentNode)) $next=$parentNode['id'] ?? null;
+  elseif(!empty($root) && isset($root[0]['id'])) $next=$root[0]['id'];
+  audit('door_delete','door.json#'.$id,true);
+  j(['ok'=>true,'next'=>$next]);
+}
+
+function door_render_shell($title){
+  $selfRaw=$_SERVER['PHP_SELF'] ?? 'cloud.php';
+  $safeSelf=htmlspecialchars($selfRaw, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
+  $logoutHref=htmlspecialchars($selfRaw.'?logout=1', ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
+  $ready=door_ensure_document();
+  $initialStatus=$ready?'Tap a room to begin.':'Door storage unavailable (check ROOT path).';
+  $safeInitial=htmlspecialchars($initialStatus, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
+  $safeTitle=htmlspecialchars($title.' — DOOR', ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
+  $readyJs=$ready?'true':'false';
+  $statusJs=json_encode($initialStatus);
+  $baseJs=json_encode($selfRaw);
+  $csrfJs=json_encode($_SESSION['csrf'] ?? '');
+  echo <<<HTML
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{$safeTitle}</title>
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;display:flex;flex-direction:column;}
+    header{padding:1rem;display:flex;flex-wrap:wrap;align-items:center;gap:1rem;background:#1e293b;box-shadow:0 2px 8px rgba(0,0,0,0.4);}
+    header h1{font-size:1.5rem;margin:0;flex:1;letter-spacing:0.08em;text-transform:uppercase;color:#38bdf8;}
+    header a{color:#38bdf8;text-decoration:none;font-weight:600;}
+    header a:hover{text-decoration:underline;}
+    .door-shell{flex:1;display:flex;flex-direction:column;gap:1rem;padding:1rem;}
+    .door-panel{background:rgba(15,23,42,0.65);border-radius:1rem;padding:1rem;border:1px solid rgba(148,163,184,0.2);backdrop-filter:blur(8px);box-shadow:0 12px 24px rgba(15,23,42,0.5);}
+    .door-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1rem;width:100%;}
+    .door-tile{aspect-ratio:1/1;background:linear-gradient(135deg,#334155,#1e293b);border:2px solid transparent;border-radius:1rem;color:#f8fafc;font-size:1.125rem;font-weight:600;display:flex;align-items:center;justify-content:center;text-align:center;padding:0.5rem;box-shadow:0 8px 16px rgba(15,23,42,0.45);transition:transform 0.2s,border-color 0.2s,box-shadow 0.2s;touch-action:manipulation;}
+    .door-tile:focus,.door-tile:hover{transform:translateY(-4px);border-color:#38bdf8;box-shadow:0 12px 20px rgba(56,189,248,0.35);outline:none;}
+    .door-tile.door-add{background:rgba(56,189,248,0.15);color:#38bdf8;font-size:2rem;}
+    .door-breadcrumb{display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;font-size:0.95rem;}
+    .door-breadcrumb button{background:none;border:none;color:#38bdf8;font-weight:600;cursor:pointer;padding:0.25rem 0.6rem;border-radius:0.5rem;}
+    .door-breadcrumb button:hover,.door-breadcrumb button:focus{background:rgba(56,189,248,0.15);outline:none;}
+    .door-rail{display:flex;gap:0.5rem;flex-wrap:wrap;}
+    .door-rail button{background:rgba(56,189,248,0.15);border:none;color:#38bdf8;padding:0.5rem 0.75rem;border-radius:999px;font-size:0.9rem;touch-action:manipulation;}
+    .door-search{display:flex;gap:0.5rem;flex-wrap:wrap;}
+    .door-search input{flex:1;min-width:200px;padding:0.6rem 0.8rem;border-radius:0.75rem;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.8);color:#f8fafc;}
+    .door-search button{padding:0.6rem 1rem;border-radius:0.75rem;border:none;background:#38bdf8;color:#0f172a;font-weight:600;cursor:pointer;}
+    .door-search-results{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0.25rem;max-height:200px;overflow:auto;}
+    .door-search-results li button{width:100%;text-align:left;background:rgba(15,23,42,0.75);color:#e2e8f0;border:1px solid rgba(148,163,184,0.25);border-radius:0.75rem;padding:0.5rem 0.75rem;}
+    .door-status{min-height:1.5rem;font-size:0.9rem;color:#38bdf8;}
+    .door-status.error{color:#f87171;}
+    .door-editor{display:flex;flex-direction:column;gap:0.75rem;}
+    .door-editor label{display:flex;flex-direction:column;gap:0.35rem;font-size:0.85rem;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;}
+    .door-editor input,.door-editor textarea{border-radius:0.75rem;border:1px solid rgba(148,163,184,0.3);background:rgba(15,23,42,0.85);color:#f8fafc;padding:0.6rem 0.75rem;font-size:1rem;}
+    .door-editor textarea{min-height:120px;resize:vertical;}
+    .door-editor-actions{display:flex;flex-wrap:wrap;gap:0.5rem;}
+    .door-editor-actions button{flex:1 1 120px;padding:0.75rem;border-radius:0.75rem;border:none;font-weight:600;cursor:pointer;touch-action:manipulation;}
+    .door-save{background:#38bdf8;color:#0f172a;}
+    .door-new{background:rgba(34,197,94,0.2);color:#4ade80;}
+    .door-delete{background:rgba(248,113,113,0.2);color:#f87171;}
+    .door-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0.5rem;}
+    .door-links li{display:flex;align-items:center;gap:0.5rem;background:rgba(15,23,42,0.75);border-radius:0.75rem;padding:0.5rem 0.75rem;border:1px solid rgba(148,163,184,0.2);}
+    .door-links li button{background:rgba(56,189,248,0.15);border:none;color:#38bdf8;padding:0.4rem 0.75rem;border-radius:0.75rem;}
+    .door-link-remove{background:rgba(248,113,113,0.2) !important;color:#f87171 !important;}
+    .door-link-form{display:flex;flex-wrap:wrap;gap:0.5rem;}
+    .door-link-form input{flex:1 1 140px;padding:0.5rem 0.75rem;border-radius:0.75rem;border:1px solid rgba(148,163,184,0.3);background:rgba(15,23,42,0.85);color:#f8fafc;}
+    .door-link-form button{padding:0.6rem 1rem;border-radius:0.75rem;border:none;background:rgba(56,189,248,0.2);color:#38bdf8;font-weight:600;cursor:pointer;}
+    .door-layout{display:flex;flex-direction:column;gap:1rem;}
+    .door-grid-wrap{flex:2;}
+    .door-editor-panel{flex:1;}
+    @media (min-width:960px){
+      .door-layout{flex-direction:row;align-items:flex-start;}
+      .door-editor-panel{position:sticky;top:1rem;}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DOOR</h1>
+    <a href="{$safeSelf}">Back to classic panels</a>
+    <a href="{$logoutHref}">Logout</a>
+  </header>
+  <main class="door-shell">
+    <div class="door-panel" id="door-crumb-wrap"></div>
+    <div class="door-panel door-layout">
+      <div class="door-grid-wrap" id="door-grid-wrap"></div>
+      <section class="door-panel door-editor-panel">
+        <div class="door-status" id="door-status" role="status" aria-live="polite">{$safeInitial}</div>
+        <div class="door-editor">
+          <label>Room Title
+            <input id="door-room-title" placeholder="Untitled room">
+          </label>
+          <label>Room Note
+            <textarea id="door-room-note" placeholder="Describe this room..."></textarea>
+          </label>
+          <div>
+            <h2 style="margin:0 0 0.5rem;font-size:0.9rem;text-transform:uppercase;letter-spacing:0.08em;color:#94a3b8;">Teleport Links</h2>
+            <ul class="door-links" id="door-links-list"></ul>
+            <form id="door-link-form" class="door-link-form">
+              <input id="door-link-target" placeholder="Target room ID">
+              <input id="door-link-label" placeholder="Label (optional)">
+              <button type="submit">Add link</button>
+            </form>
+          </div>
+          <div class="door-editor-actions">
+            <button type="button" class="door-save" id="door-save">Save changes</button>
+            <button type="button" class="door-new" id="door-add-child">Add room</button>
+            <button type="button" class="door-delete" id="door-delete">Delete room</button>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="door-panel" id="door-rail-wrap"></div>
+    <div class="door-panel" id="door-search-wrap"></div>
+  </main>
+  <script>
+  const DOOR_READY = {$readyJs};
+  const DOOR = {
+    base: {$baseJs},
+    csrf: {$csrfJs},
+    url(route, params){
+      const search = new URLSearchParams();
+      search.set('mode','door');
+      if(route) search.set('door', route);
+      if(params){
+        Object.entries(params).forEach(([key,val])=>{
+          if(val === undefined || val === null) return;
+          search.set(key, val);
+        });
+      }
+      const qs = search.toString();
+      return this.base + (qs ? '?' + qs : '');
+    }
+  };
+  const state = { currentId:null, breadcrumb:[], links:[], index:[] };
+  const statusEl = document.getElementById('door-status');
+  const titleInput = document.getElementById('door-room-title');
+  const noteInput = document.getElementById('door-room-note');
+  const saveBtn = document.getElementById('door-save');
+  const addChildBtn = document.getElementById('door-add-child');
+  const deleteBtn = document.getElementById('door-delete');
+  const linksList = document.getElementById('door-links-list');
+  const linkForm = document.getElementById('door-link-form');
+  const linkTarget = document.getElementById('door-link-target');
+  const linkLabel = document.getElementById('door-link-label');
+  if(statusEl) statusEl.textContent = {$statusJs};
+
+  function showStatus(msg, isError){
+    if(!statusEl) return;
+    statusEl.textContent = msg || '';
+    statusEl.classList.toggle('error', !!isError);
+  }
+
+  function renderLinks(){
+    linksList.innerHTML='';
+    if(!Array.isArray(state.links) || state.links.length===0){
+      const empty=document.createElement('li');
+      empty.textContent='No teleport links yet.';
+      empty.style.opacity='0.7';
+      linksList.appendChild(empty);
+      return;
+    }
+    state.links.forEach((link,index)=>{
+      const li=document.createElement('li');
+      const go=document.createElement('button');
+      go.type='button';
+      go.textContent=link.title || link.target;
+      go.addEventListener('click',()=>loadRoom(link.target));
+      li.appendChild(go);
+      const meta=document.createElement('span');
+      meta.style.flex='1';
+      meta.style.fontSize='0.85rem';
+      meta.style.color='#94a3b8';
+      meta.textContent=link.type || '';
+      li.appendChild(meta);
+      const remove=document.createElement('button');
+      remove.type='button';
+      remove.className='door-link-remove';
+      remove.textContent='Remove';
+      remove.addEventListener('click',async()=>{
+        state.links.splice(index,1);
+        renderLinks();
+        try{ await saveCurrent(); }catch(e){ console.error(e); }
+      });
+      li.appendChild(remove);
+      linksList.appendChild(li);
+    });
+  }
+
+  function sanitizeLinks(){
+    if(!Array.isArray(state.links)) return [];
+    return state.links.filter(l=>l && l.target).map(l=>({
+      target:l.target,
+      title:l.title || '',
+      type:l.type || ''
+    }));
+  }
+
+  async function request(route,{method='GET',params=null,body=null}={}){
+    const options={method,headers:{}};
+    let payload=body;
+    if(body && typeof body!=='string'){
+      payload=JSON.stringify(body);
+      options.headers['Content-Type']='application/json';
+    }
+    if(method!=='GET') options.headers['X-CSRF']=DOOR.csrf;
+    if(payload) options.body=payload;
+    const res=await fetch(DOOR.url(route,params),options);
+    const isJson=(res.headers.get('content-type')||'').includes('application/json');
+    if(!isJson){
+      const text=await res.text();
+      throw new Error(text || 'Unexpected response');
+    }
+    const data=await res.json();
+    if(!res.ok || (data && data.ok===false)) throw new Error((data && data.error) || 'Request failed');
+    return data;
+  }
+
+  async function loadTemplate(slotId,name){
+    const slot=document.getElementById(slotId);
+    if(!slot) return;
+    const res=await fetch(DOOR.url('template',{name}));
+    if(!res.ok){
+      slot.textContent='Template load failed';
+      return;
+    }
+    slot.innerHTML=await res.text();
+  }
+
+  function renderBreadcrumb(items){
+    const wrap=document.getElementById('door-breadcrumb');
+    if(!wrap) return;
+    wrap.innerHTML='';
+    (items||[]).forEach((item,index)=>{
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.textContent=item.title || 'Untitled';
+      if(index===(items.length-1)){
+        btn.disabled=true;
+        btn.style.opacity='0.7';
+      }
+      btn.addEventListener('click',()=>loadRoom(item.id));
+      wrap.appendChild(btn);
+      if(index<items.length-1){
+        const sep=document.createElement('span');
+        sep.textContent='›';
+        sep.style.opacity='0.6';
+        wrap.appendChild(sep);
+      }
+    });
+  }
+
+  function renderRail(links){
+    const wrap=document.getElementById('door-rail');
+    if(!wrap) return;
+    wrap.innerHTML='';
+    if(!Array.isArray(links) || links.length===0){
+      const span=document.createElement('span');
+      span.textContent='No teleport links found.';
+      span.style.opacity='0.7';
+      wrap.appendChild(span);
+      return;
+    }
+    links.forEach(link=>{
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.textContent=link.title || link.target;
+      btn.addEventListener('click',()=>loadRoom(link.target));
+      wrap.appendChild(btn);
+    });
+  }
+
+  function escapeHtml(str){
+    return (str||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]||c));
+  }
+
+  function renderGrid(children){
+    const grid=document.getElementById('door-grid');
+    if(!grid) return;
+    grid.innerHTML='';
+    (children||[]).forEach(child=>{
+      const tile=document.createElement('button');
+      tile.type='button';
+      tile.className='door-tile';
+      tile.innerHTML='<span>'+escapeHtml(child.title || 'Untitled')+'</span>';
+      tile.addEventListener('click',()=>loadRoom(child.id));
+      grid.appendChild(tile);
+    });
+    const add=document.createElement('button');
+    add.type='button';
+    add.className='door-tile door-add';
+    add.textContent='+';
+    add.addEventListener('click',()=>addChildPrompt());
+    grid.appendChild(add);
+  }
+
+  function renderSearchResults(results){
+    const list=document.getElementById('door-search-results');
+    if(!list) return;
+    list.innerHTML='';
+    results.forEach(item=>{
+      const li=document.createElement('li');
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.textContent=item.title || item.id;
+      btn.addEventListener('click',()=>{
+        loadRoom(item.id);
+        list.innerHTML='';
+      });
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
+  }
+
+  function initSearch(){
+    const form=document.getElementById('door-search');
+    if(!form) return;
+    form.addEventListener('submit',e=>{
+      e.preventDefault();
+      const input=document.getElementById('door-search-input');
+      const query=(input && input.value ? input.value : '').toLowerCase().trim();
+      if(!query){
+        renderSearchResults([]);
+        return;
+      }
+      const results=state.index.filter(item=>{
+        return (item.title||'').toLowerCase().includes(query) || (item.id||'').toLowerCase().includes(query);
+      }).slice(0,20);
+      renderSearchResults(results);
+    });
+  }
+
+  function currentParentId(){
+    if(!Array.isArray(state.breadcrumb) || state.breadcrumb.length<2) return null;
+    return state.breadcrumb[state.breadcrumb.length-2].id || null;
+  }
+
+  async function loadRoom(id){
+    try{
+      showStatus('Loading...',false);
+      const data=await request('data',{params:{id}});
+      state.currentId=data.node ? data.node.id : null;
+      state.breadcrumb=data.breadcrumb || [];
+      state.links=(data.links || []).map(link=>({
+        target:link.target,
+        title:link.title || '',
+        type:link.type || ''
+      }));
+      state.index=data.allNodes || [];
+      renderBreadcrumb(state.breadcrumb);
+      renderRail(data.links || []);
+      renderGrid(data.children || []);
+      renderLinks();
+      titleInput.value=data.node ? (data.node.title || '') : '';
+      noteInput.value=data.node ? (data.node.note || '') : '';
+      deleteBtn.disabled=!currentParentId();
+      showStatus('Loaded '+(data.node ? (data.node.title || 'room') : 'room'),false);
+    }catch(err){
+      console.error(err);
+      showStatus(err.message,true);
+    }
+  }
+
+  async function saveCurrent(){
+    if(!state.currentId){
+      showStatus('Select a room before saving.',true);
+      return;
+    }
+    try{
+      showStatus('Saving...',false);
+      await request('update',{method:'POST',body:{
+        id:state.currentId,
+        title:titleInput.value || '',
+        note:noteInput.value || '',
+        links:sanitizeLinks()
+      }});
+      await loadRoom(state.currentId);
+      showStatus('Saved.',false);
+    }catch(err){
+      console.error(err);
+      showStatus(err.message,true);
+    }
+  }
+
+  async function addChildPrompt(){
+    if(!state.currentId){
+      showStatus('Load a room before adding a child.',true);
+      return;
+    }
+    const title=window.prompt('Name for the new room?','New Room');
+    if(title===null) return;
+    try{
+      showStatus('Creating room...',false);
+      await request('create',{method:'POST',body:{
+        parent:state.currentId,
+        title:title,
+        note:''
+      }});
+      await loadRoom(state.currentId);
+      showStatus('Room created.',false);
+    }catch(err){
+      console.error(err);
+      showStatus(err.message,true);
+    }
+  }
+
+  async function deleteCurrent(){
+    if(!state.currentId){
+      showStatus('No room selected.',true);
+      return;
+    }
+    if(!window.confirm('Delete this room and its children?')) return;
+    try{
+      showStatus('Deleting...',false);
+      const data=await request('delete',{method:'POST',body:{id:state.currentId}});
+      const next=data.next || currentParentId();
+      await loadRoom(next || '');
+      showStatus('Room deleted.',false);
+    }catch(err){
+      console.error(err);
+      showStatus(err.message,true);
+    }
+  }
+
+  if(saveBtn) saveBtn.addEventListener('click',saveCurrent);
+  if(addChildBtn) addChildBtn.addEventListener('click',addChildPrompt);
+  if(deleteBtn) deleteBtn.addEventListener('click',deleteCurrent);
+
+  if(linkForm){
+    linkForm.addEventListener('submit',async e=>{
+      e.preventDefault();
+      const target=(linkTarget.value || '').trim();
+      if(!target){
+        showStatus('Enter a target room ID for the link.',true);
+        return;
+      }
+      const label=(linkLabel.value || '').trim();
+      state.links=state.links || [];
+      state.links.push({target:target,title:label});
+      linkTarget.value='';
+      linkLabel.value='';
+      renderLinks();
+      try{ await saveCurrent(); }catch(err){ console.error(err); }
+    });
+  }
+
+  Promise.all([
+    loadTemplate('door-grid-wrap','grid'),
+    loadTemplate('door-crumb-wrap','breadcrumb'),
+    loadTemplate('door-rail-wrap','rail'),
+    loadTemplate('door-search-wrap','search')
+  ]).then(()=>{
+    initSearch();
+    if(DOOR_READY) loadRoom('');
+    else showStatus('Door storage unavailable.',true);
+  }).catch(err=>{
+    console.error(err);
+    showStatus('Failed to initialize DOOR: '+err.message,true);
+  });
+  </script>
+</body>
+</html>
+HTML;
+  exit;
+}
+
+function door_handle_mode($title){
+  $route=$_GET['door'] ?? '';
+  $method=strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+  if($route==='template'){
+    $name=$_GET['name'] ?? '';
+    $tpl=door_template($name);
+    if($tpl===null){
+      http_response_code(404);
+      header('Content-Type: text/plain; charset=utf-8');
+      echo 'Template not found';
+      exit;
+    }
+    header('Content-Type: text/html; charset=utf-8');
+    echo $tpl;
+    exit;
+  }
+  if($route==='data') door_handle_data();
+  elseif($route==='create' && $method==='POST') door_handle_create();
+  elseif($route==='update' && $method==='POST') door_handle_update();
+  elseif($route==='delete' && $method==='POST') door_handle_delete();
+  else door_render_shell($title);
 }
 
 // ----- OPML helpers -----
@@ -825,34 +1607,17 @@ if (isset($_GET['api'])) {
   bad('Unknown action',404);
 }
 
+$doorMode = isset($_GET['mode']) && strtolower($_GET['mode']) === 'door';
+if ($doorMode) {
+  if (!$authed) render_login_ui($TITLE,$err ?? '');
+  door_handle_mode($TITLE);
+  exit;
+}
+
   /* ===== HTML (UI) ===== */
-  if (!$authed): ?>
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?=$TITLE?> — Login</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .mobile-view li > div{padding:1rem;font-size:1.125rem;}
-    .mobile-view svg{width:1.5rem;height:1.5rem;}
-  </style>
-</head>
-<body class="min-h-screen bg-gray-100 flex items-center justify-center">
-  <div class="bg-white p-6 rounded shadow w-80">
-    <h1 class="text-xl font-semibold mb-4 text-gray-800"><?=$TITLE?></h1>
-    <form method="post" class="space-y-4">
-      <input name="u" placeholder="user" autofocus class="w-full border rounded px-3 py-2">
-      <input name="p" type="password" placeholder="password" class="w-full border rounded px-3 py-2">
-      <button name="do_login" value="1" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-500">Sign in</button>
-      <?php if(!empty($err)):?><div class="text-red-500 text-sm"><?=$err?></div><?php endif;?>
-      <p class="text-xs text-gray-500">Set env vars WEBEDITOR_USER / WEBEDITOR_PASS for stronger creds.</p>
-    </form>
-  </div>
-</body>
-</html>
-<?php exit; endif; ?>
+  if (!$authed) render_login_ui($TITLE,$err ?? '');
+
+?>
 
 <!doctype html>
 <html lang="en">
@@ -872,17 +1637,8 @@ if (isset($_GET['api'])) {
     .mono {@apply font-mono;}
   </style>
   <style>
-    #doorTree .door-tree{margin:0;padding:0;list-style:none;}
-    #doorTree .door-tree li{margin:0;padding:0;}
-    #doorTree .door-node-row{display:flex;align-items:center;gap:0.25rem;padding:0.125rem 0.25rem 0.125rem 0.5rem;border-radius:0.375rem;margin:0.125rem 0;}
-    #doorTree .door-node-row:hover{background:#f3f4f6;}
-    #doorTree .door-select{flex:1;text-align:left;padding:0.25rem 0.5rem;border-radius:0.375rem;transition:background-color .15s ease,color .15s ease;font-size:0.875rem;color:#374151;}
-    #doorTree .door-select:hover{background:#e5e7eb;}
-    #doorTree .door-select.active{background:#dbeafe;color:#1d4ed8;font-weight:600;}
-    #doorTree .door-toggle{width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;border-radius:0.375rem;border:1px solid transparent;color:#6b7280;transition:background-color .15s ease,color .15s ease,transform .15s ease;}
-    #doorTree .door-toggle:hover{background:#e5e7eb;color:#374151;}
-    #doorTree .door-toggle.open svg{transform:rotate(90deg);}
-    #doorTree .door-children{margin-left:0.75rem;padding-left:0.75rem;border-left:1px solid #e5e7eb;}
+    #doorTree .door-node-entry button {transition:background-color .15s ease, color .15s ease;}
+    #doorTree .door-node-entry button.active {background-color:#dbeafe;color:#1d4ed8;font-weight:600;}
     #doorContent h1,#doorContent h2,#doorContent h3{margin-top:1.5rem;font-weight:600;color:#1f2937;}
     #doorContent p{margin-top:0.75rem;color:#374151;}
     #doorContent ul{margin-top:0.75rem;margin-left:1.25rem;list-style:disc;color:#374151;}
@@ -892,8 +1648,6 @@ if (isset($_GET['api'])) {
     #doorContent code{background:#e5e7eb;color:#1f2937;padding:0.1rem 0.25rem;border-radius:0.25rem;}
     #doorTeleports button{transition:background-color .15s ease,color .15s ease;}
     #doorTeleports button:hover{background:#dbeafe;color:#1d4ed8;}
-    #doorEditor{flex:1;width:100%;padding:1rem;border:1px solid #d1d5db;border-radius:0.5rem;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:0.875rem;resize:none;min-height:0;}
-    #doorEditor:disabled{background:#f9fafb;color:#9ca3af;}
   </style>
 </head>
 <body class="h-screen flex flex-col bg-gray-50 text-gray-800 overflow-x-hidden">
@@ -1072,33 +1826,14 @@ if (isset($_GET['api'])) {
     <div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 min-h-0">
       <div class="bg-white rounded shadow flex flex-col min-h-0">
         <div class="px-4 py-3 border-b font-semibold text-gray-700">Atlas</div>
-        <div class="flex-1 overflow-auto">
-          <div id="doorTree" class="px-2 py-2"></div>
-        </div>
+        <div id="doorTree" class="flex-1 overflow-auto text-sm divide-y"></div>
       </div>
       <div class="bg-white rounded shadow flex flex-col md:col-span-3 min-h-0">
         <div class="px-4 py-3 border-b">
           <h3 id="doorTitle" class="text-xl font-semibold text-gray-800">Select a room</h3>
           <div id="doorMeta" class="text-sm text-gray-500 mt-1"></div>
         </div>
-        <div class="px-4 py-2 border-b flex items-center gap-2 flex-wrap">
-          <div class="inline-flex rounded border border-gray-200 overflow-hidden">
-            <button id="doorTabPreview" type="button" class="px-3 py-1 text-sm bg-gray-200 text-gray-700">Preview</button>
-            <button id="doorTabEdit" type="button" class="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100">Edit</button>
-          </div>
-          <span id="doorContentPath" class="text-xs text-gray-500 truncate"></span>
-          <div class="ml-auto flex items-center gap-2">
-            <button id="doorSaveBtn" type="button" class="px-3 py-1 text-sm bg-blue-600 text-white rounded shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>Save</button>
-          </div>
-        </div>
-        <div class="flex-1 flex flex-col min-h-0">
-          <div id="doorContentWrap" class="flex-1 overflow-auto">
-            <div id="doorContent" class="min-h-full p-4 text-sm leading-relaxed bg-gray-50"></div>
-          </div>
-          <div id="doorEditorWrap" class="hidden flex-1 flex flex-col min-h-0 p-4 bg-gray-50">
-            <textarea id="doorEditor" class="flex-1" spellcheck="false"></textarea>
-          </div>
-        </div>
+        <div id="doorContent" class="flex-1 overflow-auto p-4 text-sm leading-relaxed bg-gray-50"></div>
         <div id="doorTeleports" class="px-4 py-3 border-t">
           <h4 class="font-semibold text-gray-700 mb-2">Teleports</h4>
           <p id="doorTeleportEmpty" class="text-sm text-gray-500">No teleports yet.</p>
@@ -1129,37 +1864,7 @@ let currentDir='', currentFile='', currentOutlinePath='', currentFileInfo=null;
 let clipboardPath='';
 const state={doc:null};
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null, currentJsonRootKey=null;
-const doorState={
-  active:false,
-  ready:false,
-  loading:false,
-  nodes:{},
-  rootId:null,
-  selectedId:null,
-  contentCache:{},
-  parentMap:{},
-  contentIndex:{},
-  expanded:new Set(),
-  view:'preview',
-  editorOriginal:''
-};
-const doorTabPreview=document.getElementById('doorTabPreview');
-const doorTabEdit=document.getElementById('doorTabEdit');
-const doorSaveBtn=document.getElementById('doorSaveBtn');
-const doorEditor=document.getElementById('doorEditor');
-const doorEditorWrap=document.getElementById('doorEditorWrap');
-const doorContentWrap=document.getElementById('doorContentWrap');
-const doorContentPath=document.getElementById('doorContentPath');
-if(doorTabPreview) doorTabPreview.addEventListener('click',()=>setDoorView('preview'));
-if(doorTabEdit) doorTabEdit.addEventListener('click',()=>{ if(!doorTabEdit.disabled) setDoorView('edit'); });
-if(doorSaveBtn) doorSaveBtn.addEventListener('click',saveDoorContent);
-if(doorEditor) doorEditor.addEventListener('input',()=>{
-  if(doorEditor.disabled) return;
-  setDoorDirty(doorEditor.value!==doorState.editorOriginal);
-});
-setDoorView('preview');
-setDoorEditorAvailability(false);
-setDoorDirty(false);
+const doorState={active:false,ready:false,loading:false,nodes:{},rootId:null,selectedId:null,contentCache:{}};
 function updateMeta(){
   const node = selectedId!==null ? findJsonNode(currentJsonRoot, selectedId) : null;
   const title = node ? getNodeTitle(node) : '';
@@ -1492,12 +2197,6 @@ function enterDoorMode(){
     btn.classList.add('bg-blue-600','text-white','border-blue-600');
     btn.classList.remove('text-blue-600','border-blue-200');
   }
-  setDoorView('preview');
-  setDoorEditorAvailability(false);
-  setDoorDirty(false);
-  if(doorEditor) doorEditor.value='';
-  if(doorContentPath) doorContentPath.textContent='';
-  doorState.editorOriginal='';
   renderDoorPlaceholder('Loading dataset…');
   loadDoorDataset();
 }
@@ -1521,12 +2220,6 @@ function renderDoorPlaceholder(message){
   const meta=document.getElementById('doorMeta');
   const content=document.getElementById('doorContent');
   const teleports=document.getElementById('doorTeleports');
-  if(doorEditor) doorEditor.value='';
-  if(doorContentPath) doorContentPath.textContent='';
-  doorState.editorOriginal='';
-  setDoorDirty(false);
-  setDoorEditorAvailability(false);
-  setDoorView('preview');
   if(title) title.textContent = message || 'Select a room';
   if(meta) meta.textContent = '';
   if(content) content.innerHTML = `<p class="text-sm text-gray-500">${escapeHtml(message || 'Pick a node from the atlas tree to begin.')}</p>`;
@@ -1545,14 +2238,12 @@ async function loadDoorDataset(force=false){
     const indexData=await fetchDoorJson('DATA/door/index.json');
     const nodeData=await fetchDoorJson('DATA/door/nodes.json');
     const map={};
-    (nodeData.nodes||[]).forEach(n=>{ if(n && n.id) map[n.id]=n; });
+    (nodeData.nodes||[]).forEach(n=>{ map[n.id]=n; });
     doorState.nodes=map;
     doorState.rootId=indexData.root||'mind-atlas';
     doorState.ready=true;
     doorState.contentCache={};
     doorState.selectedId=null;
-    buildDoorRelationships();
-    doorState.expanded=new Set([doorState.rootId]);
     buildDoorTree();
     if(Object.keys(map).length){
       selectDoorNode(doorState.rootId);
@@ -1586,48 +2277,6 @@ async function fetchDoorJson(path){
   }
 }
 
-function normalizeDoorPath(path){
-  if(!path) return '';
-  let clean=String(path).trim();
-  clean=clean.replace(/^door:/i,'').replace(/^node:/i,'');
-  clean=clean.replace(/\\/g,'/');
-  clean=clean.replace(/^\.\//,'');
-  clean=clean.replace(/^DATA\/door\/content\//i,'');
-  return clean.toLowerCase();
-}
-
-function getDoorContentKeys(path){
-  const keys=new Set();
-  const normalized=normalizeDoorPath(path);
-  if(!normalized) return keys;
-  keys.add(normalized);
-  const segments=normalized.split('/');
-  const file=segments.pop();
-  if(file){
-    keys.add(file);
-    const noExt=file.replace(/\.[^.]+$/,'');
-    if(noExt) keys.add(noExt);
-  }
-  return keys;
-}
-
-function buildDoorRelationships(){
-  const parentMap={};
-  const contentIndex={};
-  Object.values(doorState.nodes).forEach(node=>{
-    if(!node) return;
-    (node.children||[]).forEach(child=>{
-      if(child && doorState.nodes[child]) parentMap[child]=node.id;
-    });
-    if(node.contentPath){
-      const keys=getDoorContentKeys(node.contentPath);
-      keys.forEach(key=>{ if(key && !contentIndex[key]) contentIndex[key]=node.id; });
-    }
-  });
-  doorState.parentMap=parentMap;
-  doorState.contentIndex=contentIndex;
-}
-
 async function loadDoorContent(node){
   if(!node || !node.contentPath) return '';
   if(doorState.contentCache[node.id]) return doorState.contentCache[node.id];
@@ -1652,114 +2301,46 @@ function buildDoorTree(){
     tree.innerHTML='<div class="p-4 text-sm text-gray-500">Root node missing.</div>';
     return;
   }
-  const list=document.createElement('ul');
-  list.className='door-tree space-y-1';
-  const rootEl=createDoorTreeNode(doorState.rootId, new Set());
-  if(rootEl) list.appendChild(rootEl);
-  tree.appendChild(list);
+  appendDoorNode(doorState.rootId, tree, 0, new Set());
   highlightDoorTreeSelection();
 }
 
-function createDoorTreeNode(id, visited){
-  if(!id || visited.has(id)) return null;
+function appendDoorNode(id, container, depth, visited){
+  if(!id || visited.has(id)) return;
   const node=doorState.nodes[id];
-  if(!node) return null;
-  const nextVisited=new Set(visited);
-  nextVisited.add(id);
-  const children=(node.children||[]).filter(child=>child && child!==id && doorState.nodes[child]);
-  const li=document.createElement('li');
-  li.dataset.node=id;
-  const row=document.createElement('div');
-  row.className='door-node-row';
-  const caretSvg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 transition-transform"><path d="M7 5l6 5-6 5V5z"/></svg>';
-  if(children.length){
-    const toggle=document.createElement('button');
-    toggle.type='button';
-    toggle.className='door-toggle';
-    toggle.innerHTML=caretSvg;
-    const expanded=doorState.expanded.has(id);
-    if(expanded) toggle.classList.add('open');
-    toggle.setAttribute('aria-expanded',expanded?'true':'false');
-    toggle.addEventListener('click',e=>{
-      e.stopPropagation();
-      if(doorState.expanded.has(id)) doorState.expanded.delete(id);
-      else doorState.expanded.add(id);
-      highlightDoorTreeSelection();
-    });
-    row.appendChild(toggle);
-  }else{
-    const spacer=document.createElement('span');
-    spacer.className='door-toggle opacity-0 pointer-events-none';
-    spacer.innerHTML=caretSvg;
-    row.appendChild(spacer);
-  }
+  if(!node) return;
+  const entry=document.createElement('div');
+  entry.className='door-node-entry';
+  entry.style.paddingLeft=`${depth*16}px`;
   const btn=document.createElement('button');
   btn.type='button';
   btn.dataset.node=id;
-  btn.className='door-select';
+  btn.className='w-full text-left px-2 py-1 rounded text-sm text-gray-700 hover:bg-blue-50';
   btn.textContent=node.title || id;
-  btn.addEventListener('click',e=>{ e.stopPropagation(); selectDoorNode(id); });
-  row.appendChild(btn);
-  li.appendChild(row);
-  if(children.length){
-    const childList=document.createElement('ul');
-    childList.className='door-children door-tree space-y-1';
-    if(!doorState.expanded.has(id)) childList.classList.add('hidden');
-    children.forEach(child=>{
-      const childEl=createDoorTreeNode(child, nextVisited);
-      if(childEl) childList.appendChild(childEl);
-    });
-    if(childList.children.length) li.appendChild(childList);
-  }
-  return li;
-}
-
-function expandDoorAncestors(id){
-  let current=id;
-  const guard=new Set();
-  while(current && !guard.has(current)){
-    guard.add(current);
-    if(current) doorState.expanded.add(current);
-    current=doorState.parentMap[current];
-  }
+  btn.onclick=()=>selectDoorNode(id);
+  entry.appendChild(btn);
+  container.appendChild(entry);
+  const nextVisited=new Set(visited);
+  nextVisited.add(id);
+  (node.children||[]).forEach(child=>{
+    if(child && child!==id) appendDoorNode(child, container, depth+1, new Set(nextVisited));
+  });
 }
 
 function highlightDoorTreeSelection(){
   const tree=document.getElementById('doorTree');
   if(!tree) return;
-  if(doorState.selectedId) expandDoorAncestors(doorState.selectedId);
-  tree.querySelectorAll('.door-select').forEach(btn=>{
+  tree.querySelectorAll('button[data-node]').forEach(btn=>{
     if(btn.dataset.node===doorState.selectedId) btn.classList.add('active');
     else btn.classList.remove('active');
   });
-  tree.querySelectorAll('li[data-node]').forEach(li=>{
-    const id=li.dataset.node;
-    const expanded=doorState.expanded.has(id);
-    const toggle=li.querySelector(':scope > .door-node-row .door-toggle');
-    const childList=li.querySelector(':scope > ul');
-    if(toggle){
-      toggle.classList.toggle('open',expanded);
-      toggle.setAttribute('aria-expanded',expanded?'true':'false');
-    }
-    if(childList){
-      childList.classList.toggle('hidden',!expanded);
-    }
-  });
-  const active=tree.querySelector('.door-select.active');
-  if(active) active.scrollIntoView({block:'nearest'});
 }
 
 async function selectDoorNode(id){
   if(!doorState.ready) return;
-  if(doorSaveBtn && !doorSaveBtn.disabled && doorState.selectedId && doorState.selectedId!==id){
-    const discard=confirm('You have unsaved changes. Discard them?');
-    if(!discard) return;
-  }
   const node=doorState.nodes[id];
   if(!node) return;
   doorState.selectedId=id;
-  doorState.editorOriginal='';
-  setDoorDirty(false);
   highlightDoorTreeSelection();
   const title=document.getElementById('doorTitle');
   const meta=document.getElementById('doorMeta');
@@ -1771,33 +2352,17 @@ async function selectDoorNode(id){
     if(node.branch) tags.push(node.branch);
     if(node.kind) tags.push(node.kind==='dir'?'Branch':'Entry');
     if(node.missing) tags.push('Stub');
+    if(node.contentPath) tags.push(node.contentPath);
     meta.textContent=tags.join(' · ');
   }
-  if(doorContentPath) doorContentPath.textContent=node.contentPath || '';
-  const hasContent=!!node.contentPath;
-  setDoorEditorAvailability(hasContent);
-  if(hasContent && doorEditor && !doorEditor.disabled) doorEditor.value='';
   if(status) status.textContent=`Loading ${node.title || id}…`;
   try{
     const content=await loadDoorContent(node);
-    if(doorState.selectedId!==id) return;
-    doorState.editorOriginal=content;
-    setDoorDirty(false);
-    if(doorEditor && !doorEditor.disabled) doorEditor.value=content;
-    if(contentEl){
-      contentEl.innerHTML=renderDoorMarkdown(content);
-      attachDoorContentLinks();
-    }
+    if(contentEl) contentEl.innerHTML=renderDoorMarkdown(content);
   }catch(err){
-    if(doorState.selectedId===id){
-      if(contentEl) contentEl.innerHTML=`<p class="text-sm text-red-600">${escapeHtml(err.message)}</p>`;
-      if(doorEditor) doorEditor.value='';
-      doorState.editorOriginal='';
-      setDoorDirty(false);
-      setDoorEditorAvailability(false);
-    }
+    if(contentEl) contentEl.innerHTML=`<p class="text-sm text-red-600">${escapeHtml(err.message)}</p>`;
   }finally{
-    if(status && doorState.selectedId===id) status.textContent='';
+    if(status) status.textContent='';
   }
   renderDoorTeleports(node);
 }
@@ -1917,124 +2482,6 @@ function renderDoorTeleports(node){
     ul.appendChild(li);
   });
   wrap.appendChild(ul);
-}
-
-function setDoorView(mode){
-  let target=mode==='edit' ? 'edit' : 'preview';
-  if(target==='edit' && doorTabEdit && doorTabEdit.disabled) target='preview';
-  doorState.view=target;
-  if(doorTabPreview){
-    if(target==='preview'){
-      doorTabPreview.classList.add('bg-gray-200','text-gray-700');
-      doorTabPreview.classList.remove('text-gray-600');
-    }else{
-      doorTabPreview.classList.remove('bg-gray-200','text-gray-700');
-      doorTabPreview.classList.add('text-gray-600');
-    }
-  }
-  if(doorTabEdit){
-    if(target==='edit'){
-      doorTabEdit.classList.add('bg-gray-200','text-gray-700');
-      doorTabEdit.classList.remove('text-gray-600');
-    }else{
-      doorTabEdit.classList.remove('bg-gray-200','text-gray-700');
-      doorTabEdit.classList.add('text-gray-600');
-    }
-  }
-  if(doorContentWrap) doorContentWrap.classList.toggle('hidden',target==='edit');
-  if(doorEditorWrap) doorEditorWrap.classList.toggle('hidden',target!=='edit');
-  if(target==='preview' && doorEditor && !doorEditor.disabled && doorEditor.value!==doorState.editorOriginal){
-    const contentEl=document.getElementById('doorContent');
-    if(contentEl){
-      contentEl.innerHTML=renderDoorMarkdown(doorEditor.value);
-      attachDoorContentLinks();
-    }
-  }
-}
-
-function setDoorEditorAvailability(enabled){
-  if(doorTabEdit){
-    doorTabEdit.disabled=!enabled;
-    doorTabEdit.classList.toggle('opacity-50',!enabled);
-    doorTabEdit.classList.toggle('cursor-not-allowed',!enabled);
-  }
-  if(doorEditor) doorEditor.disabled=!enabled;
-  if(!enabled) setDoorView('preview');
-}
-
-function setDoorDirty(dirty){
-  if(doorSaveBtn) doorSaveBtn.disabled=!dirty;
-}
-
-function attachDoorContentLinks(){
-  const wrap=document.getElementById('doorContent');
-  if(!wrap) return;
-  wrap.querySelectorAll('a').forEach(a=>{
-    if(!a.dataset.doorHref) a.dataset.doorHref=a.getAttribute('href')||'';
-  });
-  if(attachDoorContentLinks.bound) return;
-  attachDoorContentLinks.bound=true;
-  wrap.addEventListener('click',e=>{
-    const anchor=e.target.closest('a');
-    if(!anchor || !wrap.contains(anchor)) return;
-    const href=anchor.dataset.doorHref || anchor.getAttribute('href') || '';
-    if(!href) return;
-    if(/^mailto:/i.test(href)) return;
-    if(href.startsWith('#')) return;
-    e.preventDefault();
-    if(/^https?:\/\//i.test(href)){ window.open(href,'_blank','noopener'); return; }
-    const raw=href.replace(/^door:/i,'').replace(/^node:/i,'');
-    if(doorState.nodes[raw]){ selectDoorNode(raw); return; }
-    const normalized=normalizeDoorPath(href);
-    if(doorState.nodes[normalized]){ selectDoorNode(normalized); return; }
-    const rawLower=typeof raw==='string'?raw.toLowerCase():raw;
-    const mapped=doorState.contentIndex[normalized] || doorState.contentIndex[rawLower];
-    if(mapped){ selectDoorNode(mapped); return; }
-    exitDoorMode();
-    if(href.endsWith('/')) openDir(href.replace(/\/$/,''));
-    else openFile(href, href.split('/').pop()||href,0,0);
-  });
-  new MutationObserver(muts=>{
-    muts.forEach(m=>{
-      m.addedNodes.forEach(node=>{
-        if(node.nodeType===1){
-          const el=node;
-          if(el.tagName==='A' && !el.dataset.doorHref) el.dataset.doorHref=el.getAttribute('href')||'';
-          el.querySelectorAll && el.querySelectorAll('a').forEach(a=>{ if(!a.dataset.doorHref) a.dataset.doorHref=a.getAttribute('href')||''; });
-        }
-      });
-    });
-  }).observe(wrap,{childList:true,subtree:true});
-}
-
-async function saveDoorContent(){
-  if(!doorState.selectedId) return;
-  const node=doorState.nodes[doorState.selectedId];
-  if(!node || !node.contentPath) return;
-  if(!doorEditor) return;
-  const content=doorEditor.value;
-  const status=document.getElementById('doorStatus');
-  if(status) status.textContent='Saving…';
-  try{
-    const res=await fetch(`?api=write&`+new URLSearchParams({path:node.contentPath}),{
-      method:'POST',
-      headers:{'X-CSRF':CSRF,'Content-Type':'application/json'},
-      body:JSON.stringify({content})
-    });
-    const data=await res.json();
-    if(!res.ok || !data.ok) throw new Error(data.error || 'Save failed');
-    doorState.contentCache[node.id]=content;
-    doorState.editorOriginal=content;
-    setDoorDirty(false);
-    const contentEl=document.getElementById('doorContent');
-    if(contentEl){
-      contentEl.innerHTML=renderDoorMarkdown(content);
-      attachDoorContentLinks();
-    }
-    if(status) status.textContent='Saved.';
-  }catch(err){
-    if(status) status.textContent='Save failed: '+err.message;
-  }
 }
 
 async function rebuildDoorSeeds(){
