@@ -295,6 +295,87 @@ function door_flatten_nodes($items,&$out){
   }
 }
 
+function door_ci_contains($haystack,$needle){
+  $needle=(string)$needle;
+  if($needle==='') return true;
+  $haystack=(string)$haystack;
+  if(function_exists('mb_stripos')) return mb_stripos($haystack,$needle,0,'UTF-8')!==false;
+  return stripos($haystack,$needle)!==false;
+}
+
+function door_search_results($query,$nodeLimit=8,$fileLimit=8){
+  $query=trim((string)$query);
+  $nodeLimit=max(0,(int)$nodeLimit);
+  $fileLimit=max(0,(int)$fileLimit);
+  $results=['nodes'=>[],'files'=>[]];
+  if($query==='') return $results;
+
+  [$doc,$rootKey]=door_load_doc();
+  $root=&door_root_ref($doc,$rootKey);
+  $flat=[];
+  door_flatten_nodes($root,$flat);
+  foreach($flat as $entry){
+    if(count($results['nodes'])>=$nodeLimit && $nodeLimit>0) break;
+    $id=$entry['id'] ?? '';
+    $title=$entry['title'] ?? '';
+    if(door_ci_contains($title,$query) || door_ci_contains($id,$query)){
+      $results['nodes'][]=['id'=>$id,'title'=>$title];
+    }
+  }
+
+  if($fileLimit>0){
+    $results['files']=door_search_files($query,$fileLimit);
+  }
+
+  return $results;
+}
+
+function door_search_files($query,$limit){
+  global $ROOT;
+  $out=[];
+  if(!$ROOT || !is_dir($ROOT)) return $out;
+  $limit=max(0,(int)$limit);
+  if($limit===0) return $out;
+  $root=rtrim(str_replace('\\','/',$ROOT),'/');
+  $flags=FilesystemIterator::SKIP_DOTS;
+  try{
+    $dir=new RecursiveDirectoryIterator($ROOT,$flags);
+  }catch(Exception $e){
+    return $out;
+  }
+  $skip=['.git','node_modules','vendor','tmp','cache','.cache','logs','dist','build'];
+  $filter=new RecursiveCallbackFilterIterator($dir,function($current) use ($skip){
+    $name=$current->getFilename();
+    if($current->isDir()){
+      if($name==='.'||$name==='..') return false;
+      if($name!=='' && $name[0]==='.') return false;
+      if(in_array($name,$skip,true)) return false;
+    }
+    return true;
+  });
+  $it=new RecursiveIteratorIterator($filter);
+  foreach($it as $file){
+    if(count($out)>=$limit) break;
+    if(!$file->isFile()) continue;
+    $name=$file->getFilename();
+    if(!door_ci_contains($name,$query)) continue;
+    $abs=str_replace('\\','/',$file->getPathname());
+    if(strpos($abs,$root)===0) $rel=ltrim(substr($abs,strlen($root)), '/');
+    else $rel=$name;
+    if($rel==='') continue;
+    $out[]=['path'=>$rel,'name'=>$name];
+  }
+  return $out;
+}
+
+function door_handle_search(){
+  $query=$_GET['q'] ?? '';
+  $nodeLimit=$_GET['node_limit'] ?? 8;
+  $fileLimit=$_GET['file_limit'] ?? 8;
+  $results=door_search_results($query,$nodeLimit,$fileLimit);
+  j(['ok'=>true,'nodes'=>$results['nodes'],'files'=>$results['files']]);
+}
+
 function door_build_breadcrumb($items,$target,$trail=[]){
   foreach($items as $node){
     if(!is_array($node)) continue;
@@ -343,7 +424,7 @@ function door_template($name){
     case 'rail':
       return '<div class="door-rail" id="door-rail" role="navigation" aria-label="Teleport rail"></div>';
     case 'search':
-      return '<form id="door-search" class="door-search" autocomplete="off" role="search"><input type="search" id="door-search-input" placeholder="Search rooms" aria-label="Search rooms"><button type="submit">Go</button></form><ul id="door-search-results" class="door-search-results" role="listbox"></ul>';
+      return '<div class="door-search-panel"><form id="door-search" class="door-search" autocomplete="off" role="search"><input type="search" id="door-search-input" placeholder="Search rooms & files" aria-label="Search rooms and files"><button type="submit">Search</button></form><div id="door-search-quick" class="door-search-quick" aria-live="polite"></div></div>';
   }
   return null;
 }
@@ -594,12 +675,13 @@ function door_handle_mode($title){
       header('Content-Type: text/plain; charset=utf-8');
       echo 'Template not found';
       exit;
-    }
-    header('Content-Type: text/html; charset=utf-8');
-    echo $tpl;
-    exit;
   }
+  header('Content-Type: text/html; charset=utf-8');
+  echo $tpl;
+  exit;
+}
   if($route==='data') door_handle_data();
+  elseif($route==='search') door_handle_search();
   elseif($route==='create' && $method==='POST') door_handle_create();
   elseif($route==='update' && $method==='POST') door_handle_update();
   elseif($route==='delete' && $method==='POST') door_handle_delete();
@@ -658,6 +740,11 @@ function opml_save_dom($dom,$abs){
 }
 
 /* ===== API ===== */
+if(isset($_GET['action']) && $_GET['action']==='search'){
+  if(!$authed) bad('Unauthorized',401);
+  if(!$ROOT || !is_dir($ROOT)) bad('Invalid ROOT (set near top of file).',500);
+  door_handle_search();
+}
 if (isset($_GET['api'])) {
   if (!$authed) bad('Unauthorized',401);
   if (!$ROOT || !is_dir($ROOT)) bad('Invalid ROOT (set near top of file).',500);
@@ -666,6 +753,8 @@ if (isset($_GET['api'])) {
   if ($method==='POST') { $hdr = $_SERVER['HTTP_X_CSRF'] ?? ''; if ($hdr !== ($_SESSION['csrf'] ?? '')) bad('CSRF',403); }
 
   if ($action==='whereami') j(['ok'=>true,'root'=>$ROOT]);
+
+  if ($action==='search') door_handle_search();
 
   if ($action==='get_file') {
     if (!is_file($abs)) bad('Not a file');

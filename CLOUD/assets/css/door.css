@@ -97,6 +97,17 @@ header a:hover {
   font-size: 2rem;
 }
 
+.door-tile.door-search {
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  color: #0f172a;
+}
+
+.door-tile.door-search span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .door-breadcrumb {
   display: flex;
   flex-wrap: wrap;
@@ -149,6 +160,16 @@ header a:hover {
   outline-offset: 2px;
 }
 
+.door-search-panel {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.door-search-panel.active {
+  display: flex;
+}
+
 .door-search {
   display: flex;
   gap: 0.5rem;
@@ -175,25 +196,65 @@ header a:hover {
   cursor: pointer;
 }
 
-.door-search-results {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  max-height: 200px;
-  overflow: auto;
+.door-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.75);
+  color: #f8fafc;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+  touch-action: manipulation;
 }
 
-.door-search-results li button {
-  width: 100%;
-  text-align: left;
-  background: rgba(15, 23, 42, 0.75);
-  color: #e2e8f0;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  border-radius: 0.75rem;
-  padding: 0.5rem 0.75rem;
+.door-chip:hover,
+.door-chip:focus {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(56, 189, 248, 0.15);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.door-chip-file {
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #fca5a5;
+}
+
+.door-search-quick {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.door-search-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.door-search-heading {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.door-search-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.door-search-empty {
+  font-size: 0.85rem;
+  color: rgba(148, 163, 184, 0.8);
 }
 
 .door-status {
