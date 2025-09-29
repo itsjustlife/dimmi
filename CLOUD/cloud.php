@@ -1864,7 +1864,7 @@ let currentDir='', currentFile='', currentOutlinePath='', currentFileInfo=null;
 let clipboardPath='';
 const state={doc:null};
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null, currentJsonRootKey=null;
-const doorState={active:false,ready:false,loading:false,nodes:{},rootId:null,selectedId:null,contentCache:{}};
+const doorState={active:false,ready:false,loading:false,nodes:{},rootId:null,selectedId:null,contentCache:{},expanded:new Set()};
 function updateMeta(){
   const node = selectedId!==null ? findJsonNode(currentJsonRoot, selectedId) : null;
   const title = node ? getNodeTitle(node) : '';
@@ -2244,6 +2244,7 @@ async function loadDoorDataset(force=false){
     doorState.ready=true;
     doorState.contentCache={};
     doorState.selectedId=null;
+    doorState.expanded=new Set([doorState.rootId]);
     buildDoorTree();
     if(Object.keys(map).length){
       selectDoorNode(doorState.rootId);
@@ -2258,6 +2259,7 @@ async function loadDoorDataset(force=false){
   }catch(err){
     console.error(err);
     doorState.ready=false;
+    doorState.expanded=new Set();
     renderDoorPlaceholder('Unable to load door dataset. Run “Rebuild Seeds”.');
     if(status) status.textContent='Load failed: '+err.message;
   }finally{
@@ -2301,30 +2303,70 @@ function buildDoorTree(){
     tree.innerHTML='<div class="p-4 text-sm text-gray-500">Root node missing.</div>';
     return;
   }
-  appendDoorNode(doorState.rootId, tree, 0, new Set());
+  if(!(doorState.expanded instanceof Set)) doorState.expanded=new Set();
+  doorState.expanded.add(doorState.rootId);
+  appendDoorNode(doorState.rootId, tree, 0, new Set(), doorState.expanded);
   highlightDoorTreeSelection();
 }
 
-function appendDoorNode(id, container, depth, visited){
+function appendDoorNode(id, container, depth, visited, expanded){
   if(!id || visited.has(id)) return;
   const node=doorState.nodes[id];
   if(!node) return;
-  const entry=document.createElement('div');
-  entry.className='door-node-entry';
-  entry.style.paddingLeft=`${depth*16}px`;
+  const hasChildren=Array.isArray(node.children) && node.children.length>0;
+  const row=document.createElement('div');
+  row.className='door-node-entry';
+  const header=document.createElement('div');
+  header.className='flex items-center gap-1';
+  header.style.paddingLeft=`${depth*16}px`;
+  let childWrap=null;
+  if(hasChildren){
+    if(!(expanded instanceof Set)) expanded=new Set();
+    const caret=document.createElement('button');
+    caret.type='button';
+    caret.className='caret text-lg w-5 text-gray-500';
+    const isExpanded=expanded.has(id);
+    caret.textContent=isExpanded?'▾':'▸';
+    caret.setAttribute('aria-label','Toggle children');
+    caret.setAttribute('aria-expanded',isExpanded?'true':'false');
+    caret.addEventListener('click',ev=>{
+      ev.stopPropagation();
+      const open=expanded.has(id);
+      if(open) expanded.delete(id); else expanded.add(id);
+      const nowOpen=!open;
+      caret.textContent=nowOpen?'▾':'▸';
+      caret.setAttribute('aria-expanded',nowOpen?'true':'false');
+      if(childWrap) childWrap.classList.toggle('hidden',!nowOpen);
+      highlightDoorTreeSelection();
+    });
+    header.appendChild(caret);
+  }else{
+    const spacer=document.createElement('span');
+    spacer.className='w-5 text-center text-gray-300';
+    spacer.textContent='•';
+    header.appendChild(spacer);
+  }
   const btn=document.createElement('button');
   btn.type='button';
   btn.dataset.node=id;
-  btn.className='w-full text-left px-2 py-1 rounded text-sm text-gray-700 hover:bg-blue-50';
+  btn.className='flex-1 text-left px-2 py-1 rounded text-sm text-gray-700 hover:bg-blue-50';
   btn.textContent=node.title || id;
-  btn.onclick=()=>selectDoorNode(id);
-  entry.appendChild(btn);
-  container.appendChild(entry);
+  btn.addEventListener('click',()=>selectDoorNode(id));
+  header.appendChild(btn);
+  row.appendChild(header);
+  container.appendChild(row);
   const nextVisited=new Set(visited);
   nextVisited.add(id);
-  (node.children||[]).forEach(child=>{
-    if(child && child!==id) appendDoorNode(child, container, depth+1, new Set(nextVisited));
-  });
+  if(hasChildren){
+    childWrap=document.createElement('div');
+    childWrap.className='door-node-children space-y-1';
+    const showChildren=expanded.has(id);
+    if(!showChildren) childWrap.classList.add('hidden');
+    (node.children||[]).forEach(child=>{
+      if(child && child!==id && !nextVisited.has(child)) appendDoorNode(child, childWrap, depth+1, nextVisited, expanded);
+    });
+    row.appendChild(childWrap);
+  }
 }
 
 function highlightDoorTreeSelection(){
@@ -2500,6 +2542,7 @@ async function rebuildDoorSeeds(){
     doorState.ready=false;
     doorState.nodes={};
     doorState.contentCache={};
+    doorState.expanded=new Set();
     if(status) status.textContent=(data.stdout||'Seeds rebuilt.').trim();
     await loadDoorDataset(true);
   }catch(err){
