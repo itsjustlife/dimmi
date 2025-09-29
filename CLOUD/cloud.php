@@ -517,7 +517,9 @@ function door_render_shell($title){
     .door-breadcrumb button{background:none;border:none;color:#38bdf8;font-weight:600;cursor:pointer;padding:0.25rem 0.6rem;border-radius:0.5rem;}
     .door-breadcrumb button:hover,.door-breadcrumb button:focus{background:rgba(56,189,248,0.15);outline:none;}
     .door-rail{display:flex;gap:0.5rem;flex-wrap:wrap;}
-    .door-rail button{background:rgba(56,189,248,0.15);border:none;color:#38bdf8;padding:0.5rem 0.75rem;border-radius:999px;font-size:0.9rem;touch-action:manipulation;}
+    .door-shell .door-node-link{background:none;border:none;color:#38bdf8;font-weight:600;cursor:pointer;padding:0.25rem 0.5rem;border-radius:0.4rem;font-size:0.9rem;text-align:left;touch-action:manipulation;}
+    .door-shell .door-node-link:hover{text-decoration:underline;}
+    .door-shell .door-node-link:focus{outline:2px solid rgba(56,189,248,0.45);outline-offset:2px;}
     .door-search{display:flex;gap:0.5rem;flex-wrap:wrap;}
     .door-search input{flex:1;min-width:200px;padding:0.6rem 0.8rem;border-radius:0.75rem;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.8);color:#f8fafc;}
     .door-search button{padding:0.6rem 1rem;border-radius:0.75rem;border:none;background:#38bdf8;color:#0f172a;font-weight:600;cursor:pointer;}
@@ -536,8 +538,9 @@ function door_render_shell($title){
     .door-delete{background:rgba(248,113,113,0.2);color:#f87171;}
     .door-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0.5rem;}
     .door-links li{display:flex;align-items:center;gap:0.5rem;background:rgba(15,23,42,0.75);border-radius:0.75rem;padding:0.5rem 0.75rem;border:1px solid rgba(148,163,184,0.2);}
-    .door-links li button{background:rgba(56,189,248,0.15);border:none;color:#38bdf8;padding:0.4rem 0.75rem;border-radius:0.75rem;}
-    .door-link-remove{background:rgba(248,113,113,0.2) !important;color:#f87171 !important;}
+    .door-link-remove{background:rgba(248,113,113,0.2);color:#f87171;border:none;padding:0.4rem 0.75rem;border-radius:0.75rem;cursor:pointer;font-weight:600;touch-action:manipulation;}
+    .door-link-remove:hover{background:rgba(248,113,113,0.3);}
+    .door-link-remove:focus{outline:2px solid rgba(248,113,113,0.4);outline-offset:2px;}
     .door-link-form{display:flex;flex-wrap:wrap;gap:0.5rem;}
     .door-link-form input{flex:1 1 140px;padding:0.5rem 0.75rem;border-radius:0.75rem;border:1px solid rgba(148,163,184,0.3);background:rgba(15,23,42,0.85);color:#f8fafc;}
     .door-link-form button{padding:0.6rem 1rem;border-radius:0.75rem;border:none;background:rgba(56,189,248,0.2);color:#38bdf8;font-weight:600;cursor:pointer;}
@@ -641,6 +644,7 @@ function door_render_shell($title){
       const go=document.createElement('button');
       go.type='button';
       go.textContent=link.title || link.target;
+      go.className='door-node-link';
       go.addEventListener('click',()=>loadRoom(link.target));
       li.appendChild(go);
       const meta=document.createElement('span');
@@ -741,6 +745,7 @@ function door_render_shell($title){
       const btn=document.createElement('button');
       btn.type='button';
       btn.textContent=link.title || link.target;
+      btn.className='door-node-link';
       btn.addEventListener('click',()=>loadRoom(link.target));
       wrap.appendChild(btn);
     });
