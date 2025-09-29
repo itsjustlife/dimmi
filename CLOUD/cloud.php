@@ -528,57 +528,7 @@ function door_render_shell($title){
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{$safeTitle}</title>
-  <style>
-    body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;display:flex;flex-direction:column;}
-    header{padding:1rem;display:flex;flex-wrap:wrap;align-items:center;gap:1rem;background:#1e293b;box-shadow:0 2px 8px rgba(0,0,0,0.4);}
-    header h1{font-size:1.5rem;margin:0;flex:1;letter-spacing:0.08em;text-transform:uppercase;color:#38bdf8;}
-    header a{color:#38bdf8;text-decoration:none;font-weight:600;}
-    header a:hover{text-decoration:underline;}
-    .door-shell{flex:1;display:flex;flex-direction:column;gap:1rem;padding:1rem;}
-    .door-panel{background:rgba(15,23,42,0.65);border-radius:1rem;padding:1rem;border:1px solid rgba(148,163,184,0.2);backdrop-filter:blur(8px);box-shadow:0 12px 24px rgba(15,23,42,0.5);}
-    .door-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1rem;width:100%;}
-    .door-tile{aspect-ratio:1/1;background:linear-gradient(135deg,#334155,#1e293b);border:2px solid transparent;border-radius:1rem;color:#f8fafc;font-size:1.125rem;font-weight:600;display:flex;align-items:center;justify-content:center;text-align:center;padding:0.5rem;box-shadow:0 8px 16px rgba(15,23,42,0.45);transition:transform 0.2s,border-color 0.2s,box-shadow 0.2s;touch-action:manipulation;}
-    .door-tile:focus,.door-tile:hover{transform:translateY(-4px);border-color:#38bdf8;box-shadow:0 12px 20px rgba(56,189,248,0.35);outline:none;}
-    .door-tile.door-add{background:rgba(56,189,248,0.15);color:#38bdf8;font-size:2rem;}
-    .door-breadcrumb{display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;font-size:0.95rem;}
-    .door-breadcrumb button{background:none;border:none;color:#38bdf8;font-weight:600;cursor:pointer;padding:0.25rem 0.6rem;border-radius:0.5rem;}
-    .door-breadcrumb button:hover,.door-breadcrumb button:focus{background:rgba(56,189,248,0.15);outline:none;}
-    .door-rail{display:flex;gap:0.5rem;flex-wrap:wrap;}
-    .door-shell .door-node-link{background:none;border:none;color:#38bdf8;font-weight:600;cursor:pointer;padding:0.25rem 0.5rem;border-radius:0.4rem;font-size:0.9rem;text-align:left;touch-action:manipulation;}
-    .door-shell .door-node-link:hover{text-decoration:underline;}
-    .door-shell .door-node-link:focus{outline:2px solid rgba(56,189,248,0.45);outline-offset:2px;}
-    .door-search{display:flex;gap:0.5rem;flex-wrap:wrap;}
-    .door-search input{flex:1;min-width:200px;padding:0.6rem 0.8rem;border-radius:0.75rem;border:1px solid rgba(148,163,184,0.4);background:rgba(15,23,42,0.8);color:#f8fafc;}
-    .door-search button{padding:0.6rem 1rem;border-radius:0.75rem;border:none;background:#38bdf8;color:#0f172a;font-weight:600;cursor:pointer;}
-    .door-search-results{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0.25rem;max-height:200px;overflow:auto;}
-    .door-search-results li button{width:100%;text-align:left;background:rgba(15,23,42,0.75);color:#e2e8f0;border:1px solid rgba(148,163,184,0.25);border-radius:0.75rem;padding:0.5rem 0.75rem;}
-    .door-status{min-height:1.5rem;font-size:0.9rem;color:#38bdf8;}
-    .door-status.error{color:#f87171;}
-    .door-editor{display:flex;flex-direction:column;gap:0.75rem;}
-    .door-editor label{display:flex;flex-direction:column;gap:0.35rem;font-size:0.85rem;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;}
-    .door-editor input,.door-editor textarea{border-radius:0.75rem;border:1px solid rgba(148,163,184,0.3);background:rgba(15,23,42,0.85);color:#f8fafc;padding:0.6rem 0.75rem;font-size:1rem;}
-    .door-editor textarea{min-height:120px;resize:vertical;}
-    .door-editor-actions{display:flex;flex-wrap:wrap;gap:0.5rem;}
-    .door-editor-actions button{flex:1 1 120px;padding:0.75rem;border-radius:0.75rem;border:none;font-weight:600;cursor:pointer;touch-action:manipulation;}
-    .door-save{background:#38bdf8;color:#0f172a;}
-    .door-new{background:rgba(34,197,94,0.2);color:#4ade80;}
-    .door-delete{background:rgba(248,113,113,0.2);color:#f87171;}
-    .door-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0.5rem;}
-    .door-links li{display:flex;align-items:center;gap:0.5rem;background:rgba(15,23,42,0.75);border-radius:0.75rem;padding:0.5rem 0.75rem;border:1px solid rgba(148,163,184,0.2);}
-    .door-link-remove{background:rgba(248,113,113,0.2);color:#f87171;border:none;padding:0.4rem 0.75rem;border-radius:0.75rem;cursor:pointer;font-weight:600;touch-action:manipulation;}
-    .door-link-remove:hover{background:rgba(248,113,113,0.3);}
-    .door-link-remove:focus{outline:2px solid rgba(248,113,113,0.4);outline-offset:2px;}
-    .door-link-form{display:flex;flex-wrap:wrap;gap:0.5rem;}
-    .door-link-form input{flex:1 1 140px;padding:0.5rem 0.75rem;border-radius:0.75rem;border:1px solid rgba(148,163,184,0.3);background:rgba(15,23,42,0.85);color:#f8fafc;}
-    .door-link-form button{padding:0.6rem 1rem;border-radius:0.75rem;border:none;background:rgba(56,189,248,0.2);color:#38bdf8;font-weight:600;cursor:pointer;}
-    .door-layout{display:flex;flex-direction:column;gap:1rem;}
-    .door-grid-wrap{flex:2;}
-    .door-editor-panel{flex:1;}
-    @media (min-width:960px){
-      .door-layout{flex-direction:row;align-items:flex-start;}
-      .door-editor-panel{position:sticky;top:1rem;}
-    }
-  </style>
+  <link rel="stylesheet" href="assets/css/door.css">
 </head>
 <body>
   <header>
@@ -620,362 +570,19 @@ function door_render_shell($title){
     <div class="door-panel" id="door-search-wrap"></div>
   </main>
   <script>
-  const DOOR_READY = {$readyJs};
-  const DOOR = {
-    base: {$baseJs},
-    csrf: {$csrfJs},
-    url(route, params){
-      const search = new URLSearchParams();
-      search.set('mode','door');
-      if(route) search.set('door', route);
-      if(params){
-        Object.entries(params).forEach(([key,val])=>{
-          if(val === undefined || val === null) return;
-          search.set(key, val);
-        });
-      }
-      const qs = search.toString();
-      return this.base + (qs ? '?' + qs : '');
-    }
-  };
-  const state = { currentId:null, breadcrumb:[], links:[], index:[] };
-  const statusEl = document.getElementById('door-status');
-  const titleInput = document.getElementById('door-room-title');
-  const noteInput = document.getElementById('door-room-note');
-  const saveBtn = document.getElementById('door-save');
-  const addChildBtn = document.getElementById('door-add-child');
-  const deleteBtn = document.getElementById('door-delete');
-  const linksList = document.getElementById('door-links-list');
-  const linkForm = document.getElementById('door-link-form');
-  const linkTarget = document.getElementById('door-link-target');
-  const linkLabel = document.getElementById('door-link-label');
-  if(statusEl) statusEl.textContent = {$statusJs};
-
-  function showStatus(msg, isError){
-    if(!statusEl) return;
-    statusEl.textContent = msg || '';
-    statusEl.classList.toggle('error', !!isError);
-  }
-
-  function renderLinks(){
-    linksList.innerHTML='';
-    if(!Array.isArray(state.links) || state.links.length===0){
-      const empty=document.createElement('li');
-      empty.textContent='No teleport links yet.';
-      empty.style.opacity='0.7';
-      linksList.appendChild(empty);
-      return;
-    }
-    state.links.forEach((link,index)=>{
-      const li=document.createElement('li');
-      const go=document.createElement('button');
-      go.type='button';
-      go.textContent=link.title || link.target;
-      go.className='door-node-link';
-      go.addEventListener('click',()=>loadRoom(link.target));
-      li.appendChild(go);
-      const meta=document.createElement('span');
-      meta.style.flex='1';
-      meta.style.fontSize='0.85rem';
-      meta.style.color='#94a3b8';
-      meta.textContent=link.type || '';
-      li.appendChild(meta);
-      const remove=document.createElement('button');
-      remove.type='button';
-      remove.className='door-link-remove';
-      remove.textContent='Remove';
-      remove.addEventListener('click',async()=>{
-        state.links.splice(index,1);
-        renderLinks();
-        try{ await saveCurrent(); }catch(e){ console.error(e); }
-      });
-      li.appendChild(remove);
-      linksList.appendChild(li);
-    });
-  }
-
-  function sanitizeLinks(){
-    if(!Array.isArray(state.links)) return [];
-    return state.links.filter(l=>l && l.target).map(l=>({
-      target:l.target,
-      title:l.title || '',
-      type:l.type || ''
-    }));
-  }
-
-  async function request(route,{method='GET',params=null,body=null}={}){
-    const options={method,headers:{}};
-    let payload=body;
-    if(body && typeof body!=='string'){
-      payload=JSON.stringify(body);
-      options.headers['Content-Type']='application/json';
-    }
-    if(method!=='GET') options.headers['X-CSRF']=DOOR.csrf;
-    if(payload) options.body=payload;
-    const res=await fetch(DOOR.url(route,params),options);
-    const isJson=(res.headers.get('content-type')||'').includes('application/json');
-    if(!isJson){
-      const text=await res.text();
-      throw new Error(text || 'Unexpected response');
-    }
-    const data=await res.json();
-    if(!res.ok || (data && data.ok===false)) throw new Error((data && data.error) || 'Request failed');
-    return data;
-  }
-
-  async function loadTemplate(slotId,name){
-    const slot=document.getElementById(slotId);
-    if(!slot) return;
-    const res=await fetch(DOOR.url('template',{name}));
-    if(!res.ok){
-      slot.textContent='Template load failed';
-      return;
-    }
-    slot.innerHTML=await res.text();
-  }
-
-  function renderBreadcrumb(items){
-    const wrap=document.getElementById('door-breadcrumb');
-    if(!wrap) return;
-    wrap.innerHTML='';
-    (items||[]).forEach((item,index)=>{
-      const btn=document.createElement('button');
-      btn.type='button';
-      btn.textContent=item.title || 'Untitled';
-      if(index===(items.length-1)){
-        btn.disabled=true;
-        btn.style.opacity='0.7';
-      }
-      btn.addEventListener('click',()=>loadRoom(item.id));
-      wrap.appendChild(btn);
-      if(index<items.length-1){
-        const sep=document.createElement('span');
-        sep.textContent='›';
-        sep.style.opacity='0.6';
-        wrap.appendChild(sep);
-      }
-    });
-  }
-
-  function renderRail(links){
-    const wrap=document.getElementById('door-rail');
-    if(!wrap) return;
-    wrap.innerHTML='';
-    if(!Array.isArray(links) || links.length===0){
-      const span=document.createElement('span');
-      span.textContent='No teleport links found.';
-      span.style.opacity='0.7';
-      wrap.appendChild(span);
-      return;
-    }
-    links.forEach(link=>{
-      const btn=document.createElement('button');
-      btn.type='button';
-      btn.textContent=link.title || link.target;
-      btn.className='door-node-link';
-      btn.addEventListener('click',()=>loadRoom(link.target));
-      wrap.appendChild(btn);
-    });
-  }
-
-  function escapeHtml(str){
-    return (str||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]||c));
-  }
-
-  function renderGrid(children){
-    const grid=document.getElementById('door-grid');
-    if(!grid) return;
-    grid.innerHTML='';
-    (children||[]).forEach(child=>{
-      const tile=document.createElement('button');
-      tile.type='button';
-      tile.className='door-tile';
-      tile.innerHTML='<span>'+escapeHtml(child.title || 'Untitled')+'</span>';
-      tile.addEventListener('click',()=>loadRoom(child.id));
-      grid.appendChild(tile);
-    });
-    const add=document.createElement('button');
-    add.type='button';
-    add.className='door-tile door-add';
-    add.textContent='+';
-    add.addEventListener('click',()=>addChildPrompt());
-    grid.appendChild(add);
-  }
-
-  function renderSearchResults(results){
-    const list=document.getElementById('door-search-results');
-    if(!list) return;
-    list.innerHTML='';
-    results.forEach(item=>{
-      const li=document.createElement('li');
-      const btn=document.createElement('button');
-      btn.type='button';
-      btn.textContent=item.title || item.id;
-      btn.addEventListener('click',()=>{
-        loadRoom(item.id);
-        list.innerHTML='';
-      });
-      li.appendChild(btn);
-      list.appendChild(li);
-    });
-  }
-
-  function initSearch(){
-    const form=document.getElementById('door-search');
-    if(!form) return;
-    form.addEventListener('submit',e=>{
-      e.preventDefault();
-      const input=document.getElementById('door-search-input');
-      const query=(input && input.value ? input.value : '').toLowerCase().trim();
-      if(!query){
-        renderSearchResults([]);
-        return;
-      }
-      const results=state.index.filter(item=>{
-        return (item.title||'').toLowerCase().includes(query) || (item.id||'').toLowerCase().includes(query);
-      }).slice(0,20);
-      renderSearchResults(results);
-    });
-  }
-
-  function currentParentId(){
-    if(!Array.isArray(state.breadcrumb) || state.breadcrumb.length<2) return null;
-    return state.breadcrumb[state.breadcrumb.length-2].id || null;
-  }
-
-  async function loadRoom(id){
-    try{
-      showStatus('Loading...',false);
-      const data=await request('data',{params:{id}});
-      if(!data.node && data.rootId && data.rootId!==id){
-        await loadRoom(data.rootId);
-        return;
-      }
-      state.currentId=data.node ? data.node.id : null;
-      state.breadcrumb=data.breadcrumb || [];
-      state.links=(data.links || []).map(link=>({
-        target:link.target,
-        title:link.title || '',
-        type:link.type || ''
-      }));
-      state.index=data.allNodes || [];
-      renderBreadcrumb(state.breadcrumb);
-      renderRail(data.links || []);
-      renderGrid(data.children || []);
-      renderLinks();
-      titleInput.value=data.node ? (data.node.title || '') : '';
-      noteInput.value=data.node ? (data.node.note || '') : '';
-      deleteBtn.disabled=!currentParentId();
-      showStatus('Loaded '+(data.node ? (data.node.title || 'room') : 'room'),false);
-    }catch(err){
-      console.error(err);
-      showStatus(err.message,true);
-    }
-  }
-
-  async function saveCurrent(){
-    if(!state.currentId){
-      showStatus('Select a room before saving.',true);
-      return;
-    }
-    try{
-      showStatus('Saving...',false);
-      await request('update',{method:'POST',body:{
-        id:state.currentId,
-        title:titleInput.value || '',
-        note:noteInput.value || '',
-        links:sanitizeLinks()
-      }});
-      await loadRoom(state.currentId);
-      showStatus('Saved.',false);
-    }catch(err){
-      console.error(err);
-      showStatus(err.message,true);
-    }
-  }
-
-  async function addChildPrompt(){
-    if(!state.currentId){
-      showStatus('Load a room before adding a child.',true);
-      return;
-    }
-    const title=window.prompt('Name for the new room?','New Room');
-    if(title===null) return;
-    try{
-      showStatus('Creating room...',false);
-      await request('create',{method:'POST',body:{
-        parent:state.currentId,
-        title:title,
-        note:''
-      }});
-      await loadRoom(state.currentId);
-      showStatus('Room created.',false);
-    }catch(err){
-      console.error(err);
-      showStatus(err.message,true);
-    }
-  }
-
-  async function deleteCurrent(){
-    if(!state.currentId){
-      showStatus('No room selected.',true);
-      return;
-    }
-    if(!window.confirm('Delete this room and its children?')) return;
-    try{
-      showStatus('Deleting...',false);
-      const data=await request('delete',{method:'POST',body:{id:state.currentId}});
-      const next=data.next || currentParentId();
-      await loadRoom(next || '');
-      showStatus('Room deleted.',false);
-    }catch(err){
-      console.error(err);
-      showStatus(err.message,true);
-    }
-  }
-
-  if(saveBtn) saveBtn.addEventListener('click',saveCurrent);
-  if(addChildBtn) addChildBtn.addEventListener('click',addChildPrompt);
-  if(deleteBtn) deleteBtn.addEventListener('click',deleteCurrent);
-
-  if(linkForm){
-    linkForm.addEventListener('submit',async e=>{
-      e.preventDefault();
-      const target=(linkTarget.value || '').trim();
-      if(!target){
-        showStatus('Enter a target room ID for the link.',true);
-        return;
-      }
-      const label=(linkLabel.value || '').trim();
-      state.links=state.links || [];
-      state.links.push({target:target,title:label});
-      linkTarget.value='';
-      linkLabel.value='';
-      renderLinks();
-      try{ await saveCurrent(); }catch(err){ console.error(err); }
-    });
-  }
-
-  Promise.all([
-    loadTemplate('door-grid-wrap','grid'),
-    loadTemplate('door-crumb-wrap','breadcrumb'),
-    loadTemplate('door-rail-wrap','rail'),
-    loadTemplate('door-search-wrap','search')
-  ]).then(()=>{
-    initSearch();
-    if(DOOR_READY) loadRoom('');
-    else showStatus('Door storage unavailable.',true);
-  }).catch(err=>{
-    console.error(err);
-    showStatus('Failed to initialize DOOR: '+err.message,true);
-  });
+    window.__DOOR_BOOTSTRAP__ = {
+      ready: {$readyJs},
+      status: {$statusJs},
+      base: {$baseJs},
+      csrf: {$csrfJs}
+    };
   </script>
+  <script src="assets/js/cloud-door.js" defer></script>
 </body>
 </html>
 HTML;
   exit;
 }
-
 function door_handle_mode($title){
   $route=$_GET['door'] ?? '';
   $method=strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
@@ -1928,6 +1535,7 @@ if ($doorMode) {
   </div>
   <footer class="text-xs text-gray-500 text-right p-2"><?=$TITLE?></footer>
 
+  <script src="assets/js/cloud-classic.js"></script>
   <script>
 const CSRF = '<?=htmlspecialchars($_SESSION['csrf'] ?? '')?>';
 const api=(act,params)=>fetch(`?api=${act}&`+new URLSearchParams(params||{}));
@@ -2067,13 +1675,8 @@ const downloadBtn=document.getElementById('downloadBtn');
 const infoBtn=document.getElementById('infoBtn');
 const ta=document.getElementById('ta');
 const contentTabs=document.getElementById('contentTabs');
-const opmlPreview=document.getElementById('preview-web');
 const sortBtn=document.getElementById('sort-btn');
 const sortMenu=document.getElementById('sort-menu');
-const previewRaw=document.getElementById('preview-raw');
-const previewWebBtn=document.getElementById('preview-web-btn');
-const previewRawBtn=document.getElementById('preview-raw-btn');
-const previewSave=document.getElementById('preview-save');
 const contentPreview=document.getElementById('content-preview');
 const contentEditor=document.getElementById('content-editor');
 const contentNote=document.getElementById('content-note');
@@ -2085,7 +1688,6 @@ const on=(type,handler)=>bus.addEventListener(type,handler);
 let fileSort={criterion:'name',direction:'asc'};
 let originalRootOrder=[];
 let saveContentTimer=null, saveTitleTimer=null, nodeTitleInput=null;
-let previewMode='web';
 
 function getNodeTitle(node){
   return node.title || (node.metadata&&node.metadata.title) || node.content || node.note || '';
@@ -2215,6 +1817,30 @@ function getAllJsonNodes(){
   })(currentJsonRoot);
   return out;
 }
+
+function refreshPreview(treeOverride=null){
+  if(!window.PreviewService) return;
+  const isJson=currentFile && currentFile.toLowerCase().endsWith('.json');
+  const helpers={
+    findNode:id=>findJsonNode(currentJsonRoot,id),
+    setNodeTitle:(node,val)=>{ setNodeTitle(node,val); node.modified=new Date().toISOString(); },
+    setNodeNote:(node,val)=>{ setNodeNote(node,val); node.modified=new Date().toISOString(); },
+    saveStructure:()=>saveCurrentJsonStructure(),
+    followLink,
+    openDir,
+    openFile
+  };
+  const doc=state.doc || (currentJsonRootKey===null?currentJsonRoot:currentJsonDoc);
+  const nodes=treeOverride || cjsf_to_ark(currentJsonRoot);
+  PreviewService.renderWeb({
+    doc,
+    docTitle: getNodeTitle(doc||{}),
+    nodes,
+    jsonMode: !!isJson,
+    helpers
+  });
+  PreviewService.renderRaw(doc);
+}
 const settingsBtn=document.getElementById('settingsBtn');
 const settingsMenu=document.getElementById('settingsMenu');
 if(settingsBtn && settingsMenu){
@@ -2236,46 +1862,6 @@ if(versionBtn) versionBtn.addEventListener('click',()=>{settingsMenu.classList.a
 if(listBtn && treeBtn){
   listBtn.onclick=()=>hideTree();
   treeBtn.onclick=()=>showTree();
-}
-
-if(previewWebBtn && previewRawBtn){
-  previewWebBtn.addEventListener('click',()=>{
-    previewMode='web';
-    previewWebBtn.classList.add('bg-gray-200');
-    previewRawBtn.classList.remove('bg-gray-200');
-    if(opmlPreview) opmlPreview.classList.remove('hidden');
-    if(previewRaw) previewRaw.classList.add('hidden');
-    if(previewSave) previewSave.classList.add('hidden');
-  });
-  previewRawBtn.addEventListener('click',()=>{
-    previewMode='raw';
-    previewRawBtn.classList.add('bg-gray-200');
-    previewWebBtn.classList.remove('bg-gray-200');
-    if(opmlPreview) opmlPreview.classList.add('hidden');
-    if(previewRaw){ previewRaw.value=JSON.stringify(state.doc,null,2); previewRaw.classList.remove('hidden'); }
-    if(previewSave) previewSave.classList.remove('hidden');
-  });
-}
-if(previewSave){
-  previewSave.addEventListener('click',async()=>{
-    if(previewMode!=='raw') return;
-    try{
-      const parsed=JSON.parse(previewRaw.value);
-      state.doc=parsed;
-      if(Array.isArray(parsed)){
-        currentJsonDoc=null; currentJsonRoot=parsed; currentJsonRootKey=null;
-      }else if(Array.isArray(parsed.root)){
-        currentJsonDoc=parsed; currentJsonRoot=parsed.root; currentJsonRootKey='root';
-      }else if(Array.isArray(parsed.items)){
-        currentJsonDoc=parsed; currentJsonRoot=parsed.items; currentJsonRootKey='items';
-      }else{
-        currentJsonDoc=parsed; currentJsonRoot=[]; currentJsonRootKey='root';
-      }
-      await saveDocument(currentFile, parsed);
-      emit('documentChanged', parsed);
-      previewWebBtn.click();
-    }catch(e){ alert('Invalid JSON'); }
-  });
 }
 
 function escapeHtml(str){
@@ -2709,211 +2295,6 @@ async function rebuildDoorSeeds(){
 async function refreshDoorDataset(){
   await loadDoorDataset(true);
 }
-function renderOpmlPreview(nodes){
-  const jsonMode=currentFile.toLowerCase().endsWith('.json');
-  const usedIds=new Set();
-  function slug(str){
-    const base=(str||'section').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')||'section';
-    let id=base, i=1; while(usedIds.has(id)) id=base+'-'+(i++); usedIds.add(id); return id;
-  }
-function makeTitleEditable(span,id,onEditStart,target){
-    const targetEl=target||span;
-    const startEdit=e=>{
-      if(!jsonMode) return; e.stopPropagation(); e.preventDefault();
-      const input=document.createElement('input');
-      input.type='text'; input.value=span.textContent;
-      span.replaceWith(input); input.focus();
-      const finish=()=>{
-        const val=input.value;
-        span.textContent=val;
-        input.replaceWith(span);
-        const node=findJsonNode(currentJsonRoot,id); if(node){ setNodeTitle(node,val); node.modified=new Date().toISOString(); }
-        saveCurrentJsonStructure();
-      };
-      input.addEventListener('blur',finish);
-      input.addEventListener('keydown',e=>{if(e.key==='Enter'){finish();}});
-      if(onEditStart) onEditStart();
-    };
-    targetEl.addEventListener('dblclick',startEdit);
-    let pressTimer;
-    targetEl.addEventListener('mousedown',e=>{ pressTimer=setTimeout(()=>startEdit(e),500); });
-    targetEl.addEventListener('mouseup',()=>clearTimeout(pressTimer));
-    targetEl.addEventListener('mouseleave',()=>clearTimeout(pressTimer));
-    targetEl.addEventListener('touchstart',e=>{ pressTimer=setTimeout(()=>startEdit(e),500); },{passive:true});
-    targetEl.addEventListener('touchend',()=>clearTimeout(pressTimer));
-    targetEl.addEventListener('touchcancel',()=>clearTimeout(pressTimer));
-  }
-  function makeNoteEditable(div,id,n){
-    div.addEventListener('click',()=>{
-      if(!jsonMode) return;
-      const textarea=document.createElement('textarea');
-      textarea.value=n.note||'';
-      textarea.className='w-full border rounded p-1 text-sm';
-      div.replaceWith(textarea);
-      textarea.focus();
-      const finish=()=>{
-        const val=textarea.value;
-        const node=findJsonNode(currentJsonRoot,id); if(node){ setNodeNote(node,val); node.modified=new Date().toISOString(); }
-        n.note=val;
-        const newDiv=document.createElement('div');
-        newDiv.className=div.className;
-        newDiv.innerHTML=mdLinks(escapeHtml(val).replace(/\n/g,'<br>'));
-        makeNoteEditable(newDiv,id,n);
-        textarea.replaceWith(newDiv);
-        attachPreviewLinks();
-        saveCurrentJsonStructure();
-      };
-      textarea.addEventListener('blur',finish);
-    });
-  }
-    function walk(arr,level){
-      const ul=document.createElement('ul');
-      ul.className='list-none space-y-2'+(level?' ml-4 pl-4 border-l border-gray-300':'');
-      arr.forEach((n,i)=>{
-        const li=document.createElement('li');
-        li.className='mt-2';
-        if(level===0){ li.id=n._id || (n._id=slug(n.t)); }
-        let clickCount=0;
-        const title=document.createElement('button');
-        title.type='button';
-        title.className='inline-flex items-center border rounded px-2 py-1 bg-gray-100 hover:bg-gray-200';
-        const titleSpan=document.createElement('span');
-        titleSpan.textContent=n.t||'';
-        if(level===0) titleSpan.className='font-bold text-lg';
-        else if(level===1) titleSpan.className='font-semibold';
-        if(jsonMode) makeTitleEditable(titleSpan,n.id,()=>{clickCount=0;},title);
-        if(n.children && n.children.length){
-          li.className='mt-2 border border-gray-300 rounded p-2';
-          const caret=document.createElement('span');
-          caret.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-4 h-4 text-gray-500 transform transition-transform"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>';
-          caret.className='mr-1';
-          title.append(caret,titleSpan);
-          const childUl=walk(n.children,level+1);
-          childUl.style.display='none';
-          const toggle=()=>{
-            const open=childUl.style.display==='none';
-            childUl.style.display=open?'block':'none';
-            const svg=caret.querySelector('svg');
-            if(svg) svg.classList.toggle('rotate-90',open);
-          };
-          title.addEventListener('click',()=>{
-            clickCount++;
-            setTimeout(()=>{ if(clickCount===1) toggle(); clickCount=0; },200);
-          });
-          li.appendChild(title);
-          if(n.note){
-            const note=document.createElement('div');
-            note.className='ml-2 text-gray-600 text-sm';
-            note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
-            if(jsonMode) makeNoteEditable(note,n.id,n);
-            li.appendChild(note);
-          }
-          if(n.links && n.links.length){
-            const linkDiv=document.createElement('div');
-            linkDiv.className='ml-2 flex flex-wrap gap-2 text-sm';
-            n.links.forEach(l=>{
-              const a=document.createElement('a');
-              a.textContent=l.title||l.target;
-              a.href=l.target;
-              a.dataset.link=JSON.stringify(l);
-              a.className='inline-block px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-700';
-              linkDiv.appendChild(a);
-            });
-            li.appendChild(linkDiv);
-          }
-          li.appendChild(childUl);
-        }else{
-          title.appendChild(titleSpan);
-          li.appendChild(title);
-          if(n.note){
-            const note=document.createElement('div');
-            note.className='ml-2 text-gray-600 text-sm';
-            note.innerHTML=mdLinks(escapeHtml(n.note).replace(/\n/g,'<br>'));
-            if(jsonMode) makeNoteEditable(note,n.id,n);
-            li.appendChild(note);
-          }
-          if(n.links && n.links.length){
-            const linkDiv=document.createElement('div');
-            linkDiv.className='ml-2 flex flex-wrap gap-2 text-sm';
-            n.links.forEach(l=>{
-              const a=document.createElement('a');
-              a.textContent=l.title||l.target;
-              a.href=l.target;
-              a.dataset.link=JSON.stringify(l);
-              a.className='inline-block px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-700';
-              linkDiv.appendChild(a);
-            });
-            li.appendChild(linkDiv);
-          }
-        }
-        ul.appendChild(li);
-      });
-      return ul;
-    }
-  opmlPreview.innerHTML='';
-  const heading=document.createElement('h1');
-  heading.className='text-center text-2xl font-bold mb-2';
-  heading.textContent=getNodeTitle(state.doc);
-  opmlPreview.appendChild(heading);
-  opmlPreview.appendChild(document.createElement('hr'));
-  const toc=document.createElement('div');
-  toc.className='mb-4';
-  const tocTitle=document.createElement('div');
-  tocTitle.className='font-bold mb-2';
-  tocTitle.textContent='Table of Contents';
-  const tocList=document.createElement('ul');
-  tocList.className='flex flex-wrap gap-4 text-sm';
-  nodes.forEach((n,i)=>{
-    if(!n._id) n._id=slug(n.t);
-    const a=document.createElement('a');
-    a.href='#'+n._id;
-    a.textContent=n.t||('Section '+(i+1));
-    a.className='inline-block px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-700';
-    const li=document.createElement('li');
-    li.appendChild(a);
-    tocList.appendChild(li);
-  });
-  toc.appendChild(tocTitle);
-  toc.appendChild(tocList);
-  opmlPreview.appendChild(toc);
-  opmlPreview.appendChild(document.createElement('hr'));
-  opmlPreview.appendChild(walk(nodes,0));
-  attachPreviewLinks();
-}
-function renderJsonPreview(nodes){ renderOpmlPreview(nodes); }
-  function attachPreviewLinks(){
-    const process=root=>{
-      root.querySelectorAll('a').forEach(a=>{
-        if(!a.dataset.link) a.dataset.link=a.getAttribute('href')||'';
-      });
-    };
-    process(opmlPreview);
-    if(attachPreviewLinks.initialized) return;
-    attachPreviewLinks.initialized=true;
-    const handler=e=>{
-      const a=e.target.closest('a');
-      if(!a || !opmlPreview.contains(a)) return;
-      e.preventDefault();
-      const data=a.dataset.link;
-      if(data){
-        try{ followLink(JSON.parse(data)); return; }catch{}
-      }
-      const href=a.getAttribute('href')||'';
-      if(/^https?:\/\//i.test(href)) window.open(href,'_blank');
-      else if(href.endsWith('/')) openDir(href.replace(/\/$/,''));
-      else openFile(href, href.split('/').pop(),0,0);
-    };
-    opmlPreview.addEventListener('click',handler);
-    new MutationObserver(muts=>{
-      muts.forEach(m=>m.addedNodes.forEach(node=>{
-        if(node.nodeType===1){
-          if(node.tagName==='A' && !node.dataset.link) node.dataset.link=node.getAttribute('href')||'';
-          node.querySelectorAll&&node.querySelectorAll('a').forEach(a=>{ if(!a.dataset.link) a.dataset.link=a.getAttribute('href')||''; });
-        }
-      }));
-    }).observe(opmlPreview,{childList:true,subtree:true});
-  }
-
 function toggleSection(id,btn){
   const el=document.getElementById(id);
   if(!el) return;
@@ -3158,7 +2539,11 @@ async function openFile(rel,name,size,mtime){
     btns(false); delBtn.disabled=false; downloadBtn.disabled=false;
     document.getElementById('structTreeBtn').disabled=true;
     if(contentTabs) contentTabs.classList.add('hidden');
-    opmlPreview.classList.add('hidden');
+    if(window.PreviewService){
+      PreviewService.renderWeb({doc:null, docTitle:'', nodes:[], jsonMode:false, helpers:{}});
+      PreviewService.renderRaw(null);
+      PreviewService.saveRaw(null);
+    }
     hideTree();
     return;
   }else{
@@ -3171,7 +2556,11 @@ async function openFile(rel,name,size,mtime){
     if(ta){ ta.value=''; ta.disabled=true; }
     btns(false); infoBtn.disabled=true;
     if(contentTabs) contentTabs.classList.add('hidden');
-    opmlPreview.classList.add('hidden');
+    if(window.PreviewService){
+      PreviewService.renderWeb({doc:null, docTitle:'', nodes:[], jsonMode:false, helpers:{}});
+      PreviewService.renderRaw(null);
+      PreviewService.saveRaw(null);
+    }
     return;
   }
   if(ta){ ta.value=r.content; ta.disabled=false; } btns(true);
@@ -3181,7 +2570,6 @@ async function openFile(rel,name,size,mtime){
   hideTree();
   if(isStruct){
     if(contentTabs) contentTabs.classList.remove('hidden');
-    if(opmlPreview) opmlPreview.classList.remove('hidden');
     if(contentPreview) contentPreview.classList.add('hidden');
     try{
       const isJson=extLower==='json';
@@ -3207,15 +2595,44 @@ async function openFile(rel,name,size,mtime){
           if(metaTitle) metaTitle.value=t;
         }
         const tree=isJson? cjsf_to_ark(currentJsonRoot) : (p.tree||[]);
-        renderOpmlPreview(tree);
         state.doc=currentJsonRootKey===null?currentJsonRoot:currentJsonDoc;
+        refreshPreview(tree);
+        if(window.PreviewService){
+          PreviewService.saveRaw(async parsed=>{
+            state.doc=parsed;
+            if(Array.isArray(parsed)){
+              currentJsonDoc=null; currentJsonRoot=parsed; currentJsonRootKey=null;
+            }else if(Array.isArray(parsed.root)){
+              currentJsonDoc=parsed; currentJsonRoot=parsed.root; currentJsonRootKey='root';
+            }else if(Array.isArray(parsed.items)){
+              currentJsonDoc=parsed; currentJsonRoot=parsed.items; currentJsonRootKey='items';
+            }else{
+              currentJsonDoc=parsed; currentJsonRoot=[]; currentJsonRootKey='root';
+            }
+            await saveDocument(currentFile, parsed);
+            emit('documentChanged', parsed);
+            refreshPreview(isJson? cjsf_to_ark(currentJsonRoot) : tree);
+          });
+        }
         emit('documentChanged',state.doc);
-      }else opmlPreview.textContent=p.error||'Structure parse error.';
-    }catch{ opmlPreview.textContent='Structure load error.'; }
+      }else{
+        const previewEl=document.getElementById('preview-web');
+        if(previewEl) previewEl.textContent=p.error||'Structure parse error.';
+        if(window.PreviewService) PreviewService.saveRaw(null);
+      }
+    }catch{
+      const previewEl=document.getElementById('preview-web');
+      if(previewEl) previewEl.textContent='Structure load error.';
+      if(window.PreviewService) PreviewService.saveRaw(null);
+    }
   }else{
     if(contentTabs) contentTabs.classList.add('hidden');
-    if(opmlPreview) opmlPreview.classList.add('hidden');
     if(contentPreview) contentPreview.classList.add('hidden');
+    if(window.PreviewService){
+      PreviewService.renderWeb({doc:null, docTitle:'', nodes:[], jsonMode:false, helpers:{}});
+      PreviewService.renderRaw(null);
+      PreviewService.saveRaw(null);
+    }
   }
 }
 function btns(on){ saveBtn.disabled=!on; delBtn.disabled=!on; downloadBtn.disabled=!on; }
@@ -3491,7 +2908,7 @@ function deleteNode(id){
       const nodeTitleRow=document.getElementById('nodeTitleRow');
       if(nodeTitleRow) nodeTitleRow.classList.add('hidden');
       if(contentPreview) contentPreview.innerHTML='';
-      renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
+      refreshPreview();
     }else{
       nodeOp('delete',{},id);
     }
@@ -3687,7 +3104,7 @@ async function nodeOp(op,extra={},id=selectedId){
   if(isJson){
     if(currentJsonRootKey===null) currentJsonDoc=null;
     else if(currentJsonDoc) currentJsonDoc[currentJsonRootKey]=currentJsonRoot;
-    renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
+    refreshPreview();
     await saveCurrentJsonStructure();
   }
   const sel=treeWrap.querySelector(`div[data-id="${selectedId}"]`);
@@ -3806,7 +3223,7 @@ async function openLinkModal(id, existing=null){
   }
   typeSel.onchange=refresh; await refresh();
   if(editing && existing.title) titleInput.value=existing.title;
-  modal({title: editing?'Edit Link':'Add Link', body:wrap, okText:editing?'Save Link':'Add Link', extra: editing?{text:'Delete Link', onClick:async()=>{ if(currentFile.toLowerCase().endsWith('.json')){ const node=findJsonNode(currentJsonRoot,id); if(node){ node.links=(node.links||[]).filter(l=>l.id!==existing.id); node.modified=new Date().toISOString(); await saveCurrentJsonStructure(); currentLinks=(node.links||[]).map(l=>({id:l.id||'',type:l.type||'',title:l.metadata?.title||'',target:l.target||'',direction:l.metadata?.direction||null})); const expanded=getExpanded(); renderTree(cjsf_to_ark(currentJsonRoot)); restoreExpanded(expanded); selectNode(id,getNodeTitle(node),getNodeNote(node),currentLinks); } } else { await nodeOp('delete_link',{target:existing.target},id); } renderLinkList(); attachPreviewLinks(); }}:null, onOk:async()=>{
+  modal({title: editing?'Edit Link':'Add Link', body:wrap, okText:editing?'Save Link':'Add Link', extra: editing?{text:'Delete Link', onClick:async()=>{ if(currentFile.toLowerCase().endsWith('.json')){ const node=findJsonNode(currentJsonRoot,id); if(node){ node.links=(node.links||[]).filter(l=>l.id!==existing.id); node.modified=new Date().toISOString(); await saveCurrentJsonStructure(); currentLinks=(node.links||[]).map(l=>({id:l.id||'',type:l.type||'',title:l.metadata?.title||'',target:l.target||'',direction:l.metadata?.direction||null})); const expanded=getExpanded(); renderTree(cjsf_to_ark(currentJsonRoot)); restoreExpanded(expanded); selectNode(id,getNodeTitle(node),getNodeNote(node),currentLinks); } } else { await nodeOp('delete_link',{target:existing.target},id); } renderLinkList(); }}:null, onOk:async()=>{
     const selected=typeSel.value;
     const type=selected==='node'?'relation':selected;
     const target=targetInput ? targetInput.value.trim() : '';
@@ -3833,13 +3250,11 @@ async function openLinkModal(id, existing=null){
       restoreExpanded(expanded);
       selectNode(id,getNodeTitle(node),getNodeNote(node),currentLinks);
       renderLinkList();
-      attachPreviewLinks();
     }else{
       const link={title,type,target,direction: existing?.direction || 'one-way'};
       if(editing) await nodeOp('delete_link',{target:existing.target},id);
       await nodeOp('add_link',{link},id);
       renderLinkList();
-      attachPreviewLinks();
     }
   }});
 }
@@ -3847,9 +3262,8 @@ on('documentChanged',()=>{
   const expanded=getExpanded();
   renderTree(cjsf_to_ark(currentJsonRoot));
   restoreExpanded(expanded);
-  renderOpmlPreview(cjsf_to_ark(currentJsonRoot));
   state.doc=currentJsonRootKey===null?currentJsonRoot:currentJsonDoc;
-  if(previewMode==='raw' && previewRaw) previewRaw.value=JSON.stringify(state.doc,null,2);
+  refreshPreview();
   if(selectedId){
     const n=findJsonNode(currentJsonRoot,selectedId);
     if(n) selectNode(selectedId,getNodeTitle(n),getNodeNote(n),n.links||[]);
