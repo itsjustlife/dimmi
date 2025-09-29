@@ -348,6 +348,19 @@ function door_template($name){
   return null;
 }
 
+function door_find_node_copy($items,$id){
+  if(!is_array($items)) return null;
+  foreach($items as $item){
+    if(!is_array($item)) continue;
+    if(($item['id'] ?? '') === $id) return $item;
+    if(isset($item['children']) && is_array($item['children'])){
+      $found=door_find_node_copy($item['children'],$id);
+      if($found!==null) return $found;
+    }
+  }
+  return null;
+}
+
 function door_handle_data(){
   [$doc,$rootKey]=door_load_doc();
   $root=&door_root_ref($doc,$rootKey);
@@ -358,11 +371,24 @@ function door_handle_data(){
   if($target===''){
     $node=$root[0] ?? null;
   } else {
-    if(!cjsf_find_item_ref($root,$target,$node)) bad('Room not found',404);
+    $node=door_find_node_copy($root,$target);
+    if(!$node && !empty($root)) bad('Room not found',404);
   }
   if(!$node){
-    $index=[]; door_flatten_nodes($root,$index);
-    j(['ok'=>true,'node'=>null,'children'=>[],'links'=>[],'breadcrumb'=>[],'allNodes'=>$index,'rootId'=>$root[0]['id'] ?? null]);
+    if(empty($root)){
+      $default=door_default_document();
+      $seed=$default['root'][0] ?? null;
+      if($seed){
+        $root[]=$seed;
+        door_save_doc($doc);
+        $node=$root[0] ?? null;
+        $target=$node['id'] ?? '';
+      }
+    }
+    if(!$node){
+      $index=[]; door_flatten_nodes($root,$index);
+      j(['ok'=>true,'node'=>null,'children'=>[],'links'=>[],'breadcrumb'=>[],'allNodes'=>$index,'rootId'=>$root[0]['id'] ?? '' ]);
+    }
   }
   $children=[];
   if(!empty($node['children']) && is_array($node['children'])){
@@ -389,6 +415,7 @@ function door_handle_data(){
   $crumb=door_build_breadcrumb($root,$node['id'] ?? '');
   if(!$crumb) $crumb=[['id'=>$node['id'] ?? '', 'title'=>json_get_title($node)]];
   $index=[]; door_flatten_nodes($root,$index);
+  $rootId=$root[0]['id'] ?? '';
   j([
     'ok'=>true,
     'node'=>[
@@ -400,7 +427,7 @@ function door_handle_data(){
     'links'=>$links,
     'breadcrumb'=>$crumb,
     'allNodes'=>$index,
-    'rootId'=>$root[0]['id'] ?? ''
+    'rootId'=>$rootId
   ]);
 }
 
@@ -820,6 +847,10 @@ function door_render_shell($title){
     try{
       showStatus('Loading...',false);
       const data=await request('data',{params:{id}});
+      if(!data.node && data.rootId && data.rootId!==id){
+        await loadRoom(data.rootId);
+        return;
+      }
       state.currentId=data.node ? data.node.id : null;
       state.breadcrumb=data.breadcrumb || [];
       state.links=(data.links || []).map(link=>({
