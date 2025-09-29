@@ -31,6 +31,41 @@
     lastQuery: '',
     results: { nodes: [], files: [] }
   };
+  const attachState = {
+    overlay: null,
+    dialog: null,
+    body: null,
+    typeButtons: new Map(),
+    panes: new Map(),
+    type: 'relation',
+    labelInput: null,
+    urlInput: null,
+    pathInputs: { file: null, folder: null, structure: null },
+    relationSearch: null,
+    relationList: null,
+    relationEmpty: null,
+    selectedRelation: null,
+    structurePreview: null,
+    structurePreviewPath: '',
+    structurePreviewToken: 0,
+    structurePreviewTimer: null,
+    submitBtn: null,
+    cancelBtn: null,
+    keyHandler: null,
+    editIndex: null,
+    editingLink: null,
+    submitting: false,
+    browser: {
+      wrap: null,
+      list: null,
+      pathLabel: null,
+      mode: null,
+      path: '',
+      upBtn: null,
+      closeBtn: null,
+      selectBtn: null
+    }
+  };
   const statusEl = document.getElementById('door-status');
   const titleInput = document.getElementById('door-room-title');
   const noteInput = document.getElementById('door-room-note');
@@ -38,9 +73,7 @@
   const addChildBtn = document.getElementById('door-add-child');
   const deleteBtn = document.getElementById('door-delete');
   const linksList = document.getElementById('door-links-list');
-  const linkForm = document.getElementById('door-link-form');
-  const linkTarget = document.getElementById('door-link-target');
-  const linkLabel = document.getElementById('door-link-label');
+  const attachBtn = document.getElementById('door-attach');
 
   if (statusEl) statusEl.textContent = bootstrap.status || '';
 
@@ -229,36 +262,53 @@
       return;
     }
     state.links.forEach((link, index) => {
+      if (!link) return;
       const li = document.createElement('li');
       const go = document.createElement('button');
       go.type = 'button';
-      go.textContent = link.title || link.target;
+      go.textContent = link.title || link.target || 'Teleport';
       go.className = 'door-node-link';
       go.addEventListener('click', async () => {
-        if (!(await confirmNavigation())) return;
-        loadRoom(link.target);
+        await followLink(link);
       });
       li.appendChild(go);
-      const meta = document.createElement('span');
-      meta.style.flex = '1';
-      meta.style.fontSize = '0.85rem';
-      meta.style.color = '#94a3b8';
-      meta.textContent = link.type || '';
+      const meta = document.createElement('div');
+      meta.className = 'door-link-meta';
+      const typeLine = document.createElement('span');
+      const typeKey = (link.type || 'relation').toLowerCase() === 'node' ? 'relation' : (link.type || 'relation');
+      typeLine.textContent = typeKey.toUpperCase();
+      const targetLine = document.createElement('span');
+      targetLine.textContent = link.target || '';
+      meta.appendChild(typeLine);
+      meta.appendChild(targetLine);
       li.appendChild(meta);
+      const actions = document.createElement('div');
+      actions.className = 'door-link-actions';
+      const edit = document.createElement('button');
+      edit.type = 'button';
+      edit.className = 'door-link-edit';
+      edit.textContent = 'Edit';
+      edit.addEventListener('click', () => openAttachWizard({ linkIndex: index, link }));
+      actions.appendChild(edit);
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'door-link-remove';
       remove.textContent = 'Remove';
       remove.addEventListener('click', async () => {
+        const previous = Array.isArray(state.links) ? state.links.slice() : [];
         state.links.splice(index, 1);
         renderLinks();
         try {
           await saveCurrent();
         } catch (err) {
           console.error(err);
+          state.links = previous;
+          renderLinks();
+          showStatus(err.message || 'Failed to remove link.', true);
         }
       });
-      li.appendChild(remove);
+      actions.appendChild(remove);
+      li.appendChild(actions);
       linksList.appendChild(li);
     });
   }
@@ -378,6 +428,8 @@
     });
     grid.appendChild(searchTile);
     (children || []).forEach(child => {
+      const wrap = document.createElement('div');
+      wrap.className = 'door-tile-wrap';
       const tile = document.createElement('button');
       tile.type = 'button';
       tile.className = 'door-tile';
@@ -386,7 +438,18 @@
         if (!(await confirmNavigation())) return;
         loadRoom(child.id);
       });
-      grid.appendChild(tile);
+      wrap.appendChild(tile);
+      const attach = document.createElement('button');
+      attach.type = 'button';
+      attach.className = 'door-tile-action';
+      attach.textContent = 'Attach';
+      attach.title = 'Attach a teleport to this room';
+      attach.addEventListener('click', event => {
+        event.stopPropagation();
+        openAttachWizard({ relationTarget: child.id, defaultType: 'relation', defaultLabel: child.title || '' });
+      });
+      wrap.appendChild(attach);
+      grid.appendChild(wrap);
     });
     const add = document.createElement('button');
     add.type = 'button';
@@ -531,31 +594,720 @@
     }
   }
 
+  function basename(path) {
+    if (!path) return '';
+    const parts = String(path).split('/').filter(Boolean);
+    if (!parts.length) return String(path);
+    return parts[parts.length - 1];
+  }
+
+  function findNodeTitle(id) {
+    if (!id) return '';
+    const nodes = Array.isArray(state.index) ? state.index : [];
+    const found = nodes.find(node => node && node.id === id);
+    return (found && (found.title || '')) || '';
+  }
+
+  function resetAttachInputs() {
+    if (attachState.labelInput) attachState.labelInput.value = '';
+    if (attachState.urlInput) attachState.urlInput.value = '';
+    Object.values(attachState.pathInputs).forEach(input => {
+      if (input) input.value = '';
+    });
+    attachState.selectedRelation = null;
+    if (attachState.relationSearch) attachState.relationSearch.value = '';
+    if (attachState.relationList) attachState.relationList.innerHTML = '';
+    if (attachState.relationEmpty) {
+      attachState.relationEmpty.style.display = '';
+      attachState.relationEmpty.textContent = 'No rooms available.';
+    }
+    if (attachState.structurePreview) attachState.structurePreview.textContent = 'Choose a structure file to preview.';
+    attachState.structurePreviewPath = '';
+    attachState.structurePreviewToken = 0;
+    clearTimeout(attachState.structurePreviewTimer);
+    attachState.structurePreviewTimer = null;
+    closePathBrowser();
+  }
+
+  function ensureAttachUi() {
+    if (attachState.overlay) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'door-attach-overlay';
+    const dialog = document.createElement('div');
+    dialog.className = 'door-attach-dialog';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.tabIndex = -1;
+    const body = document.createElement('div');
+    body.className = 'door-attach-body';
+    dialog.appendChild(body);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+
+    attachState.overlay = overlay;
+    attachState.dialog = dialog;
+    attachState.body = body;
+    attachState.keyHandler = event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeAttachWizard();
+      }
+    };
+
+    overlay.addEventListener('click', event => {
+      if (event.target === overlay) closeAttachWizard();
+    });
+
+    const heading = document.createElement('h2');
+    heading.textContent = 'Attach teleport';
+    body.appendChild(heading);
+
+    const intro = document.createElement('p');
+    intro.className = 'door-attach-hint';
+    intro.textContent = 'Choose what to connect to this room.';
+    body.appendChild(intro);
+
+    const typeList = document.createElement('div');
+    typeList.className = 'door-attach-types';
+    body.appendChild(typeList);
+
+    const typeOptions = [
+      { key: 'file', title: 'File', hint: 'Link to a file from FIND' },
+      { key: 'folder', title: 'Folder', hint: 'Jump into a directory' },
+      { key: 'url', title: 'URL', hint: 'Open an external link' },
+      { key: 'structure', title: 'Structure', hint: 'Preview OPML/JSON structures' },
+      { key: 'relation', title: 'Relation', hint: 'Teleport to another room' }
+    ];
+    typeOptions.forEach(option => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'door-attach-type';
+      btn.dataset.type = option.key;
+      btn.innerHTML = `<strong>${option.title}</strong><span>${option.hint}</span>`;
+      btn.addEventListener('click', () => setAttachType(option.key));
+      typeList.appendChild(btn);
+      attachState.typeButtons.set(option.key, btn);
+    });
+
+    const labelField = document.createElement('div');
+    labelField.className = 'door-attach-field';
+    const labelLabel = document.createElement('label');
+    labelLabel.textContent = 'Label';
+    const labelInput = document.createElement('input');
+    labelInput.placeholder = 'Optional label';
+    labelInput.addEventListener('input', () => updateAttachSubmitState());
+    labelField.appendChild(labelLabel);
+    labelField.appendChild(labelInput);
+    body.appendChild(labelField);
+    attachState.labelInput = labelInput;
+
+    const makePane = (key, render) => {
+      const pane = document.createElement('div');
+      pane.className = 'door-attach-pane';
+      pane.dataset.type = key;
+      render(pane);
+      attachState.panes.set(key, pane);
+      body.appendChild(pane);
+    };
+
+    makePane('file', pane => {
+      const field = document.createElement('div');
+      field.className = 'door-attach-field';
+      const label = document.createElement('label');
+      label.textContent = 'File path';
+      const wrap = document.createElement('div');
+      wrap.className = 'door-attach-path';
+      const input = document.createElement('input');
+      input.placeholder = 'path/to/file.ext';
+      input.addEventListener('input', () => updateAttachSubmitState());
+      const browse = document.createElement('button');
+      browse.type = 'button';
+      browse.textContent = 'Browse';
+      browse.addEventListener('click', () => openPathBrowser('file', input.value));
+      wrap.appendChild(input);
+      wrap.appendChild(browse);
+      field.appendChild(label);
+      field.appendChild(wrap);
+      pane.appendChild(field);
+      const hint = document.createElement('div');
+      hint.className = 'door-attach-hint';
+      hint.textContent = 'Select a file using the FIND picker or paste a path.';
+      pane.appendChild(hint);
+      attachState.pathInputs.file = input;
+    });
+
+    makePane('folder', pane => {
+      const field = document.createElement('div');
+      field.className = 'door-attach-field';
+      const label = document.createElement('label');
+      label.textContent = 'Folder path';
+      const wrap = document.createElement('div');
+      wrap.className = 'door-attach-path';
+      const input = document.createElement('input');
+      input.placeholder = 'path/to/folder';
+      input.addEventListener('input', () => updateAttachSubmitState());
+      const browse = document.createElement('button');
+      browse.type = 'button';
+      browse.textContent = 'Browse';
+      browse.addEventListener('click', () => openPathBrowser('folder', input.value));
+      wrap.appendChild(input);
+      wrap.appendChild(browse);
+      field.appendChild(label);
+      field.appendChild(wrap);
+      pane.appendChild(field);
+      const hint = document.createElement('div');
+      hint.className = 'door-attach-hint';
+      hint.textContent = 'Pick a directory to teleport into.';
+      pane.appendChild(hint);
+      attachState.pathInputs.folder = input;
+    });
+
+    makePane('url', pane => {
+      const field = document.createElement('div');
+      field.className = 'door-attach-field';
+      const label = document.createElement('label');
+      label.textContent = 'URL';
+      const input = document.createElement('input');
+      input.type = 'url';
+      input.placeholder = 'https://example.com';
+      input.addEventListener('input', () => updateAttachSubmitState());
+      field.appendChild(label);
+      field.appendChild(input);
+      pane.appendChild(field);
+      attachState.urlInput = input;
+    });
+
+    makePane('structure', pane => {
+      const field = document.createElement('div');
+      field.className = 'door-attach-field';
+      const label = document.createElement('label');
+      label.textContent = 'Structure file';
+      const wrap = document.createElement('div');
+      wrap.className = 'door-attach-path';
+      const input = document.createElement('input');
+      input.placeholder = 'path/to/structure.json';
+      input.addEventListener('input', () => {
+        updateAttachSubmitState();
+        scheduleStructurePreview();
+      });
+      const browse = document.createElement('button');
+      browse.type = 'button';
+      browse.textContent = 'Browse';
+      browse.addEventListener('click', () => openPathBrowser('structure', input.value));
+      wrap.appendChild(input);
+      wrap.appendChild(browse);
+      field.appendChild(label);
+      field.appendChild(wrap);
+      pane.appendChild(field);
+      const preview = document.createElement('pre');
+      preview.className = 'door-attach-structure-preview';
+      preview.textContent = 'Choose a structure file to preview.';
+      pane.appendChild(preview);
+      attachState.pathInputs.structure = input;
+      attachState.structurePreview = preview;
+    });
+
+    makePane('relation', pane => {
+      const field = document.createElement('div');
+      field.className = 'door-attach-field';
+      const label = document.createElement('label');
+      label.textContent = 'Find a room';
+      const input = document.createElement('input');
+      input.placeholder = 'Search rooms…';
+      input.addEventListener('input', () => updateRelationList());
+      field.appendChild(label);
+      field.appendChild(input);
+      pane.appendChild(field);
+      const listWrap = document.createElement('div');
+      listWrap.className = 'door-attach-relations';
+      const list = document.createElement('div');
+      list.className = 'door-attach-relations-list';
+      const empty = document.createElement('div');
+      empty.className = 'door-attach-relations-empty';
+      empty.textContent = 'No rooms available.';
+      listWrap.appendChild(list);
+      listWrap.appendChild(empty);
+      pane.appendChild(listWrap);
+      attachState.relationSearch = input;
+      attachState.relationList = list;
+      attachState.relationEmpty = empty;
+    });
+
+    const browser = document.createElement('div');
+    browser.className = 'door-attach-browser';
+    const browserHeader = document.createElement('div');
+    browserHeader.className = 'door-attach-browser-header';
+    const browserPath = document.createElement('div');
+    browserPath.className = 'door-attach-browser-path';
+    browserHeader.appendChild(browserPath);
+    const browserControls = document.createElement('div');
+    browserControls.className = 'door-attach-browser-controls';
+    const upBtn = document.createElement('button');
+    upBtn.type = 'button';
+    upBtn.textContent = 'Up';
+    upBtn.addEventListener('click', () => {
+      const current = attachState.browser.path || '';
+      if (!current) return;
+      const parts = current.split('/').filter(Boolean);
+      parts.pop();
+      loadBrowserPath(parts.join('/'));
+    });
+    const selectBtn = document.createElement('button');
+    selectBtn.type = 'button';
+    selectBtn.textContent = 'Use this folder';
+    selectBtn.addEventListener('click', () => {
+      if (attachState.browser.mode !== 'folder') return;
+      setPathForMode('folder', attachState.browser.path || '');
+      closePathBrowser();
+    });
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.textContent = 'Close';
+    closeBtn.addEventListener('click', () => closePathBrowser());
+    browserControls.appendChild(upBtn);
+    browserControls.appendChild(selectBtn);
+    browserControls.appendChild(closeBtn);
+    browserHeader.appendChild(browserControls);
+    const browserList = document.createElement('ul');
+    browserList.className = 'door-attach-browser-list';
+    browser.appendChild(browserHeader);
+    browser.appendChild(browserList);
+    body.appendChild(browser);
+
+    attachState.browser.wrap = browser;
+    attachState.browser.list = browserList;
+    attachState.browser.pathLabel = browserPath;
+    attachState.browser.upBtn = upBtn;
+    attachState.browser.closeBtn = closeBtn;
+    attachState.browser.selectBtn = selectBtn;
+
+    const actions = document.createElement('div');
+    actions.className = 'door-attach-actions';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'door-attach-cancel';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', () => closeAttachWizard());
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'button';
+    submitBtn.className = 'door-attach-submit';
+    submitBtn.textContent = 'Save link';
+    submitBtn.disabled = true;
+    submitBtn.addEventListener('click', () => handleAttachSubmit());
+    actions.appendChild(cancelBtn);
+    actions.appendChild(submitBtn);
+    dialog.appendChild(actions);
+
+    attachState.cancelBtn = cancelBtn;
+    attachState.submitBtn = submitBtn;
+  }
+
+  function setAttachType(type) {
+    ensureAttachUi();
+    const key = (type || '').toLowerCase() === 'node' ? 'relation' : (type || '').toLowerCase();
+    const activeKey = attachState.panes.has(key) ? key : 'relation';
+    attachState.type = activeKey;
+    attachState.typeButtons.forEach((btn, btnKey) => {
+      btn.classList.toggle('active', btnKey === activeKey);
+    });
+    attachState.panes.forEach((pane, paneKey) => {
+      pane.classList.toggle('active', paneKey === activeKey);
+    });
+    if (activeKey === 'relation') updateRelationList();
+    if (activeKey === 'structure') updateStructurePreview(true);
+    updateAttachSubmitState();
+  }
+
+  function getAttachTarget() {
+    const type = attachState.type;
+    if (type === 'relation') return attachState.selectedRelation || '';
+    if (type === 'url') return attachState.urlInput ? attachState.urlInput.value.trim() : '';
+    if (type === 'folder') return attachState.pathInputs.folder ? attachState.pathInputs.folder.value.trim() : '';
+    if (type === 'structure') return attachState.pathInputs.structure ? attachState.pathInputs.structure.value.trim() : '';
+    return attachState.pathInputs.file ? attachState.pathInputs.file.value.trim() : '';
+  }
+
+  function updateAttachSubmitState() {
+    if (!attachState.submitBtn) return;
+    if (attachState.submitting) {
+      attachState.submitBtn.disabled = true;
+      return;
+    }
+    attachState.submitBtn.disabled = !getAttachTarget();
+  }
+
+  function updateRelationList() {
+    if (!attachState.relationList) return;
+    const nodes = Array.isArray(state.index) ? state.index : [];
+    const query = (attachState.relationSearch ? attachState.relationSearch.value : '').trim().toLowerCase();
+    const matches = nodes
+      .filter(node => {
+        if (!node) return false;
+        if (!query) return true;
+        const title = (node.title || '').toLowerCase();
+        const id = (node.id || '').toLowerCase();
+        return title.includes(query) || id.includes(query);
+      })
+      .slice(0, 80);
+    attachState.relationList.innerHTML = '';
+    if (!matches.length) {
+      if (attachState.relationEmpty) {
+        attachState.relationEmpty.style.display = '';
+        attachState.relationEmpty.textContent = nodes.length ? 'No rooms match your search.' : 'No rooms available.';
+      }
+    } else {
+      if (attachState.relationEmpty) attachState.relationEmpty.style.display = 'none';
+      matches.forEach(node => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = node.title || node.id || 'Room';
+        if (node.id === attachState.selectedRelation) btn.classList.add('active');
+        btn.addEventListener('click', () => {
+          attachState.selectedRelation = node.id || '';
+          if (attachState.labelInput && !attachState.labelInput.value.trim()) {
+            attachState.labelInput.value = node.title || '';
+          }
+          updateRelationList();
+          updateAttachSubmitState();
+        });
+        attachState.relationList.appendChild(btn);
+      });
+    }
+    updateAttachSubmitState();
+  }
+
+  function scheduleStructurePreview() {
+    clearTimeout(attachState.structurePreviewTimer);
+    attachState.structurePreviewTimer = setTimeout(() => updateStructurePreview(true), 250);
+  }
+
+  async function updateStructurePreview(force) {
+    if (!attachState.structurePreview || attachState.type !== 'structure') return;
+    const input = attachState.pathInputs.structure;
+    const path = input ? input.value.trim() : '';
+    if (!path) {
+      attachState.structurePreview.textContent = 'Choose a structure file to preview.';
+      attachState.structurePreviewPath = '';
+      return;
+    }
+    if (!force && attachState.structurePreviewPath === path) return;
+    attachState.structurePreviewPath = path;
+    const token = ++attachState.structurePreviewToken;
+    attachState.structurePreview.textContent = 'Loading preview…';
+    try {
+      const params = new URLSearchParams();
+      params.set('api', 'read');
+      params.set('path', path);
+      const res = await fetch(`${DOOR.base}?${params.toString()}`, { headers: { 'Accept': 'application/json' } });
+      const contentType = res.headers.get('content-type') || '';
+      const data = contentType.includes('application/json') ? await res.json() : null;
+      if (token !== attachState.structurePreviewToken) return;
+      if (!res.ok || !data || data.ok === false) {
+        const message = (data && data.error) || 'Unable to load preview.';
+        throw new Error(message);
+      }
+      const content = typeof data.content === 'string' ? data.content : '';
+      const trimmed = content.length > 2000 ? `${content.slice(0, 2000)}\n…` : content;
+      attachState.structurePreview.textContent = trimmed || 'File is empty.';
+    } catch (err) {
+      if (token !== attachState.structurePreviewToken) return;
+      attachState.structurePreview.textContent = err.message || 'Unable to load preview.';
+    }
+  }
+
+  function closePathBrowser() {
+    if (!attachState.browser.wrap) return;
+    attachState.browser.wrap.classList.remove('active');
+    attachState.browser.mode = null;
+    attachState.browser.path = '';
+    if (attachState.browser.list) attachState.browser.list.innerHTML = '';
+  }
+
+  function setPathForMode(mode, value) {
+    const normalized = (value || '').replace(/\\/g, '/').replace(/\/+/g, '/').replace(/\/$/, '');
+    if (mode === 'folder') {
+      if (attachState.pathInputs.folder) attachState.pathInputs.folder.value = normalized;
+    } else if (mode === 'structure') {
+      if (attachState.pathInputs.structure) attachState.pathInputs.structure.value = normalized;
+    } else {
+      if (attachState.pathInputs.file) attachState.pathInputs.file.value = normalized;
+    }
+    if (attachState.labelInput && !attachState.labelInput.value.trim()) {
+      const name = basename(normalized);
+      if (name) attachState.labelInput.value = name;
+    }
+    if (mode === 'structure') updateStructurePreview(true);
+    updateAttachSubmitState();
+  }
+
+  async function loadBrowserPath(path) {
+    if (!attachState.browser.wrap) return;
+    const normalized = (path || '').replace(/\\/g, '/').replace(/\/+/g, '/').replace(/\/$/, '');
+    attachState.browser.path = normalized;
+    if (attachState.browser.pathLabel) attachState.browser.pathLabel.textContent = normalized ? `/${normalized}` : '/';
+    if (attachState.browser.upBtn) attachState.browser.upBtn.disabled = !normalized;
+    if (attachState.browser.list) {
+      attachState.browser.list.innerHTML = '';
+      const loading = document.createElement('div');
+      loading.className = 'door-attach-browser-empty';
+      loading.textContent = 'Loading…';
+      attachState.browser.list.appendChild(loading);
+    }
+    try {
+      const params = new URLSearchParams();
+      params.set('api', 'list');
+      if (normalized) params.set('path', normalized);
+      const res = await fetch(`${DOOR.base}?${params.toString()}`, { headers: { 'Accept': 'application/json' } });
+      const data = await res.json();
+      if (!res.ok || !data || data.ok === false) {
+        const message = (data && data.error) || 'Unable to read directory.';
+        throw new Error(message);
+      }
+      renderBrowserEntries(Array.isArray(data.items) ? data.items : []);
+    } catch (err) {
+      console.error(err);
+      if (attachState.browser.list) {
+        attachState.browser.list.innerHTML = '';
+        const errorEl = document.createElement('div');
+        errorEl.className = 'door-attach-browser-empty';
+        errorEl.textContent = err.message || 'Unable to read directory.';
+        attachState.browser.list.appendChild(errorEl);
+      }
+    }
+  }
+
+  function renderBrowserEntries(items) {
+    if (!attachState.browser.list) return;
+    const mode = attachState.browser.mode || 'file';
+    attachState.browser.list.innerHTML = '';
+    const dirs = [];
+    const files = [];
+    items.forEach(item => {
+      if (!item) return;
+      if (item.type === 'dir') dirs.push(item);
+      else if (item.type === 'file') files.push(item);
+    });
+    dirs.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    files.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    const showFiles = mode !== 'folder';
+    if (!dirs.length && (!showFiles || !files.length)) {
+      const empty = document.createElement('div');
+      empty.className = 'door-attach-browser-empty';
+      empty.textContent = 'Nothing found in this directory.';
+      attachState.browser.list.appendChild(empty);
+      return;
+    }
+    dirs.forEach(entry => {
+      const li = document.createElement('li');
+      const openBtn = document.createElement('button');
+      openBtn.type = 'button';
+      openBtn.textContent = `📁 ${entry.name || ''}`;
+      openBtn.addEventListener('click', () => loadBrowserPath(entry.rel || entry.name || ''));
+      li.appendChild(openBtn);
+      if (mode === 'folder') {
+        const choose = document.createElement('button');
+        choose.type = 'button';
+        choose.className = 'door-attach-browser-choose';
+        choose.textContent = 'Select';
+        choose.addEventListener('click', () => {
+          setPathForMode('folder', entry.rel || entry.name || '');
+          closePathBrowser();
+        });
+        li.appendChild(choose);
+      }
+      attachState.browser.list.appendChild(li);
+    });
+    if (showFiles) {
+      files.forEach(entry => {
+        const li = document.createElement('li');
+        const choose = document.createElement('button');
+        choose.type = 'button';
+        choose.textContent = `📄 ${entry.name || ''}`;
+        choose.addEventListener('click', () => {
+          const modeKey = mode === 'structure' ? 'structure' : 'file';
+          setPathForMode(modeKey, entry.rel || entry.name || '');
+          closePathBrowser();
+        });
+        li.appendChild(choose);
+        attachState.browser.list.appendChild(li);
+      });
+    }
+  }
+
+  function openPathBrowser(mode, startValue) {
+    ensureAttachUi();
+    if (!attachState.browser.wrap) return;
+    attachState.browser.mode = mode;
+    attachState.browser.wrap.classList.add('active');
+    if (attachState.browser.selectBtn) attachState.browser.selectBtn.style.display = mode === 'folder' ? '' : 'none';
+    let startPath = '';
+    if (typeof startValue === 'string' && startValue.trim()) {
+      startPath = startValue.trim();
+    } else if (mode === 'folder' && attachState.pathInputs.folder && attachState.pathInputs.folder.value) {
+      startPath = attachState.pathInputs.folder.value;
+    } else if (mode === 'structure' && attachState.pathInputs.structure && attachState.pathInputs.structure.value) {
+      startPath = attachState.pathInputs.structure.value;
+    } else if (attachState.pathInputs.file && attachState.pathInputs.file.value) {
+      startPath = attachState.pathInputs.file.value;
+    }
+    startPath = startPath.replace(/\\/g, '/');
+    if (mode !== 'folder') {
+      const parts = startPath.split('/').filter(Boolean);
+      if (parts.length) parts.pop();
+      startPath = parts.join('/');
+    }
+    loadBrowserPath(startPath);
+  }
+
+  async function handleAttachSubmit() {
+    if (attachState.submitting) return;
+    if (!state.currentId) {
+      showStatus('Load a room before attaching.', true);
+      return;
+    }
+    let target = getAttachTarget();
+    if (!target) {
+      updateAttachSubmitState();
+      return;
+    }
+    target = target.replace(/\\/g, '/');
+    let type = attachState.type || 'relation';
+    if (type === 'node') type = 'relation';
+    let label = attachState.labelInput ? attachState.labelInput.value.trim() : '';
+    if (!label) {
+      if (type === 'relation') label = findNodeTitle(target) || target;
+      else if (type === 'url') label = target;
+      else label = basename(target);
+    }
+    const newLink = { target, title: label || '', type };
+    const previous = Array.isArray(state.links) ? state.links.slice() : [];
+    const next = previous.slice();
+    if (attachState.editIndex !== null && attachState.editIndex >= 0 && attachState.editIndex < next.length) {
+      next[attachState.editIndex] = newLink;
+    } else {
+      next.push(newLink);
+    }
+    attachState.submitting = true;
+    updateAttachSubmitState();
+    try {
+      state.links = next;
+      renderLinks();
+      await saveCurrent();
+      closeAttachWizard();
+    } catch (err) {
+      console.error(err);
+      state.links = previous;
+      renderLinks();
+      showStatus(err.message || 'Failed to save link.', true);
+    } finally {
+      attachState.submitting = false;
+      updateAttachSubmitState();
+    }
+  }
+
+  function openAttachWizard(options = {}) {
+    if (!state.currentId) {
+      showStatus('Load a room before attaching.', true);
+      return;
+    }
+    ensureAttachUi();
+    resetAttachInputs();
+    attachState.editIndex = typeof options.linkIndex === 'number' ? options.linkIndex : null;
+    attachState.editingLink = options.link || null;
+    attachState.submitting = false;
+    const link = options.link || null;
+    if (attachState.labelInput) attachState.labelInput.value = link ? (link.title || '') : (options.defaultLabel || '');
+    if (attachState.urlInput) attachState.urlInput.value = link && link.type === 'url' ? (link.target || '') : '';
+    if (attachState.pathInputs.file) attachState.pathInputs.file.value = link && link.type === 'file' ? (link.target || '') : '';
+    if (attachState.pathInputs.folder) attachState.pathInputs.folder.value = link && link.type === 'folder' ? (link.target || '') : '';
+    if (attachState.pathInputs.structure) attachState.pathInputs.structure.value = link && link.type === 'structure' ? (link.target || '') : '';
+    let selectedRelation = null;
+    if (link && (link.type === 'relation' || link.type === 'node' || !link.type)) selectedRelation = link.target || '';
+    if (!selectedRelation && options.relationTarget) selectedRelation = options.relationTarget;
+    attachState.selectedRelation = selectedRelation || null;
+    let initialType = (link && link.type) || options.defaultType || (options.relationTarget ? 'relation' : 'relation');
+    if (initialType === 'node') initialType = 'relation';
+    if (!attachState.panes.has(initialType || '')) initialType = 'relation';
+    setAttachType(initialType);
+    if (attachState.labelInput && !attachState.labelInput.value.trim() && attachState.selectedRelation) {
+      const title = findNodeTitle(attachState.selectedRelation);
+      if (title) attachState.labelInput.value = title;
+    }
+    if (attachState.structurePreview && attachState.pathInputs.structure && attachState.pathInputs.structure.value) {
+      updateStructurePreview(true);
+    }
+    attachState.overlay.classList.add('active');
+    updateAttachSubmitState();
+    if (attachState.keyHandler) document.addEventListener('keydown', attachState.keyHandler);
+    requestAnimationFrame(() => {
+      if (attachState.dialog) attachState.dialog.focus();
+      if (attachState.labelInput) attachState.labelInput.focus();
+    });
+  }
+
+  function closeAttachWizard() {
+    if (!attachState.overlay) return;
+    attachState.overlay.classList.remove('active');
+    document.removeEventListener('keydown', attachState.keyHandler);
+    attachState.editIndex = null;
+    attachState.editingLink = null;
+    attachState.submitting = false;
+    resetAttachInputs();
+    updateAttachSubmitState();
+  }
+
+  async function followLink(link) {
+    if (!link) return;
+    const type = (link.type || '').toLowerCase();
+    const target = link.target || '';
+    if (!target) return;
+    try {
+      if (type === 'relation' || type === 'node' || !type) {
+        if (!(await confirmNavigation())) return;
+        await loadRoom(target);
+        return;
+      }
+      if (type === 'folder') {
+        const openDirFn = typeof window.openDir === 'function' ? window.openDir : null;
+        if (openDirFn) {
+          await openDirFn(target);
+        } else {
+          window.open(`${DOOR.base}?pane=find&path=${encodeURIComponent(target)}`, '_blank');
+        }
+        return;
+      }
+      if (type === 'file' || type === 'structure') {
+        const openDirFn = typeof window.openDir === 'function' ? window.openDir : null;
+        const openFileFn = typeof window.openFile === 'function' ? window.openFile : null;
+        if (openDirFn) {
+          const parts = target.split('/');
+          parts.pop();
+          await openDirFn(parts.join('/'));
+        }
+        if (openFileFn) {
+          const name = basename(target) || 'file';
+          await openFileFn(target, name, 0, 0);
+        } else {
+          window.open(`${DOOR.base}?api=get_file&path=${encodeURIComponent(target)}`, '_blank');
+        }
+        return;
+      }
+      if (type === 'url') {
+        window.open(target, '_blank', 'noopener');
+        return;
+      }
+      if (!(await confirmNavigation())) return;
+      await loadRoom(target);
+    } catch (err) {
+      console.error(err);
+      showStatus(err.message || 'Unable to open link.', true);
+    }
+  }
+
   if (saveBtn) saveBtn.addEventListener('click', () => saveCurrent());
   if (addChildBtn) addChildBtn.addEventListener('click', () => addChildPrompt());
   if (deleteBtn) deleteBtn.addEventListener('click', () => deleteCurrent());
-
-  if (linkForm) {
-    linkForm.addEventListener('submit', async e => {
-      e.preventDefault();
-      const target = (linkTarget && linkTarget.value ? linkTarget.value : '').trim();
-      if (!target) {
-        showStatus('Enter a target room ID for the link.', true);
-        return;
-      }
-      const label = (linkLabel && linkLabel.value ? linkLabel.value : '').trim();
-      state.links = state.links || [];
-      state.links.push({ target, title: label });
-      if (linkTarget) linkTarget.value = '';
-      if (linkLabel) linkLabel.value = '';
-      renderLinks();
-      try {
-        await saveCurrent();
-      } catch (err) {
-        console.error(err);
-      }
-    });
-  }
+  if (attachBtn) attachBtn.addEventListener('click', () => openAttachWizard({ defaultType: 'relation' }));
 
   Promise.all([
     loadTemplate('door-grid-wrap', 'grid'),

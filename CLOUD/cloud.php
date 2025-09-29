@@ -630,14 +630,12 @@ function door_render_shell($title){
           <label>Room Note
             <textarea id="door-room-note" placeholder="Describe this room..."></textarea>
           </label>
-          <div>
-            <h2 style="margin:0 0 0.5rem;font-size:0.9rem;text-transform:uppercase;letter-spacing:0.08em;color:#94a3b8;">Teleport Links</h2>
+          <div class="door-links-block">
+            <div class="door-links-header">
+              <h2 class="door-links-title">Teleport Links</h2>
+              <button type="button" class="door-link-attach" id="door-attach">Attach…</button>
+            </div>
             <ul class="door-links" id="door-links-list"></ul>
-            <form id="door-link-form" class="door-link-form">
-              <input id="door-link-target" placeholder="Target room ID">
-              <input id="door-link-label" placeholder="Label (optional)">
-              <button type="submit">Add link</button>
-            </form>
           </div>
           <div class="door-editor-actions">
             <button type="button" class="door-save" id="door-save">Save changes</button>
