@@ -4,7 +4,6 @@
     Security: session auth, CSRF, path jail ($ROOT), editable extensions whitelist
     Extras: breadcrumb + path bar, JSON/XML(OPML) formatter, audit log
 */
-
 /* ===== CONFIG ===== */
 $USER = getenv('WEBEDITOR_USER') ?: 'admin';
 $PASS = getenv('WEBEDITOR_PASS') ?: 'admin';
