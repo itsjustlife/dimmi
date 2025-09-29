@@ -1637,8 +1637,20 @@ if ($doorMode) {
     .mono {@apply font-mono;}
   </style>
   <style>
-    #doorTree .door-node-entry button {transition:background-color .15s ease, color .15s ease;}
-    #doorTree .door-node-entry button.active {background-color:#dbeafe;color:#1d4ed8;font-weight:600;}
+    #doorTree{padding:0.75rem;}
+    #doorTree .door-node-entry{margin-bottom:0.5rem;}
+    #doorTree .door-node-row{display:flex;align-items:center;gap:0.5rem;padding:0.5rem;border:1px solid #e2e8f0;border-radius:0.5rem;background:#f8fafc;box-shadow:0 1px 1px rgba(148,163,184,0.15);transition:border-color .2s ease,background-color .2s ease,box-shadow .2s ease;}
+    #doorTree .door-node-row:hover{border-color:#bfdbfe;background:#eff6ff;}
+    #doorTree .door-node-row.active{border-color:#2563eb;background:#dbeafe;box-shadow:0 0 0 1px rgba(37,99,235,0.35);}
+    #doorTree .door-node-caret{width:1.75rem;height:1.75rem;display:flex;align-items:center;justify-content:center;border:1px solid transparent;border-radius:0.375rem;background:#ffffff;color:#6b7280;transition:background-color .2s ease,color .2s ease,border-color .2s ease;}
+    #doorTree .door-node-caret:hover{background:#f1f5f9;color:#1d4ed8;border-color:#bfdbfe;}
+    #doorTree .door-node-caret:focus{outline:2px solid rgba(37,99,235,0.35);outline-offset:2px;}
+    #doorTree .door-node-spacer{width:1.75rem;display:flex;align-items:center;justify-content:center;color:#cbd5f5;}
+    #doorTree .door-node-button{flex:1;background:none;border:none;padding:0;font:inherit;color:#1f2937;text-align:left;cursor:pointer;transition:color .2s ease;font-size:0.875rem;}
+    #doorTree .door-node-button:hover{color:#1d4ed8;}
+    #doorTree .door-node-button.active{color:#1d4ed8;font-weight:600;}
+    #doorTree .door-node-button:focus{outline:2px solid rgba(37,99,235,0.35);outline-offset:2px;}
+    #doorTree .door-node-children{margin-left:1.5rem;padding-left:0.75rem;border-left:1px dashed #d1d5db;margin-top:0.5rem;}
     #doorContent h1,#doorContent h2,#doorContent h3{margin-top:1.5rem;font-weight:600;color:#1f2937;}
     #doorContent p{margin-top:0.75rem;color:#374151;}
     #doorContent ul{margin-top:0.75rem;margin-left:1.25rem;list-style:disc;color:#374151;}
@@ -1646,11 +1658,15 @@ if ($doorMode) {
     #doorContent hr{margin:1.5rem 0;border:0;border-top:1px solid #e5e7eb;}
     #doorContent pre{background:#111827;color:#f9fafb;padding:0.75rem;border-radius:0.5rem;overflow:auto;margin-top:0.75rem;font-size:0.875rem;}
     #doorContent code{background:#e5e7eb;color:#1f2937;padding:0.1rem 0.25rem;border-radius:0.25rem;}
-    #doorContent .door-node-link{background:none;border:none;color:#2563eb;padding:0;font:inherit;cursor:pointer;text-decoration:none;}
-    #doorContent .door-node-link:hover{color:#1d4ed8;text-decoration:underline;}
-    #doorContent .door-node-link:focus{outline:2px solid rgba(59,130,246,0.4);outline-offset:2px;}
-    #doorTeleports button{transition:background-color .15s ease,color .15s ease;}
-    #doorTeleports button:hover{background:#dbeafe;color:#1d4ed8;}
+    #doorContent .door-chip{display:inline-flex;align-items:center;gap:0.25rem;padding:0.25rem 0.75rem;border-radius:0.5rem;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;font-weight:500;cursor:pointer;transition:background-color .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease;text-decoration:none;}
+    #doorContent .door-chip:hover{background:#dbeafe;border-color:#60a5fa;color:#1d4ed8;}
+    #doorContent .door-chip:focus{outline:2px solid rgba(37,99,235,0.35);outline-offset:2px;}
+    #doorTeleports .door-teleport-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(12rem,1fr));gap:0.75rem;margin:0;padding:0;}
+    #doorTeleports .door-teleport-list li{list-style:none;}
+    #doorTeleports .door-teleport-meta{font-size:0.75rem;color:#6b7280;margin-top:0.35rem;padding-left:0.5rem;}
+    #doorTeleports .door-chip{width:100%;justify-content:center;box-shadow:0 1px 1px rgba(148,163,184,0.2);}
+    #doorTeleports .door-chip:hover{box-shadow:0 4px 12px rgba(96,165,250,0.25);}
+    #doorTeleports a.door-chip{display:inline-flex;}
   </style>
 </head>
 <body class="h-screen flex flex-col bg-gray-50 text-gray-800 overflow-x-hidden">
@@ -2391,14 +2407,14 @@ function appendDoorNode(id, container, depth, visited, expanded){
   const row=document.createElement('div');
   row.className='door-node-entry';
   const header=document.createElement('div');
-  header.className='flex items-center gap-1';
+  header.className='door-node-row';
   header.style.paddingLeft=`${depth*16}px`;
   let childWrap=null;
   if(hasChildren){
     if(!(expanded instanceof Set)) expanded=new Set();
     const caret=document.createElement('button');
     caret.type='button';
-    caret.className='caret text-lg w-5 text-gray-500';
+    caret.className='door-node-caret';
     const isExpanded=expanded.has(id);
     caret.textContent=isExpanded?'▾':'▸';
     caret.setAttribute('aria-label','Toggle children');
@@ -2416,14 +2432,14 @@ function appendDoorNode(id, container, depth, visited, expanded){
     header.appendChild(caret);
   }else{
     const spacer=document.createElement('span');
-    spacer.className='w-5 text-center text-gray-300';
+    spacer.className='door-node-spacer';
     spacer.textContent='•';
     header.appendChild(spacer);
   }
   const btn=document.createElement('button');
   btn.type='button';
   btn.dataset.node=id;
-  btn.className='flex-1 text-left px-2 py-1 rounded text-sm text-gray-700 hover:bg-blue-50';
+  btn.className='door-node-button text-sm';
   btn.textContent=node.title || id;
   btn.addEventListener('click',()=>selectDoorNode(id));
   header.appendChild(btn);
@@ -2446,9 +2462,15 @@ function appendDoorNode(id, container, depth, visited, expanded){
 function highlightDoorTreeSelection(){
   const tree=document.getElementById('doorTree');
   if(!tree) return;
+  tree.querySelectorAll('.door-node-row').forEach(row=>row.classList.remove('active'));
   tree.querySelectorAll('button[data-node]').forEach(btn=>{
-    if(btn.dataset.node===doorState.selectedId) btn.classList.add('active');
-    else btn.classList.remove('active');
+    if(btn.dataset.node===doorState.selectedId){
+      btn.classList.add('active');
+      const row=btn.closest('.door-node-row');
+      if(row) row.classList.add('active');
+    }else{
+      btn.classList.remove('active');
+    }
   });
 }
 
@@ -2502,7 +2524,7 @@ function renderDoorInline(text){
       const nodeId=seg.value.trim();
       if(nodeId && doorState.nodes && doorState.nodes[nodeId]){
         const label=doorState.nodes[nodeId].title || nodeId;
-        return `<button type="button" class="door-node-link" data-door-target="${escapeAttr(nodeId)}">${escapeHtml(label)}</button>`;
+        return `<button type="button" class="door-node-link door-chip" data-door-target="${escapeAttr(nodeId)}">${escapeHtml(label)}</button>`;
       }
       return `<code>${escapeHtml(seg.value)}</code>`;
     }
@@ -2512,7 +2534,7 @@ function renderDoorInline(text){
       if(linkMatch.index>pos) result+=escapeHtml(seg.value.slice(pos, linkMatch.index));
       const label=escapeHtml(linkMatch[1]);
       const href=escapeHtml(linkMatch[2]);
-      result+=`<a href="${href}" target="_blank" rel="noopener" class="text-blue-600 hover:underline">${label}</a>`;
+      result+=`<a href="${href}" target="_blank" rel="noopener" class="door-chip">${label}</a>`;
       pos=linkRe.lastIndex;
     }
     if(pos<seg.value.length) result+=escapeHtml(seg.value.slice(pos));
@@ -2585,20 +2607,20 @@ function renderDoorTeleports(node){
     return;
   }
   const ul=document.createElement('ul');
-  ul.className='space-y-2';
+  ul.className='door-teleport-list';
   links.forEach(link=>{
     const li=document.createElement('li');
     if(link.type==='node' && doorState.nodes[link.target]){
       const target=doorState.nodes[link.target];
       const btn=document.createElement('button');
       btn.type='button';
-      btn.className='px-3 py-1 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700';
+      btn.className='door-chip door-node-link';
       btn.textContent=link.title || target.title || link.target;
       btn.onclick=()=>selectDoorNode(link.target);
       li.appendChild(btn);
       if(link.path){
         const meta=document.createElement('div');
-        meta.className='text-xs text-gray-500 mt-1';
+        meta.className='door-teleport-meta';
         meta.textContent=link.path;
         li.appendChild(meta);
       }
@@ -2607,7 +2629,7 @@ function renderDoorTeleports(node){
       a.href=link.target;
       a.target='_blank';
       a.rel='noopener';
-      a.className='text-blue-600 hover:underline text-sm';
+      a.className='door-chip';
       a.textContent=link.title || link.target;
       li.appendChild(a);
     }else{
