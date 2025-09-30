@@ -175,6 +175,9 @@ function json_new_node_like($ref,$title,$now){
     else $n['content']=$title;
   }
   if(isset($ref['links'])) $n['links']=[];
+  foreach(['icon','color','tileKind'] as $field){
+    if(isset($ref[$field])) $n[$field]=$ref[$field];
+  }
   if(isset($ref['created'])) $n['created']=$now;
   if(isset($ref['modified'])) $n['modified']=$now;
   return $n;
@@ -217,19 +220,34 @@ HTML;
 function door_data_file(){
   global $ROOT;
   if(!$ROOT) return null;
-  return rtrim($ROOT,'/').'/door.json';
+  $base=rtrim($ROOT,'/');
+  $dir=$base.'/DATA/door';
+  $file=$dir.'/door.json';
+  if(!is_dir($dir)) @mkdir($dir,0775,true);
+  $legacy=$base.'/door.json';
+  if(is_file($legacy) && !is_file($file)){
+    if(@rename($legacy,$file)===false){
+      if(!is_dir($dir)) @mkdir($dir,0775,true);
+      if(@copy($legacy,$file)!==false) @unlink($legacy);
+    }
+  }
+  if(!is_file($file) && is_file($legacy)) return $legacy;
+  return $file;
 }
 
 function door_default_document(){
   $now=gmdate('c');
   $rootId=uuidv4();
   return [
-    'schemaVersion'=>'door.v1',
+    'schemaVersion'=>'1.1',
     'metadata'=>['title'=>'Dimmi Door'],
     'root'=>[[
       'id'=>$rootId,
       'title'=>'Atrium',
       'note'=>'Tap tiles to explore this archive.',
+      'icon'=>'door',
+      'color'=>'#2563eb',
+      'tileKind'=>'room',
       'created'=>$now,
       'modified'=>$now,
       'children'=>[],
@@ -289,7 +307,10 @@ function door_flatten_nodes($items,&$out){
     if(!is_array($node)) continue;
     $out[]=[
       'id'=>$node['id'] ?? '',
-      'title'=>json_get_title($node)
+      'title'=>json_get_title($node),
+      'icon'=>$node['icon'] ?? null,
+      'color'=>$node['color'] ?? null,
+      'tileKind'=>$node['tileKind'] ?? null
     ];
     if(!empty($node['children']) && is_array($node['children'])) door_flatten_nodes($node['children'],$out);
   }
@@ -319,7 +340,13 @@ function door_search_results($query,$nodeLimit=8,$fileLimit=8){
     $id=$entry['id'] ?? '';
     $title=$entry['title'] ?? '';
     if(door_ci_contains($title,$query) || door_ci_contains($id,$query)){
-      $results['nodes'][]=['id'=>$id,'title'=>$title];
+      $results['nodes'][]=[
+        'id'=>$id,
+        'title'=>$title,
+        'icon'=>$entry['icon'] ?? null,
+        'color'=>$entry['color'] ?? null,
+        'tileKind'=>$entry['tileKind'] ?? null
+      ];
     }
   }
 
@@ -478,7 +505,12 @@ function door_handle_data(){
       $children[]=[
         'id'=>$child['id'] ?? '',
         'title'=>json_get_title($child),
-        'note'=>json_get_note($child)
+        'note'=>json_get_note($child),
+        'icon'=>$child['icon'] ?? null,
+        'color'=>$child['color'] ?? null,
+        'tileKind'=>$child['tileKind'] ?? null,
+        'created'=>$child['created'] ?? null,
+        'modified'=>$child['modified'] ?? null
       ];
     }
   }
@@ -502,7 +534,12 @@ function door_handle_data(){
     'node'=>[
       'id'=>$node['id'] ?? '',
       'title'=>json_get_title($node),
-      'note'=>json_get_note($node)
+      'note'=>json_get_note($node),
+      'icon'=>$node['icon'] ?? null,
+      'color'=>$node['color'] ?? null,
+      'tileKind'=>$node['tileKind'] ?? null,
+      'created'=>$node['created'] ?? null,
+      'modified'=>$node['modified'] ?? null
     ],
     'children'=>$children,
     'links'=>$links,
@@ -540,12 +577,30 @@ function door_handle_create(){
   $new['note']=$note;
   $new['created']=$now;
   $new['modified']=$now;
+  $fallbacks=[
+    'icon'=>$new['icon'] ?? 'door',
+    'color'=>$new['color'] ?? '#2563eb',
+    'tileKind'=>$new['tileKind'] ?? 'room'
+  ];
+  foreach($fallbacks as $key=>$value){
+    if(array_key_exists($key,$payload)) $new[$key]=(string)$payload[$key];
+    else $new[$key]=(string)$value;
+  }
   if(isset($payload['links']) && is_array($payload['links'])) $new['links']=door_clean_links($payload['links']);
   $list[]=$new;
   if(isset($parentNode)) $parentNode['modified']=$now;
   door_save_doc($doc);
-  audit('door_create','door.json#'.($new['id'] ?? ''),true);
-  j(['ok'=>true,'node'=>['id'=>$new['id'] ?? '', 'title'=>$title,'note'=>$note]]);
+  audit('door_create','DATA/door/door.json#'.($new['id'] ?? ''),true);
+  j(['ok'=>true,'node'=>[
+    'id'=>$new['id'] ?? '',
+    'title'=>$title,
+    'note'=>$note,
+    'icon'=>$new['icon'] ?? null,
+    'color'=>$new['color'] ?? null,
+    'tileKind'=>$new['tileKind'] ?? null,
+    'created'=>$new['created'] ?? null,
+    'modified'=>$new['modified'] ?? null
+  ]]);
 }
 
 function door_handle_update(){
@@ -561,11 +616,23 @@ function door_handle_update(){
   $now=gmdate('c');
   if(array_key_exists('title',$payload)) json_set_title($node,(string)$payload['title']);
   if(array_key_exists('note',$payload)) json_set_note($node,(string)$payload['note']);
+  foreach(['icon','color','tileKind','created'] as $key){
+    if(array_key_exists($key,$payload)) $node[$key]=(string)$payload[$key];
+  }
   if(isset($payload['links']) && is_array($payload['links'])) $node['links']=door_clean_links($payload['links']);
   $node['modified']=$now;
   door_save_doc($doc);
-  audit('door_update','door.json#'.$id,true);
-  j(['ok'=>true,'node'=>['id'=>$node['id'] ?? '', 'title'=>json_get_title($node), 'note'=>json_get_note($node)]]);
+  audit('door_update','DATA/door/door.json#'.$id,true);
+  j(['ok'=>true,'node'=>[
+    'id'=>$node['id'] ?? '',
+    'title'=>json_get_title($node),
+    'note'=>json_get_note($node),
+    'icon'=>$node['icon'] ?? null,
+    'color'=>$node['color'] ?? null,
+    'tileKind'=>$node['tileKind'] ?? null,
+    'created'=>$node['created'] ?? null,
+    'modified'=>$node['modified'] ?? null
+  ]]);
 }
 
 function door_handle_delete(){
@@ -586,7 +653,7 @@ function door_handle_delete(){
   $next=null;
   if(is_array($parentNode)) $next=$parentNode['id'] ?? null;
   elseif(!empty($root) && isset($root[0]['id'])) $next=$root[0]['id'];
-  audit('door_delete','door.json#'.$id,true);
+  audit('door_delete','DATA/door/door.json#'.$id,true);
   j(['ok'=>true,'next'=>$next]);
 }
 

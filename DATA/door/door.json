@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.1",
+  "metadata": {
+    "title": "Dimmi Door"
+  },
+  "root": [
+    {
+      "id": "818cd347-9ae4-40cf-a505-930d9124efe5",
+      "title": "Atrium",
+      "note": "Tap tiles to explore this archive.",
+      "icon": "door",
+      "color": "#2563eb",
+      "tileKind": "room",
+      "created": "2024-01-01T00:00:00+00:00",
+      "modified": "2024-01-01T00:00:00+00:00",
+      "children": [],
+      "links": []
+    }
+  ]
+}
