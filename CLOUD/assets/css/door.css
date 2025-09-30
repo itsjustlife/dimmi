@@ -112,11 +112,56 @@ header a:hover {
   transition: background 0.2s, transform 0.2s;
 }
 
+.door-tile-action.door-tile-more {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  min-width: 3.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .door-tile-action:hover,
 .door-tile-action:focus {
   background: rgba(56, 189, 248, 0.4);
   outline: none;
   transform: translateY(-1px);
+}
+
+.door-tile-menu {
+  position: absolute;
+  top: 2.6rem;
+  right: 0.5rem;
+  min-width: 9rem;
+  background: rgba(15, 23, 42, 0.96);
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.5);
+  padding: 0.35rem 0;
+  display: none;
+  flex-direction: column;
+  z-index: 25;
+}
+
+.door-tile-menu.active {
+  display: flex;
+}
+
+.door-tile-menu-item {
+  background: none;
+  border: none;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  color: #e2e8f0;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.door-tile-menu-item:hover,
+.door-tile-menu-item:focus {
+  background: rgba(56, 189, 248, 0.35);
+  color: #0f172a;
+  outline: none;
 }
 
 .door-tile.door-add {
@@ -144,6 +189,12 @@ header a:hover {
   font-size: 0.95rem;
 }
 
+.door-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .door-breadcrumb button {
   background: none;
   border: none;
@@ -157,6 +208,26 @@ header a:hover {
 .door-breadcrumb button:hover,
 .door-breadcrumb button:focus {
   background: rgba(56, 189, 248, 0.15);
+  outline: none;
+}
+
+.door-crumb-classic {
+  border: none;
+  border-radius: 0.5rem;
+  background: rgba(56, 189, 248, 0.12);
+  color: #bae6fd;
+  cursor: pointer;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background 0.2s, color 0.2s;
+}
+
+.door-crumb-classic:hover,
+.door-crumb-classic:focus {
+  background: rgba(56, 189, 248, 0.25);
+  color: #0f172a;
   outline: none;
 }
 
@@ -431,6 +502,7 @@ header a:hover {
   gap: 0.4rem;
 }
 
+.door-link-classic,
 .door-link-edit,
 .door-link-remove {
   border: none;
@@ -439,6 +511,18 @@ header a:hover {
   cursor: pointer;
   font-weight: 600;
   touch-action: manipulation;
+}
+
+.door-link-classic {
+  background: rgba(56, 189, 248, 0.12);
+  color: #bae6fd;
+}
+
+.door-link-classic:hover,
+.door-link-classic:focus {
+  background: rgba(56, 189, 248, 0.25);
+  color: #0f172a;
+  outline: none;
 }
 
 .door-link-edit {

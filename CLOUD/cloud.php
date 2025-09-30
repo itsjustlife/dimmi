@@ -1630,10 +1630,16 @@ let currentDir='', currentFile='', currentOutlinePath='', currentFileInfo=null;
 let clipboardPath='';
 const state={doc:null};
 let selectedId=null, nodeMap={}, arkMap={}, currentLinks=[], currentJsonRoot=[], currentJsonDoc=null, currentJsonRootKey=null;
-const doorState={active:false,ready:false,loading:false,nodes:{},rootId:null,selectedId:null,contentCache:{},expanded:new Set()};
+const doorState={active:false,ready:false,loading:false,nodes:{},rootId:null,selectedId:null,contentCache:{},expanded:new Set(),parents:{}};
 const doorHelpBtn=document.getElementById('doorHelpBtn');
 const doorHelpPanel=document.getElementById('doorHelpPanel');
 const doorHelpClose=document.getElementById('doorHelpClose');
+
+const queryParams=new URLSearchParams(window.location.search||'');
+const selectedPathParam=(queryParams.get('selectedPath')||'').trim();
+const selectedIdParam=(queryParams.get('selectedId')||'').trim();
+const selectedPathInfo={raw:selectedPathParam,isDir:selectedPathParam.endsWith('/')};
+let doorSelectionPending=selectedIdParam?selectedIdParam:null;
 
 function setDoorHelpVisibility(show){
   if(!doorHelpBtn || !doorHelpPanel) return;
@@ -1679,6 +1685,30 @@ function updateMeta(){
   });
 }
 updateMeta();
+
+async function focusSelectedPath(info){
+  const raw=(info && info.raw) ? info.raw : '';
+  if(!raw){
+    await openDir('');
+    return;
+  }
+  const segments=raw.replace(/\\/g,'/').split('/').filter(Boolean);
+  if(!segments.length){
+    await openDir('');
+    return;
+  }
+  if(info && info.isDir){
+    await openDir(segments.join('/'));
+    return;
+  }
+  const fileName=segments.pop();
+  const dir=segments.join('/');
+  await openDir(dir);
+  if(fileName){
+    const fullPath=dir?`${dir}/${fileName}`:fileName;
+    await openFile(fullPath,fileName,0,0);
+  }
+}
 
 function applyMetaBindings(pane){
   const fileInput=document.getElementById(`meta-file-${pane}`);
@@ -2038,15 +2068,33 @@ async function loadDoorDataset(force=false){
     const nodeData=await fetchDoorJson('DATA/door/nodes.json');
     const map={};
     (nodeData.nodes||[]).forEach(n=>{ map[n.id]=n; });
+    const parents={};
+    Object.values(map).forEach(node=>{
+      if(!node || !Array.isArray(node.children)) return;
+      node.children.forEach(childId=>{
+        if(!childId) return;
+        if(!parents[childId]) parents[childId]=[];
+        if(!parents[childId].includes(node.id)) parents[childId].push(node.id);
+      });
+    });
     doorState.nodes=map;
     doorState.rootId=indexData.root||'mind-atlas';
     doorState.ready=true;
     doorState.contentCache={};
     doorState.selectedId=null;
+    doorState.parents=parents;
     doorState.expanded=new Set([doorState.rootId]);
+    if(doorSelectionPending && map[doorSelectionPending]){
+      expandDoorAncestors(doorSelectionPending);
+    }
     buildDoorTree();
     if(Object.keys(map).length){
-      selectDoorNode(doorState.rootId);
+      if(doorSelectionPending && map[doorSelectionPending]){
+        selectDoorNode(doorSelectionPending);
+        doorSelectionPending=null;
+      }else{
+        selectDoorNode(doorState.rootId);
+      }
       if(status){
         const count=Object.keys(map).length;
         status.textContent=`Loaded ${count} room${count===1?'':'s'}.`;
@@ -2059,6 +2107,7 @@ async function loadDoorDataset(force=false){
     console.error(err);
     doorState.ready=false;
     doorState.expanded=new Set();
+    doorState.parents={};
     renderDoorPlaceholder('Unable to load door dataset. Run “Rebuild Seeds”.');
     if(status) status.textContent='Load failed: '+err.message;
   }finally{
@@ -2106,6 +2155,22 @@ function buildDoorTree(){
   doorState.expanded.add(doorState.rootId);
   appendDoorNode(doorState.rootId, tree, 0, new Set(), doorState.expanded);
   highlightDoorTreeSelection();
+}
+
+function expandDoorAncestors(id){
+  if(!id || !doorState || !doorState.parents) return;
+  const visited=new Set();
+  let current=id;
+  while(current && !visited.has(current)){
+    visited.add(current);
+    const list=doorState.parents[current];
+    if(!Array.isArray(list) || !list.length) break;
+    const parentId=list[0];
+    if(!parentId) break;
+    if(!(doorState.expanded instanceof Set)) doorState.expanded=new Set();
+    doorState.expanded.add(parentId);
+    current=parentId;
+  }
 }
 
 function appendDoorNode(id, container, depth, visited, expanded){
@@ -2507,7 +2572,7 @@ function crumb(rel){
   });
 }
 async function init(){
-  openDir('');
+  await focusSelectedPath(selectedPathInfo);
 }
 function ent(name,rel,isDir,size,mtime){
   const li=document.createElement('li');

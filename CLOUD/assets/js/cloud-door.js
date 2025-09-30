@@ -16,6 +16,18 @@
       }
       const qs = search.toString();
       return `${this.base}${qs ? `?${qs}` : ''}`;
+    },
+    classicUrl(params) {
+      const search = new URLSearchParams();
+      search.set('mode', 'classic');
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === '') return;
+          search.set(key, value);
+        });
+      }
+      const qs = search.toString();
+      return `${this.base}${qs ? `?${qs}` : ''}`;
     }
   };
 
@@ -76,6 +88,112 @@
   const attachBtn = document.getElementById('door-attach');
 
   if (statusEl) statusEl.textContent = bootstrap.status || '';
+
+  function normalizeClassicPath(path) {
+    if (!path) return '';
+    const cleaned = String(path)
+      .replace(/\/g, '/');
+    const parts = cleaned.split('/').filter(Boolean);
+    return parts.join('/');
+  }
+
+  function openClassic(params) {
+    const url = DOOR.classicUrl(params);
+    if (!url) return;
+    window.open(url, '_blank', 'noopener');
+  }
+
+  function classicParamsForLink(link) {
+    if (!link) return null;
+    const type = (link.type || '').toLowerCase();
+    const target = link.target || '';
+    if (!target) return null;
+    if (!type || type === 'relation' || type === 'node') {
+      return { selectedId: target };
+    }
+    if (type === 'folder') {
+      const base = normalizeClassicPath(target);
+      return base ? { selectedPath: `${base}/` } : null;
+    }
+    if (type === 'file' || type === 'structure') {
+      const path = normalizeClassicPath(target);
+      return path ? { selectedPath: path } : null;
+    }
+    return null;
+  }
+
+  function installTileMenu(wrap, items, { label = '⋮', title = 'More actions' } = {}) {
+    if (!wrap || !Array.isArray(items) || !items.length) return () => {};
+    const menu = document.createElement('div');
+    menu.className = 'door-tile-menu';
+    items.forEach(item => {
+      if (!item || typeof item.action !== 'function') return;
+      const entry = document.createElement('button');
+      entry.type = 'button';
+      entry.className = 'door-tile-menu-item';
+      entry.textContent = item.label || 'Action';
+      entry.addEventListener('click', event => {
+        event.stopPropagation();
+        closeMenu();
+        try {
+          item.action();
+        } catch (err) {
+          console.error(err);
+        }
+      });
+      menu.appendChild(entry);
+    });
+    if (!menu.childNodes.length) return () => {};
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'door-tile-action door-tile-more';
+    toggle.innerHTML = label;
+    toggle.title = title;
+    toggle.setAttribute('aria-haspopup', 'true');
+    toggle.setAttribute('aria-expanded', 'false');
+    wrap.appendChild(toggle);
+    wrap.appendChild(menu);
+
+    const outsideHandler = event => {
+      if (!wrap.contains(event.target)) closeMenu();
+    };
+
+    const keyHandler = event => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        closeMenu();
+      }
+    };
+
+    function closeMenu() {
+      if (!menu.classList.contains('active')) return;
+      menu.classList.remove('active');
+      toggle.setAttribute('aria-expanded', 'false');
+      document.removeEventListener('click', outsideHandler);
+      document.removeEventListener('keydown', keyHandler);
+    }
+
+    function openMenu() {
+      menu.classList.add('active');
+      toggle.setAttribute('aria-expanded', 'true');
+      document.addEventListener('click', outsideHandler);
+      document.addEventListener('keydown', keyHandler);
+      const first = menu.querySelector('.door-tile-menu-item');
+      if (first && typeof first.focus === 'function') {
+        requestAnimationFrame(() => first.focus());
+      }
+    }
+
+    toggle.addEventListener('click', event => {
+      event.stopPropagation();
+      if (menu.classList.contains('active')) closeMenu();
+      else openMenu();
+    });
+
+    menu.addEventListener('click', event => event.stopPropagation());
+
+    return closeMenu;
+  }
 
   let preventNavigation = false;
   if (window.PreviewService && typeof window.PreviewService.onDirtyChange === 'function') {
@@ -284,6 +402,19 @@
       li.appendChild(meta);
       const actions = document.createElement('div');
       actions.className = 'door-link-actions';
+      const classicParams = classicParamsForLink(link);
+      if (classicParams) {
+        const classicBtn = document.createElement('button');
+        classicBtn.type = 'button';
+        classicBtn.className = 'door-link-classic';
+        classicBtn.textContent = 'Classic';
+        classicBtn.title = 'Open in Classic mode';
+        classicBtn.addEventListener('click', event => {
+          event.stopPropagation();
+          openClassic(classicParams);
+        });
+        actions.appendChild(classicBtn);
+      }
       const edit = document.createElement('button');
       edit.type = 'button';
       edit.className = 'door-link-edit';
@@ -360,6 +491,8 @@
     if (!wrap) return;
     wrap.innerHTML = '';
     (items || []).forEach((item, index) => {
+      const crumbWrap = document.createElement('span');
+      crumbWrap.className = 'door-crumb';
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.textContent = item.title || 'Untitled';
@@ -371,7 +504,20 @@
         if (!(await confirmNavigation())) return;
         loadRoom(item.id);
       });
-      wrap.appendChild(btn);
+      crumbWrap.appendChild(btn);
+      if (item && item.id) {
+        const classicBtn = document.createElement('button');
+        classicBtn.type = 'button';
+        classicBtn.className = 'door-crumb-classic';
+        classicBtn.title = 'Open in Classic';
+        classicBtn.textContent = 'Classic';
+        classicBtn.addEventListener('click', event => {
+          event.stopPropagation();
+          openClassic({ selectedId: item.id });
+        });
+        crumbWrap.appendChild(classicBtn);
+      }
+      wrap.appendChild(crumbWrap);
       if (index < items.length - 1) {
         const sep = document.createElement('span');
         sep.textContent = '›';
@@ -430,25 +576,33 @@
     (children || []).forEach(child => {
       const wrap = document.createElement('div');
       wrap.className = 'door-tile-wrap';
+      let closeTileMenu = () => {};
       const tile = document.createElement('button');
       tile.type = 'button';
       tile.className = 'door-tile';
       tile.innerHTML = `<span>${escapeHtml(child.title || 'Untitled')}</span>`;
       tile.addEventListener('click', async () => {
         if (!(await confirmNavigation())) return;
+        closeTileMenu();
         loadRoom(child.id);
       });
       wrap.appendChild(tile);
-      const attach = document.createElement('button');
-      attach.type = 'button';
-      attach.className = 'door-tile-action';
-      attach.textContent = 'Attach';
-      attach.title = 'Attach a teleport to this room';
-      attach.addEventListener('click', event => {
-        event.stopPropagation();
-        openAttachWizard({ relationTarget: child.id, defaultType: 'relation', defaultLabel: child.title || '' });
+      const menuItems = [
+        {
+          label: 'Attach teleport',
+          action: () => openAttachWizard({ relationTarget: child.id, defaultType: 'relation', defaultLabel: child.title || '' })
+        }
+      ];
+      if (child && child.id) {
+        menuItems.push({
+          label: 'Open in Classic',
+          action: () => openClassic({ selectedId: child.id })
+        });
+      }
+      closeTileMenu = installTileMenu(wrap, menuItems, {
+        label: 'Attach',
+        title: 'Tile actions'
       });
-      wrap.appendChild(attach);
       grid.appendChild(wrap);
     });
     const add = document.createElement('button');
