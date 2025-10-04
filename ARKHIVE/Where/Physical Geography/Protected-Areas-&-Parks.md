@@ -11,9 +11,9 @@ _Context:_ Environmental sites set aside for protection within physical geograph
 _History:_
 - 1872: Yellowstone becomes first national park (WHEN:../../When/README.md).
 _Links:_
-- WHO: [Conservationists](../../Who/README.md)
-- WHAT: [Environmental Protection](../../What/README.md)
-- WHEN: [National Park History](../../When/README.md)
-- WHY: [Preservation](../../Why/README.md)
-- WHERE: [Physical Geography](README.md)
-_See also:_ [Biomes & Ecosystems](Biomes & Ecosystems/README.md)
+- WHO: [Conservationists](../../Who/)
+- WHAT: [Environmental Protection](../../What/)
+- WHEN: [National Park History](../../When/)
+- WHY: [Preservation](../../Why/)
+- WHERE: [Physical Geography](./)
+_See also:_ [Biomes & Ecosystems](Biomes & Ecosystems/)

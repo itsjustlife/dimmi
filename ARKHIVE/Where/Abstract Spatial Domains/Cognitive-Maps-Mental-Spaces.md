@@ -11,9 +11,9 @@ _Context:_ Mental constructs in psychology and neuroscience.
 _History:_
 - 1948: Edward Tolman studies cognitive maps in rats (WHEN:../../When/README.md).
 _Links:_
-- WHO: [Cognitive Scientists](../../Who/README.md)
-- WHAT: [Psychology](../../What/README.md)
-- WHEN: [Cognitive Map Research](../../When/README.md)
-- WHY: [Navigation and Memory](../../Why/README.md)
-- WHERE: [Abstract Spatial Domains](README.md)
+- WHO: [Cognitive Scientists](../../Who/)
+- WHAT: [Psychology](../../What/)
+- WHEN: [Cognitive Map Research](../../When/)
+- WHY: [Navigation and Memory](../../Why/)
+- WHERE: [Abstract Spatial Domains](./)
 _See also:_ [Conceptual & Mathematical Spaces](Conceptual-Mathematical-Spaces.md)

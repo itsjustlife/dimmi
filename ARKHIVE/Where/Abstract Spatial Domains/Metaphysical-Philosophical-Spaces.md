@@ -11,9 +11,9 @@ _Context:_ Speculative or symbolic locations beyond empirical observation.
 _History:_
 - Classical era: Plato describes the Realm of Forms (WHEN:../../When/README.md).
 _Links:_
-- WHO: [Philosophers](../../Who/README.md)
-- WHAT: [Metaphysics](../../What/README.md)
-- WHEN: [History of Philosophy](../../When/README.md)
-- WHY: [Explain Existence](../../Why/README.md)
-- WHERE: [Abstract Spatial Domains](README.md)
+- WHO: [Philosophers](../../Who/)
+- WHAT: [Metaphysics](../../What/)
+- WHEN: [History of Philosophy](../../When/)
+- WHY: [Explain Existence](../../Why/)
+- WHERE: [Abstract Spatial Domains](./)
 _See also:_ [Parallel Universes & Multiverse](Parallel-Universes-Multiverse.md)

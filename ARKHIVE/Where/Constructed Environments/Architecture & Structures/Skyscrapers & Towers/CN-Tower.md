@@ -11,9 +11,9 @@ _Context:_ Downtown Toronto, Ontario, Canada.
 _History:_
 - 1976: Opening to the public (WHEN:../../../../When/README.md).
 _Links:_
-- WHO: [Canadian National Railways](../../../../Who/README.md)
-- WHAT: [Architecture](../../../../What/README.md)
-- WHEN: [1976](../../../../When/README.md)
-- WHY: [Communications](../../../../Why/README.md)
-- WHERE: [Skyscrapers & Towers](../README.md)
-_See also:_ [Architecture & Structures](../../README.md)
+- WHO: [Canadian National Railways](../../../../Who/)
+- WHAT: [Architecture](../../../../What/)
+- WHEN: [1976](../../../../When/)
+- WHY: [Communications](../../../../Why/)
+- WHERE: [Skyscrapers & Towers](../)
+_See also:_ [Architecture & Structures](../../)

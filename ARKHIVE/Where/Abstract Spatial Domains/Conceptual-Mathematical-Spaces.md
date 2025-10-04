@@ -11,9 +11,9 @@ _Context:_ Symbolic or theoretical models rather than tangible locations.
 _History:_
 - 19th century: Development of vector and metric spaces (WHEN:../../When/README.md).
 _Links:_
-- WHO: [Mathematicians](../../Who/README.md)
-- WHAT: [Mathematics](../../What/README.md)
-- WHEN: [History of Mathematics](../../When/README.md)
-- WHY: [Understand Structures](../../Why/README.md)
-- WHERE: [Abstract Spatial Domains](README.md)
+- WHO: [Mathematicians](../../Who/)
+- WHAT: [Mathematics](../../What/)
+- WHEN: [History of Mathematics](../../When/)
+- WHY: [Understand Structures](../../Why/)
+- WHERE: [Abstract Spatial Domains](./)
 _See also:_ [Cognitive Maps & Mental Spaces](Cognitive-Maps-Mental-Spaces.md)

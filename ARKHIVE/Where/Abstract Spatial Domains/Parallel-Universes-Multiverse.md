@@ -11,9 +11,9 @@ _Context:_ Theoretical spaces beyond observable reality.
 _History:_
 - 1950s: Hugh Everett proposes many-worlds interpretation (WHEN:../../When/README.md).
 _Links:_
-- WHO: [Theorists](../../Who/README.md)
-- WHAT: [Quantum Mechanics](../../What/README.md)
-- WHEN: [Many-Worlds Interpretation](../../When/README.md)
-- WHY: [Explain Quantum Phenomena](../../Why/README.md)
-- WHERE: [Abstract Spatial Domains](README.md)
+- WHO: [Theorists](../../Who/)
+- WHAT: [Quantum Mechanics](../../What/)
+- WHEN: [Many-Worlds Interpretation](../../When/)
+- WHY: [Explain Quantum Phenomena](../../Why/)
+- WHERE: [Abstract Spatial Domains](./)
 _See also:_ [Higher Dimensions & Hyperspace](Higher-Dimensions-&-Hyperspace.md)

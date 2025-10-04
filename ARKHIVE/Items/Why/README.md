@@ -1,7 +1,7 @@
-[⟵ Items](../README.md)
+[⟵ Items](../)
 
 # Why Items
 
 Placeholder for Why-related entries.
 
-[Back to Items](../README.md)
+[Back to Items](../)
