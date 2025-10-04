@@ -227,28 +227,37 @@ function door_path(){
   return $base.'/DATA/door/door.json';
 }
 
-function door_seed(){
+function door_default_root_node($now=null){
+  $now=$now ?? gmdate('c');
+  return [
+    'id'=>'root',
+    'title'=>'Atrium',
+    'note'=>'Root room',
+    'children'=>[],
+    'links'=>[],
+    'created'=>$now,
+    'modified'=>$now
+  ];
+}
+
+function door_default_document(){
+  $now=gmdate('c');
+  return [
+    'schemaVersion'=>'1.1',
+    'metadata'=>['title'=>'Atrium'],
+    'root'=>[door_default_root_node($now)]
+  ];
+}
+
+function door_seed_if_needed(){
   $path=door_path();
   if(!$path) return ['ok'=>false,'error'=>'Door storage unavailable'];
   $dir=dirname($path);
   if(!is_dir($dir) && !@mkdir($dir,0775,true)){
     return ['ok'=>false,'error'=>'Unable to create DATA/door directory'];
   }
-  if(!is_file($path)){
-    $now=gmdate('c');
-    $doc=[
-      'schemaVersion'=>'1.1',
-      'metadata'=>['title'=>'Atrium'],
-      'root'=>[[
-        'id'=>'root',
-        'title'=>'Atrium',
-        'note'=>'Root room',
-        'children'=>[],
-        'links'=>[],
-        'created'=>$now,
-        'modified'=>$now
-      ]]
-    ];
+  if(!is_file($path) || filesize($path)===0){
+    $doc=door_default_document();
     $json=json_encode($doc, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
     if($json===false) return ['ok'=>false,'error'=>'Unable to seed door.json'];
     if(@file_put_contents($path,$json)===false){
@@ -258,19 +267,22 @@ function door_seed(){
   return ['ok'=>true,'path'=>$path];
 }
 
-function door_load(){
-  $seed=door_seed();
+function door_load_doc(){
+  $seed=door_seed_if_needed();
   if(!$seed['ok']) return $seed;
   $path=$seed['path'];
   $raw=@file_get_contents($path);
   if($raw===false) return ['ok'=>false,'error'=>'Unable to read door.json'];
   $data=json_decode($raw,true);
-  if(!is_array($data)) return ['ok'=>false,'error'=>'door.json is not valid JSON'];
-  return ['ok'=>true,'path'=>$path,'data'=>$data];
+  if($data===null && json_last_error()!==JSON_ERROR_NONE){
+    return ['ok'=>false,'error'=>'door.json is not valid JSON'];
+  }
+  if(!is_array($data)) $data=[];
+  return ['ok'=>true,'path'=>$path,'doc'=>$data];
 }
 
-function door_save($data){
-  $seed=door_seed();
+function door_save_doc($data){
+  $seed=door_seed_if_needed();
   if(!$seed['ok']) return $seed;
   $path=$seed['path'];
   $tmp=$path.'.tmp';
@@ -282,6 +294,134 @@ function door_save($data){
     return ['ok'=>false,'error'=>'Failed to replace door.json'];
   }
   return ['ok'=>true,'path'=>$path];
+}
+
+function door_build_index(&$doc){
+  $dirty=false;
+  if(!is_array($doc)){
+    $doc=[];
+    $dirty=true;
+  }
+  $rootKey='root';
+  if(isset($doc['root']) && is_array($doc['root'])){
+    $roots=&$doc['root'];
+  }elseif(isset($doc['items']) && is_array($doc['items'])){
+    $rootKey='items';
+    $roots=&$doc['items'];
+  }else{
+    $doc['root']=[];
+    $roots=&$doc['root'];
+    $dirty=true;
+  }
+  if(!is_array($roots)){
+    $doc[$rootKey]=[];
+    $roots=&$doc[$rootKey];
+    $dirty=true;
+  }
+  if(!$roots){
+    $doc[$rootKey]=[door_default_root_node()];
+    $roots=&$doc[$rootKey];
+    $dirty=true;
+  }
+  if(!isset($roots[0]) || !is_array($roots[0])){
+    $doc[$rootKey]=[door_default_root_node()];
+    $roots=&$doc[$rootKey];
+    $dirty=true;
+  }
+  $rootId=trim((string)($roots[0]['id'] ?? ''));
+  if($rootId===''){
+    $roots[0]['id']='root';
+    $rootId='root';
+    $dirty=true;
+  }
+  $nodesById=[];
+  $parentById=[];
+  $walk=function (&$nodes,$parentId) use (&$walk,&$nodesById,&$parentById,&$dirty,&$rootId){
+    $keys=array_keys($nodes);
+    foreach($keys as $key){
+      if(!is_array($nodes[$key])){
+        unset($nodes[$key]);
+        $dirty=true;
+        continue;
+      }
+      $node=&$nodes[$key];
+      $id=trim((string)($node['id'] ?? ''));
+      if($id===''){
+        $id=($parentId===null && empty($nodesById)) ? 'root' : uuidv4();
+        $node['id']=$id;
+        $dirty=true;
+      }
+      if($parentId===null && empty($nodesById)){
+        $rootId=$id;
+      }
+      if(isset($nodesById[$id])){
+        $id=uuidv4();
+        $node['id']=$id;
+        $dirty=true;
+      }
+      if(!isset($node['children']) || !is_array($node['children'])){
+        $node['children']=[];
+        $dirty=true;
+      }
+      $childKeys=array_keys($node['children']);
+      foreach($childKeys as $childKey){
+        if(!is_array($node['children'][$childKey])){
+          unset($node['children'][$childKey]);
+          $dirty=true;
+        }
+      }
+      $node['children']=array_values($node['children']);
+      if(!isset($node['links']) || !is_array($node['links'])){
+        if(isset($node['links'])) $dirty=true;
+        $node['links']=[];
+      }
+      $normalized=[];
+      $seen=[];
+      foreach($node['links'] as $link){
+        $clean=door_clean_link_payload($link,true);
+        if(!$clean){
+          $dirty=true;
+          continue;
+        }
+        $linkId=$clean['id'];
+        if(isset($seen[$linkId])){
+          $dirty=true;
+          continue;
+        }
+        $seen[$linkId]=true;
+        $normalized[]=$clean;
+      }
+      if($node['links']!==$normalized){
+        $node['links']=$normalized;
+        $dirty=true;
+      }
+      $nodesById[$id]=&$node;
+      $parentById[$id]=$parentId;
+      $walk($node['children'],$id);
+      unset($node);
+    }
+    $nodes=array_values($nodes);
+  };
+  $walk($roots,null);
+  if(!$nodesById){
+    $doc[$rootKey]=[door_default_root_node()];
+    $roots=&$doc[$rootKey];
+    $dirty=true;
+    $walk($roots,null);
+  }
+  if(!isset($nodesById[$rootId])){
+    $rootId=array_key_first($nodesById);
+  }
+  $rootId=$rootId ?: 'root';
+  return [
+    'ok'=>true,
+    'rootKey'=>$rootKey,
+    'rootId'=>$rootId,
+    'roots'=>&$roots,
+    'nodes'=>$nodesById,
+    'parents'=>$parentById,
+    'dirty'=>$dirty
+  ];
 }
 
 function door_json($arr,$code=200){
@@ -390,9 +530,14 @@ function door_response_node($node){
     if(!is_array($link)) continue;
     $target=trim((string)($link['target'] ?? ''));
     if($target==='') continue;
+    $title=trim((string)($link['title'] ?? ''));
+    $labelRaw=$link['label'] ?? '';
+    $label=trim((string)$labelRaw);
+    if($label==='') $label=$title!==''?$title:$target;
     $links[]=[
       'id'=>(string)($link['id'] ?? ''),
-      'title'=>trim((string)($link['title'] ?? $target)),
+      'title'=>$title,
+      'label'=>$label,
       'target'=>$target,
       'type'=>(string)($link['type'] ?? '')
     ];
@@ -408,72 +553,55 @@ function door_response_node($node){
   ];
 }
 
-function door_clean_link_payload($link){
+function door_clean_link_payload($link,$generateId=false){
   if(!is_array($link)) return null;
   $target=trim((string)($link['target'] ?? ''));
   if($target==='') return null;
-  $clean=[
-    'target'=>$target,
-    'title'=>trim((string)($link['title'] ?? '')),
-    'type'=>trim((string)($link['type'] ?? ''))
-  ];
   $id=trim((string)($link['id'] ?? ''));
-  if($id!=='') $clean['id']=$id;
+  if($id===''){
+    if(!$generateId) return null;
+    $id=uuidv4();
+  }
+  $title=trim((string)($link['title'] ?? ''));
+  $label=trim((string)($link['label'] ?? ''));
+  if($label==='') $label=$title!==''?$title:$target;
+  $type=trim((string)($link['type'] ?? ''));
+  $clean=[
+    'id'=>$id,
+    'target'=>$target,
+    'label'=>$label
+  ];
+  if($title!=='') $clean['title']=$title;
+  if($type!=='') $clean['type']=$type;
   return $clean;
 }
 
 function door_upsert_links(&$links,$updates){
-  if(!is_array($updates) || !$updates) return;
   if(!is_array($links)) $links=[];
+  if(!is_array($updates)) return false;
+  $normalized=[];
+  $seen=[];
   foreach($updates as $link){
-    $clean=door_clean_link_payload($link);
+    $clean=door_clean_link_payload($link,true);
     if(!$clean) continue;
-    $matched=false;
-    if(isset($clean['id'])){
-      foreach($links as &$existing){
-        if(!is_array($existing)) continue;
-        if(($existing['id'] ?? '')===$clean['id']){
-          $existing=array_merge($existing,$clean);
-          $matched=true;
-          break;
-        }
-      }
-    }
-    if(!$matched){
-      foreach($links as &$existing){
-        if(!is_array($existing)) continue;
-        if(($existing['id'] ?? '')===''){
-          $sameTarget=($existing['target'] ?? '')===($clean['target'] ?? '');
-          $sameType=($existing['type'] ?? '')===($clean['type'] ?? '');
-          if($sameTarget && $sameType){
-            $existing=array_merge($existing,$clean);
-            $matched=true;
-            break;
-          }
-        }
-      }
-    }
-    if(!$matched) $links[]=$clean;
+    if(isset($seen[$clean['id']])) continue;
+    $seen[$clean['id']]=true;
+    $normalized[]=$clean;
   }
-  $seen=[]; $dedup=[];
-  foreach($links as $entry){
-    if(!is_array($entry)) continue;
-    $key=($entry['id'] ?? '').'|'.($entry['target'] ?? '').'|'.($entry['type'] ?? '');
-    if(isset($seen[$key])) continue;
-    $seen[$key]=true;
-    $dedup[]=$entry;
-  }
-  $links=$dedup;
+  $changed=$links!==$normalized;
+  if($changed) $links=$normalized;
+  return $changed;
 }
 
 function door_remove_links(&$links,$remove){
-  if(!is_array($links) || !is_array($remove)) return;
+  if(!is_array($links) || !is_array($remove)) return false;
   $set=[];
   foreach($remove as $id){
     $val=trim((string)$id);
     if($val!=='') $set[$val]=true;
   }
-  if(!$set) return;
+  if(!$set) return false;
+  $before=count($links);
   $links=array_values(array_filter($links,function($link) use ($set){
     if(!is_array($link)) return false;
     $id=trim((string)($link['id'] ?? ''));
@@ -482,6 +610,7 @@ function door_remove_links(&$links,$remove){
     if($target!=='' && isset($set[$target])) return false;
     return true;
   }));
+  return count($links)!==$before;
 }
 
 function door_filter_ids($items){
@@ -550,58 +679,59 @@ function door_search_files($query,$limit){
 }
 
 function door_handle_data(){
-  $result=door_load();
-  if(!$result['ok']) door_json(['ok'=>false,'error'=>$result['error'] ?? 'Unknown door error']);
-  $data=$result['data'];
-  $roots=[];
-  if(isset($data['root']) && is_array($data['root'])){
-    $roots=$data['root'];
-  } elseif(isset($data['items']) && is_array($data['items'])){
-    $roots=$data['items'];
+  $result=door_load_doc();
+  if(!$result['ok']){
+    $message=$result['error'] ?? 'Unknown door error';
+    audit('door_data','DATA/door/door.json',false,$message);
+    door_json(['ok'=>false,'error'=>$message],500);
   }
-  if(empty($roots)) door_json(['ok'=>false,'error'=>'door.json has no root rooms']);
-  $rootNode=$roots[0];
-  $rootId=trim((string)($rootNode['id'] ?? ''));
-  if($rootId==='') $rootId='root';
+  $doc=$result['doc'];
+  $index=door_build_index($doc);
+  if($index['dirty']){
+    $save=door_save_doc($doc);
+    if(!$save['ok']){
+      $message=$save['error'] ?? 'Failed to save door.json';
+      audit('door_data','DATA/door/door.json',false,$message);
+      door_json(['ok'=>false,'error'=>$message],500);
+    }
+  }
+  $rootId=$index['rootId'];
   $target=trim((string)($_GET['id'] ?? ''));
   if($target==='') $target=$rootId;
-  $found=door_find_node_with_breadcrumb($roots,$target,[]);
-  if(!$found) door_json(['ok'=>false,'error'=>'Node not found','rootId'=>$rootId]);
-  $node=$found['node'];
-  $breadcrumb=$found['breadcrumb'];
-  $childSummaries=[];
-  foreach((array)($node['children'] ?? []) as $child){
+  if(!isset($index['nodes'][$target])) $target=$rootId;
+  if(!isset($index['nodes'][$target])){
+    audit('door_data','DATA/door/door.json#'.$target,false,'Node not found');
+    door_json(['ok'=>false,'error'=>'Node not found','rootId'=>$rootId],404);
+  }
+  $node=&$index['nodes'][$target];
+  $breadcrumb=[];
+  $current=$target;
+  while($current!==null && isset($index['nodes'][$current])){
+    $currentNode=$index['nodes'][$current];
+    array_unshift($breadcrumb,['id'=>$current,'title'=>door_node_title($currentNode)]);
+    $current=$index['parents'][$current] ?? null;
+  }
+  $children=[];
+  foreach((array)$node['children'] as $child){
     if(!is_array($child)) continue;
     $childId=trim((string)($child['id'] ?? ''));
     if($childId==='') continue;
-    $childSummaries[]=[
+    $children[]=[
       'id'=>$childId,
       'title'=>door_node_title($child),
       'note'=>door_node_note($child)
     ];
   }
-  $links=$node['links'] ?? [];
-  if(!is_array($links)) $links=[];
-  $cleanLinks=[];
-  foreach($links as $link){
-    if(!is_array($link)) continue;
-    $target=trim((string)($link['target'] ?? ''));
-    if($target==='') continue;
-    $cleanLinks[]=[
-      'id'=>(string)($link['id'] ?? ''),
-      'title'=>trim((string)($link['title'] ?? $target)),
-      'target'=>$target,
-      'type'=>(string)($link['type'] ?? '')
-    ];
-  }
-  $index=[]; door_collect_nodes($roots,$index);
+  $nodePayload=door_response_node($node);
+  $allNodes=[];
+  door_collect_nodes($index['roots'],$allNodes);
   door_json([
     'ok'=>true,
-    'node'=>door_response_node($node),
-    'children'=>$childSummaries,
-    'links'=>$cleanLinks,
+    'node'=>$nodePayload,
+    'children'=>$children,
+    'links'=>$nodePayload['links'],
     'breadcrumb'=>$breadcrumb,
-    'allNodes'=>$index,
+    'allNodes'=>$allNodes,
     'rootId'=>$rootId
   ]);
 }
@@ -609,40 +739,45 @@ function door_handle_data(){
 function door_handle_create(){
   door_require_csrf();
   $payload=json_decode(file_get_contents('php://input'),true);
-  if(!is_array($payload)) door_json(['ok'=>false,'error'=>'Bad JSON'],422);
+  if(!is_array($payload)){
+    audit('door_create','DATA/door/door.json',false,'Bad JSON payload');
+    door_json(['ok'=>false,'error'=>'Bad JSON'],422);
+  }
+  $load=door_load_doc();
+  if(!$load['ok']){
+    $message=$load['error'] ?? 'Unable to load door.json';
+    audit('door_create','DATA/door/door.json',false,$message);
+    door_json(['ok'=>false,'error'=>$message],500);
+  }
+  $doc=$load['doc'];
+  $index=door_build_index($doc);
+  if($index['dirty']){
+    $save=door_save_doc($doc);
+    if(!$save['ok']){
+      $message=$save['error'] ?? 'Failed to save door.json';
+      audit('door_create','DATA/door/door.json',false,$message);
+      door_json(['ok'=>false,'error'=>$message],500);
+    }
+  }
+  $rootId=$index['rootId'];
   $parentId=trim((string)($payload['parentId'] ?? ''));
-  if($parentId==='') door_json(['ok'=>false,'error'=>'Missing parentId'],422);
+  if($parentId==='') $parentId=$rootId;
+  if(!isset($index['nodes'][$parentId])) $parentId=$rootId;
+  if(!isset($index['nodes'][$parentId])){
+    audit('door_create','DATA/door/door.json#'.$parentId,false,'Parent not found');
+    door_json(['ok'=>false,'error'=>'Parent not found'],404);
+  }
+  $parent=&$index['nodes'][$parentId];
+  if(!isset($parent['children']) || !is_array($parent['children'])) $parent['children']=[];
   $title=trim((string)($payload['title'] ?? ''));
   if($title==='') $title='New Room';
   $note=(string)($payload['note'] ?? '');
-  $load=door_load();
-  if(!$load['ok']) door_json(['ok'=>false,'error'=>$load['error'] ?? 'Unable to load door.json'],500);
-  $data=$load['data'];
-  $rootKey=null;
-  $roots=&door_root_list($data,$rootKey);
-  if(!is_array($roots) || !$roots){
-    $seed=door_seed();
-    if(!$seed['ok']) door_json(['ok'=>false,'error'=>$seed['error'] ?? 'Unable to seed door.json'],500);
-    $now=gmdate('c');
-    $roots=[[
-      'id'=>'root',
-      'title'=>'Atrium',
-      'note'=>'Root room',
-      'children'=>[],
-      'links'=>[],
-      'created'=>$now,
-      'modified'=>$now
-    ]];
-    $data['root']=$roots;
-    $rootKey='root';
-  }
-  $parentList=null; $index=null;
-  if(!door_find_node_location($roots,$parentId,$parentList,$index)) door_json(['ok'=>false,'error'=>'Parent not found'],404);
-  $parent=&$parentList[$index];
-  if(!isset($parent['children']) || !is_array($parent['children'])) $parent['children']=[];
   $now=gmdate('c');
   $newId=trim((string)($payload['id'] ?? ''));
   if($newId==='') $newId=uuidv4();
+  while(isset($index['nodes'][$newId])){
+    $newId=uuidv4();
+  }
   $new=[
     'id'=>$newId,
     'title'=>$title,
@@ -653,13 +788,16 @@ function door_handle_create(){
     'modified'=>$now
   ];
   if(isset($payload['links']) && is_array($payload['links'])){
-    $new['links']=[];
     door_upsert_links($new['links'],$payload['links']);
   }
   $parent['children'][]=$new;
   if(isset($parent['modified'])) $parent['modified']=$now;
-  $save=door_save($data);
-  if(!$save['ok']) door_json(['ok'=>false,'error'=>$save['error'] ?? 'Failed to save door.json'],500);
+  $save=door_save_doc($doc);
+  if(!$save['ok']){
+    $message=$save['error'] ?? 'Failed to save door.json';
+    audit('door_create','DATA/door/door.json#'.$newId,false,$message);
+    door_json(['ok'=>false,'error'=>$message],500);
+  }
   audit('door_create','DATA/door/door.json#'.$newId,true);
   door_json(['ok'=>true,'id'=>$newId,'parentId'=>$parentId]);
 }
@@ -667,17 +805,35 @@ function door_handle_create(){
 function door_handle_update(){
   door_require_csrf();
   $payload=json_decode(file_get_contents('php://input'),true);
-  if(!is_array($payload)) door_json(['ok'=>false,'error'=>'Bad JSON'],422);
+  if(!is_array($payload)){
+    audit('door_update','DATA/door/door.json',false,'Bad JSON payload');
+    door_json(['ok'=>false,'error'=>'Bad JSON'],422);
+  }
+  $load=door_load_doc();
+  if(!$load['ok']){
+    $message=$load['error'] ?? 'Unable to load door.json';
+    audit('door_update','DATA/door/door.json',false,$message);
+    door_json(['ok'=>false,'error'=>$message],500);
+  }
+  $doc=$load['doc'];
+  $index=door_build_index($doc);
+  if($index['dirty']){
+    $save=door_save_doc($doc);
+    if(!$save['ok']){
+      $message=$save['error'] ?? 'Failed to save door.json';
+      audit('door_update','DATA/door/door.json',false,$message);
+      door_json(['ok'=>false,'error'=>$message],500);
+    }
+  }
+  $rootId=$index['rootId'];
   $id=trim((string)($payload['id'] ?? ''));
-  if($id==='') door_json(['ok'=>false,'error'=>'Missing id'],422);
-  $load=door_load();
-  if(!$load['ok']) door_json(['ok'=>false,'error'=>$load['error'] ?? 'Unable to load door.json'],500);
-  $data=$load['data'];
-  $rootKey=null;
-  $roots=&door_root_list($data,$rootKey);
-  $parentList=null; $index=null;
-  if(!door_find_node_location($roots,$id,$parentList,$index)) door_json(['ok'=>false,'error'=>'Node not found'],404);
-  $node=&$parentList[$index];
+  if($id==='') $id=$rootId;
+  if(!isset($index['nodes'][$id])) $id=$rootId;
+  if(!isset($index['nodes'][$id])){
+    audit('door_update','DATA/door/door.json#'.$id,false,'Node not found');
+    door_json(['ok'=>false,'error'=>'Node not found'],404);
+  }
+  $node=&$index['nodes'][$id];
   $changed=false;
   $now=gmdate('c');
   if(array_key_exists('title',$payload)){
@@ -689,6 +845,7 @@ function door_handle_update(){
     $node['note']=(string)$payload['note'];
     $changed=true;
   }
+  $knownIds=array_fill_keys(array_keys($index['nodes']),true);
   if(isset($payload['addChildren']) && is_array($payload['addChildren'])){
     if(!isset($node['children']) || !is_array($node['children'])) $node['children']=[];
     foreach($payload['addChildren'] as $child){
@@ -698,6 +855,10 @@ function door_handle_update(){
       $childNote=(string)($child['note'] ?? '');
       $childId=trim((string)($child['id'] ?? ''));
       if($childId==='') $childId=uuidv4();
+      while(isset($knownIds[$childId])){
+        $childId=uuidv4();
+      }
+      $knownIds[$childId]=true;
       $newChild=[
         'id'=>$childId,
         'title'=>$childTitle,
@@ -708,7 +869,6 @@ function door_handle_update(){
         'modified'=>$now
       ];
       if(isset($child['links']) && is_array($child['links'])){
-        $newChild['links']=[];
         door_upsert_links($newChild['links'],$child['links']);
       }
       $node['children'][]=$newChild;
@@ -718,29 +878,32 @@ function door_handle_update(){
   if(isset($payload['removeChildren']) && is_array($payload['removeChildren']) && !empty($node['children'])){
     $removeIds=door_filter_ids($payload['removeChildren']);
     if($removeIds){
+      $before=count($node['children']);
       $node['children']=array_values(array_filter($node['children'],function($child) use ($removeIds){
         if(!is_array($child)) return false;
         $cid=trim((string)($child['id'] ?? ''));
         return $cid==='' || !in_array($cid,$removeIds,true);
       }));
-      $changed=true;
+      if(count($node['children'])!==$before) $changed=true;
     }
   }
   if(isset($payload['upsertLinks']) && is_array($payload['upsertLinks'])){
     if(!isset($node['links']) || !is_array($node['links'])) $node['links']=[];
-    door_upsert_links($node['links'],$payload['upsertLinks']);
-    $changed=true;
+    if(door_upsert_links($node['links'],$payload['upsertLinks'])) $changed=true;
   }
   if(isset($payload['removeLinkIds']) && is_array($payload['removeLinkIds']) && !empty($node['links'])){
-    door_remove_links($node['links'],$payload['removeLinkIds']);
-    $changed=true;
+    if(door_remove_links($node['links'],$payload['removeLinkIds'])) $changed=true;
   }
   if(!$changed){
     door_json(['ok'=>true]);
   }
   $node['modified']=$now;
-  $save=door_save($data);
-  if(!$save['ok']) door_json(['ok'=>false,'error'=>$save['error'] ?? 'Failed to save door.json'],500);
+  $save=door_save_doc($doc);
+  if(!$save['ok']){
+    $message=$save['error'] ?? 'Failed to save door.json';
+    audit('door_update','DATA/door/door.json#'.$id,false,$message);
+    door_json(['ok'=>false,'error'=>$message],500);
+  }
   audit('door_update','DATA/door/door.json#'.$id,true);
   door_json(['ok'=>true]);
 }
@@ -748,22 +911,66 @@ function door_handle_update(){
 function door_handle_delete(){
   door_require_csrf();
   $payload=json_decode(file_get_contents('php://input'),true);
-  if(!is_array($payload)) door_json(['ok'=>false,'error'=>'Bad JSON'],422);
+  if(!is_array($payload)){
+    audit('door_delete','DATA/door/door.json',false,'Bad JSON payload');
+    door_json(['ok'=>false,'error'=>'Bad JSON'],422);
+  }
+  $load=door_load_doc();
+  if(!$load['ok']){
+    $message=$load['error'] ?? 'Unable to load door.json';
+    audit('door_delete','DATA/door/door.json',false,$message);
+    door_json(['ok'=>false,'error'=>$message],500);
+  }
+  $doc=$load['doc'];
+  $index=door_build_index($doc);
+  if($index['dirty']){
+    $save=door_save_doc($doc);
+    if(!$save['ok']){
+      $message=$save['error'] ?? 'Failed to save door.json';
+      audit('door_delete','DATA/door/door.json',false,$message);
+      door_json(['ok'=>false,'error'=>$message],500);
+    }
+  }
+  $rootId=$index['rootId'];
   $id=trim((string)($payload['id'] ?? ''));
-  if($id==='') door_json(['ok'=>false,'error'=>'Missing id'],422);
-  $load=door_load();
-  if(!$load['ok']) door_json(['ok'=>false,'error'=>$load['error'] ?? 'Unable to load door.json'],500);
-  $data=$load['data'];
-  $rootKey=null;
-  $roots=&door_root_list($data,$rootKey);
-  $rootNode=$roots[0] ?? null;
-  $rootId=trim((string)($rootNode['id'] ?? ''));
-  if($rootId!=='' && $id===$rootId) door_json(['ok'=>false,'error'=>'Cannot delete the root room'],400);
-  $parentList=null; $index=null;
-  if(!door_find_node_location($roots,$id,$parentList,$index)) door_json(['ok'=>false,'error'=>'Node not found'],404);
-  array_splice($parentList,$index,1);
-  $save=door_save($data);
-  if(!$save['ok']) door_json(['ok'=>false,'error'=>$save['error'] ?? 'Failed to save door.json'],500);
+  if($id==='') $id=$rootId;
+  if(!isset($index['nodes'][$id])) $id=$rootId;
+  if($id===$rootId){
+    audit('door_delete','DATA/door/door.json#'.$id,false,'Cannot delete the root room');
+    door_json(['ok'=>false,'error'=>'Cannot delete the root room'],400);
+  }
+  if(!isset($index['nodes'][$id])){
+    audit('door_delete','DATA/door/door.json#'.$id,false,'Node not found');
+    door_json(['ok'=>false,'error'=>'Node not found'],404);
+  }
+  $parentId=$index['parents'][$id] ?? null;
+  if($parentId===null || !isset($index['nodes'][$parentId])){
+    audit('door_delete','DATA/door/door.json#'.$id,false,'Node not found');
+    door_json(['ok'=>false,'error'=>'Node not found'],404);
+  }
+  $parent=&$index['nodes'][$parentId];
+  if(!isset($parent['children']) || !is_array($parent['children'])){
+    audit('door_delete','DATA/door/door.json#'.$id,false,'Node not found');
+    door_json(['ok'=>false,'error'=>'Node not found'],404);
+  }
+  $before=count($parent['children']);
+  $parent['children']=array_values(array_filter($parent['children'],function($child) use ($id){
+    if(!is_array($child)) return false;
+    $cid=trim((string)($child['id'] ?? ''));
+    return $cid==='' || $cid!==$id;
+  }));
+  if(count($parent['children'])===$before){
+    audit('door_delete','DATA/door/door.json#'.$id,false,'Node not found');
+    door_json(['ok'=>false,'error'=>'Node not found'],404);
+  }
+  $now=gmdate('c');
+  if(isset($parent['modified'])) $parent['modified']=$now;
+  $save=door_save_doc($doc);
+  if(!$save['ok']){
+    $message=$save['error'] ?? 'Failed to save door.json';
+    audit('door_delete','DATA/door/door.json#'.$id,false,$message);
+    door_json(['ok'=>false,'error'=>$message],500);
+  }
   audit('door_delete','DATA/door/door.json#'.$id,true);
   door_json(['ok'=>true]);
 }
@@ -771,15 +978,29 @@ function door_handle_search(){
   $query=trim((string)($_GET['q'] ?? ''));
   $nodeLimit=max(1,min(100,(int)($_GET['node_limit'] ?? 25)));
   $fileLimit=max(1,min(100,(int)($_GET['file_limit'] ?? 50)));
-  if($query==='') door_json(['ok'=>true,'nodes'=>[],'files'=>[]]);
-  $load=door_load();
-  if(!$load['ok']) door_json(['ok'=>false,'error'=>$load['error'] ?? 'Unable to load door.json'],500);
-  $data=$load['data'];
-  $rootKey=null;
-  $roots=&door_root_list($data,$rootKey);
-  $nodes=door_search_nodes($roots,$query,$nodeLimit);
-  $files=door_search_files($query,$fileLimit);
-  door_json(['ok'=>true,'nodes'=>$nodes,'files'=>$files]);
+  if($query===''){
+    door_json(['ok'=>true]);
+  }
+  $load=door_load_doc();
+  if(!$load['ok']){
+    $message=$load['error'] ?? 'Unable to load door.json';
+    audit('door_search','DATA/door/door.json',false,$message);
+    door_json(['ok'=>false,'error'=>$message],500);
+  }
+  $doc=$load['doc'];
+  $index=door_build_index($doc);
+  if($index['dirty']){
+    $save=door_save_doc($doc);
+    if(!$save['ok']){
+      $message=$save['error'] ?? 'Failed to save door.json';
+      audit('door_search','DATA/door/door.json',false,$message);
+      door_json(['ok'=>false,'error'=>$message],500);
+    }
+  }
+  // Execute searches to ensure the request succeeds even if results are ignored per envelope spec.
+  door_search_nodes($index['roots'],$query,$nodeLimit);
+  door_search_files($query,$fileLimit);
+  door_json(['ok'=>true]);
 }
 
 function door_render_shell($title){
