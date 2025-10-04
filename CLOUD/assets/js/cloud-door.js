@@ -303,7 +303,6 @@
     if (item.kind === 'folder') {
       navigateTo(item.path);
     } else {
-      if (!state.drawer.supportsRaw) return;
       openFile(item);
     }
   }
