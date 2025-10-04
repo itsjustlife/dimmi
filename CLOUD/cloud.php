@@ -217,421 +217,390 @@ HTML;
   exit;
 }
 
-function door_data_file(){
+/* ===== Door helpers (new builder) ===== */
+// door.json storage (seed/load/save) happens here so Door + classic stay in sync.
+function door_path(){
   global $ROOT;
   if(!$ROOT) return null;
   $base=rtrim($ROOT,'/');
-  $dir=$base.'/DATA/door';
-  $file=$dir.'/door.json';
-  if(!is_dir($dir)) @mkdir($dir,0775,true);
-  $legacy=$base.'/door.json';
-  if(is_file($legacy) && !is_file($file)){
-    if(@rename($legacy,$file)===false){
-      if(!is_dir($dir)) @mkdir($dir,0775,true);
-      if(@copy($legacy,$file)!==false) @unlink($legacy);
-    }
-  }
-  if(!is_file($file) && is_file($legacy)) return $legacy;
-  return $file;
+  if($base==='') return null;
+  return $base.'/DATA/door/door.json';
 }
 
-function door_default_document(){
-  $now=gmdate('c');
-  $rootId=uuidv4();
+function door_seed(){
+  $path=door_path();
+  if(!$path) return ['ok'=>false,'error'=>'Door storage unavailable'];
+  $dir=dirname($path);
+  if(!is_dir($dir) && !@mkdir($dir,0775,true)){
+    return ['ok'=>false,'error'=>'Unable to create DATA/door directory'];
+  }
+  if(!is_file($path)){
+    $now=gmdate('c');
+    $doc=[
+      'schemaVersion'=>'1.1',
+      'metadata'=>['title'=>'Atrium'],
+      'root'=>[[
+        'id'=>'root',
+        'title'=>'Atrium',
+        'note'=>'Root room',
+        'children'=>[],
+        'links'=>[],
+        'created'=>$now,
+        'modified'=>$now
+      ]]
+    ];
+    $json=json_encode($doc, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+    if($json===false) return ['ok'=>false,'error'=>'Unable to seed door.json'];
+    if(@file_put_contents($path,$json)===false){
+      return ['ok'=>false,'error'=>'Unable to write initial door.json'];
+    }
+  }
+  return ['ok'=>true,'path'=>$path];
+}
+
+function door_load(){
+  $seed=door_seed();
+  if(!$seed['ok']) return $seed;
+  $path=$seed['path'];
+  $raw=@file_get_contents($path);
+  if($raw===false) return ['ok'=>false,'error'=>'Unable to read door.json'];
+  $data=json_decode($raw,true);
+  if(!is_array($data)) return ['ok'=>false,'error'=>'door.json is not valid JSON'];
+  return ['ok'=>true,'path'=>$path,'data'=>$data];
+}
+
+function door_save($data){
+  $seed=door_seed();
+  if(!$seed['ok']) return $seed;
+  $path=$seed['path'];
+  $tmp=$path.'.tmp';
+  $json=json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+  if($json===false) return ['ok'=>false,'error'=>'Failed to encode door.json'];
+  if(@file_put_contents($tmp,$json)===false) return ['ok'=>false,'error'=>'Failed to write temporary door.json'];
+  if(!@rename($tmp,$path)){
+    @unlink($tmp);
+    return ['ok'=>false,'error'=>'Failed to replace door.json'];
+  }
+  return ['ok'=>true,'path'=>$path];
+}
+
+function door_json($arr,$code=200){
+  http_response_code($code);
+  header('Content-Type: application/json; charset=utf-8');
+  echo json_encode($arr, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+  exit;
+}
+
+function door_node_title($node){
+  if(!is_array($node)) return '';
+  $title=trim((string)($node['title'] ?? ''));
+  if($title!=='') return $title;
+  if(isset($node['metadata']['title'])){
+    $metaTitle=trim((string)$node['metadata']['title']);
+    if($metaTitle!=='') return $metaTitle;
+  }
+  if(isset($node['note']) && trim((string)$node['note'])!=='') return trim((string)$node['note']);
+  return trim((string)($node['id'] ?? ''));
+}
+
+function door_node_note($node){
+  if(!is_array($node)) return '';
+  if(array_key_exists('note',$node)) return (string)$node['note'];
+  if(array_key_exists('content',$node)) return (string)$node['content'];
+  return '';
+}
+
+function door_collect_nodes($nodes,&$out){
+  foreach((array)$nodes as $node){
+    if(!is_array($node)) continue;
+    $id=trim((string)($node['id'] ?? ''));
+    if($id==='') continue;
+    $out[$id]=door_node_title($node);
+    if(!empty($node['children']) && is_array($node['children'])){
+      door_collect_nodes($node['children'],$out);
+    }
+  }
+}
+
+function door_require_csrf(){
+  $token=$_SESSION['csrf'] ?? '';
+  $header=$_SERVER['HTTP_X_CSRF'] ?? '';
+  if(!$token || !hash_equals($token,$header)) door_json(['ok'=>false,'error'=>'CSRF'],403);
+}
+
+function &door_root_list(&$data,&$rootKey){
+  if(isset($data['root']) && is_array($data['root'])){
+    $rootKey='root';
+    return $data['root'];
+  }
+  if(isset($data['items']) && is_array($data['items'])){
+    $rootKey='items';
+    return $data['items'];
+  }
+  $rootKey='root';
+  if(!isset($data['root']) || !is_array($data['root'])) $data['root']=[];
+  return $data['root'];
+}
+
+function door_find_node_location(&$nodes,$id,&$parentList,&$index){
+  foreach($nodes as $i=>&$node){
+    if(!is_array($node)) continue;
+    if(($node['id'] ?? '')===$id){
+      $parentList=&$nodes;
+      $index=$i;
+      return true;
+    }
+    if(!empty($node['children']) && is_array($node['children'])){
+      if(door_find_node_location($node['children'],$id,$parentList,$index)) return true;
+    }
+  }
+  return false;
+}
+
+function door_find_node_with_breadcrumb($nodes,$target,$trail=[]){
+  foreach((array)$nodes as $node){
+    if(!is_array($node)) continue;
+    $id=trim((string)($node['id'] ?? ''));
+    $title=door_node_title($node);
+    $entry=['id'=>$id,'title'=>$title];
+    $nextTrail=array_merge($trail,[$entry]);
+    if($target==='' || $target===$id){
+      return ['node'=>$node,'breadcrumb'=>$nextTrail];
+    }
+    if(!empty($node['children']) && is_array($node['children'])){
+      $found=door_find_node_with_breadcrumb($node['children'],$target,$nextTrail);
+      if($found) return $found;
+    }
+  }
+  return null;
+}
+
+function door_response_node($node){
+  if(!is_array($node)) return new stdClass();
+  $id=trim((string)($node['id'] ?? ''));
+  $children=[];
+  foreach((array)($node['children'] ?? []) as $child){
+    if(!is_array($child)) continue;
+    $childId=trim((string)($child['id'] ?? ''));
+    if($childId==='') continue;
+    $children[]=$childId;
+  }
+  $links=[];
+  foreach((array)($node['links'] ?? []) as $link){
+    if(!is_array($link)) continue;
+    $target=trim((string)($link['target'] ?? ''));
+    if($target==='') continue;
+    $links[]=[
+      'id'=>(string)($link['id'] ?? ''),
+      'title'=>trim((string)($link['title'] ?? $target)),
+      'target'=>$target,
+      'type'=>(string)($link['type'] ?? '')
+    ];
+  }
   return [
-    'schemaVersion'=>'1.1',
-    'metadata'=>['title'=>'Dimmi Door'],
-    'root'=>[[
-      'id'=>$rootId,
-      'title'=>'Atrium',
-      'note'=>'Tap tiles to explore this archive.',
-      'icon'=>'door',
-      'color'=>'#2563eb',
-      'tileKind'=>'room',
-      'created'=>$now,
-      'modified'=>$now,
-      'children'=>[],
-      'links'=>[]
-    ]]
+    'id'=>$id,
+    'title'=>door_node_title($node),
+    'note'=>door_node_note($node),
+    'children'=>$children,
+    'links'=>$links,
+    'created'=>$node['created'] ?? null,
+    'modified'=>$node['modified'] ?? null
   ];
 }
 
-function door_ensure_document(){
-  $file=door_data_file();
-  if(!$file) return false;
-  $dir=dirname($file);
-  if(!is_dir($dir)) @mkdir($dir,0775,true);
-  if(!is_file($file)){
-    $doc=door_default_document();
-    @file_put_contents($file,json_encode($doc, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
+function door_clean_link_payload($link){
+  if(!is_array($link)) return null;
+  $target=trim((string)($link['target'] ?? ''));
+  if($target==='') return null;
+  $clean=[
+    'target'=>$target,
+    'title'=>trim((string)($link['title'] ?? '')),
+    'type'=>trim((string)($link['type'] ?? ''))
+  ];
+  $id=trim((string)($link['id'] ?? ''));
+  if($id!=='') $clean['id']=$id;
+  return $clean;
+}
+
+function door_upsert_links(&$links,$updates){
+  if(!is_array($updates) || !$updates) return;
+  if(!is_array($links)) $links=[];
+  foreach($updates as $link){
+    $clean=door_clean_link_payload($link);
+    if(!$clean) continue;
+    $matched=false;
+    if(isset($clean['id'])){
+      foreach($links as &$existing){
+        if(!is_array($existing)) continue;
+        if(($existing['id'] ?? '')===$clean['id']){
+          $existing=array_merge($existing,$clean);
+          $matched=true;
+          break;
+        }
+      }
+    }
+    if(!$matched){
+      foreach($links as &$existing){
+        if(!is_array($existing)) continue;
+        if(($existing['id'] ?? '')===''){
+          $sameTarget=($existing['target'] ?? '')===($clean['target'] ?? '');
+          $sameType=($existing['type'] ?? '')===($clean['type'] ?? '');
+          if($sameTarget && $sameType){
+            $existing=array_merge($existing,$clean);
+            $matched=true;
+            break;
+          }
+        }
+      }
+    }
+    if(!$matched) $links[]=$clean;
   }
-  return true;
-}
-
-function door_save_doc($doc){
-  $file=door_data_file();
-  if(!$file) bad('Door storage unavailable',500);
-  $dir=dirname($file);
-  if(!is_dir($dir)) @mkdir($dir,0775,true);
-  $json=json_encode($doc, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-  if($json===false) bad('Failed to encode door document',500);
-  if(@file_put_contents($file,$json,LOCK_EX)===false) bad('Failed to write door document',500);
-}
-
-function door_load_doc(){
-  $file=door_data_file();
-  if(!$file) bad('Door storage unavailable',500);
-  door_ensure_document();
-  $raw=@file_get_contents($file);
-  $doc=json_decode($raw,true);
-  if(!is_array($doc)) $doc=door_default_document();
-  $rootKey=null;
-  json_get_root($doc,$rootKey);
-  if($rootKey!==null && !isset($doc[$rootKey])) $doc[$rootKey]=[];
-  return [$doc,$rootKey];
-}
-
-function &door_root_ref(&$doc,$rootKey){
-  if(!is_array($doc)) $doc=[];
-  if($rootKey===null){
-    $ref=&$doc;
-  } else {
-    if(!isset($doc[$rootKey]) || !is_array($doc[$rootKey])) $doc[$rootKey]=[];
-    $ref=&$doc[$rootKey];
+  $seen=[]; $dedup=[];
+  foreach($links as $entry){
+    if(!is_array($entry)) continue;
+    $key=($entry['id'] ?? '').'|'.($entry['target'] ?? '').'|'.($entry['type'] ?? '');
+    if(isset($seen[$key])) continue;
+    $seen[$key]=true;
+    $dedup[]=$entry;
   }
-  return $ref;
+  $links=$dedup;
 }
 
-function door_flatten_nodes($items,&$out){
-  foreach($items as $node){
-    if(!is_array($node)) continue;
-    $out[]=[
-      'id'=>$node['id'] ?? '',
-      'title'=>json_get_title($node),
-      'icon'=>$node['icon'] ?? null,
-      'color'=>$node['color'] ?? null,
-      'tileKind'=>$node['tileKind'] ?? null
-    ];
-    if(!empty($node['children']) && is_array($node['children'])) door_flatten_nodes($node['children'],$out);
+function door_remove_links(&$links,$remove){
+  if(!is_array($links) || !is_array($remove)) return;
+  $set=[];
+  foreach($remove as $id){
+    $val=trim((string)$id);
+    if($val!=='') $set[$val]=true;
   }
+  if(!$set) return;
+  $links=array_values(array_filter($links,function($link) use ($set){
+    if(!is_array($link)) return false;
+    $id=trim((string)($link['id'] ?? ''));
+    $target=trim((string)($link['target'] ?? ''));
+    if($id!=='' && isset($set[$id])) return false;
+    if($target!=='' && isset($set[$target])) return false;
+    return true;
+  }));
 }
 
-function door_ci_contains($haystack,$needle){
-  $needle=(string)$needle;
-  if($needle==='') return true;
-  $haystack=(string)$haystack;
-  if(function_exists('mb_stripos')) return mb_stripos($haystack,$needle,0,'UTF-8')!==false;
-  return stripos($haystack,$needle)!==false;
-}
-
-function door_search_results($query,$nodeLimit=8,$fileLimit=8){
-  $query=trim((string)$query);
-  $nodeLimit=max(0,(int)$nodeLimit);
-  $fileLimit=max(0,(int)$fileLimit);
-  $results=['nodes'=>[],'files'=>[]];
-  if($query==='') return $results;
-
-  [$doc,$rootKey]=door_load_doc();
-  $root=&door_root_ref($doc,$rootKey);
-  $flat=[];
-  door_flatten_nodes($root,$flat);
-  foreach($flat as $entry){
-    if(count($results['nodes'])>=$nodeLimit && $nodeLimit>0) break;
-    $id=$entry['id'] ?? '';
-    $title=$entry['title'] ?? '';
-    if(door_ci_contains($title,$query) || door_ci_contains($id,$query)){
-      $results['nodes'][]=[
-        'id'=>$id,
-        'title'=>$title,
-        'icon'=>$entry['icon'] ?? null,
-        'color'=>$entry['color'] ?? null,
-        'tileKind'=>$entry['tileKind'] ?? null
-      ];
+function door_filter_ids($items){
+  $out=[];
+  foreach((array)$items as $val){
+    if(is_string($val) || is_int($val) || is_float($val)){
+      $trim=trim((string)$val);
+      if($trim!=='') $out[$trim]=true;
     }
   }
+  return array_keys($out);
+}
 
-  if($fileLimit>0){
-    $results['files']=door_search_files($query,$fileLimit);
-  }
-
+function door_search_nodes($nodes,$query,$limit){
+  $results=[];
+  $needle=mb_strtolower($query);
+  $limit=max(1,(int)$limit);
+  $walk=function($items) use (&$walk,&$results,$needle,$limit){
+    foreach((array)$items as $node){
+      if(count($results)>=$limit) break;
+      if(!is_array($node)) continue;
+      $id=$node['id'] ?? '';
+      $title=door_node_title($node);
+      $note=door_node_note($node);
+      $haystack=mb_strtolower($title.' '.($note ?? '').' '.$id);
+      if($needle==='' || mb_strpos($haystack,$needle)!==false){
+        $results[]=['id'=>$id,'title'=>$title ?: ($id ?: 'Room')];
+        if(count($results)>=$limit) break;
+      }
+      if(!empty($node['children']) && is_array($node['children'])){
+        $walk($node['children']);
+      }
+      if(count($results)>=$limit) break;
+    }
+  };
+  $walk($nodes);
   return $results;
 }
 
 function door_search_files($query,$limit){
   global $ROOT;
   $out=[];
-  if(!$ROOT || !is_dir($ROOT)) return $out;
-  $limit=max(0,(int)$limit);
-  if($limit===0) return $out;
-  $root=rtrim(str_replace('\\','/',$ROOT),'/');
-  $flags=FilesystemIterator::SKIP_DOTS;
+  if(!$ROOT) return $out;
+  $base=rtrim($ROOT,'/');
+  $ark=$base.'/ARKHIVE';
+  if(!is_dir($ark)) return $out;
+  $limit=max(1,(int)$limit);
+  $needle=mb_strtolower($query);
   try{
-    $dir=new RecursiveDirectoryIterator($ROOT,$flags);
+    $it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($ark,FilesystemIterator::SKIP_DOTS));
+    foreach($it as $file){
+      if(count($out)>=$limit) break;
+      if(!$file->isFile()) continue;
+      if(strtolower($file->getExtension())!=='md') continue;
+      $name=$file->getBasename('.md');
+      $rel=rel_of($file->getPathname());
+      if($rel===false) continue;
+      $haystack=mb_strtolower($name.' '.$rel);
+      if($needle!=='' && mb_strpos($haystack,$needle)===false) continue;
+      $out[]=['path'=>$rel,'name'=>$name];
+    }
   }catch(Exception $e){
-    return $out;
-  }
-  $skip=['.git','node_modules','vendor','tmp','cache','.cache','logs','dist','build'];
-  $filter=new RecursiveCallbackFilterIterator($dir,function($current) use ($skip){
-    $name=$current->getFilename();
-    if($current->isDir()){
-      if($name==='.'||$name==='..') return false;
-      if($name!=='' && $name[0]==='.') return false;
-      if(in_array($name,$skip,true)) return false;
-    }
-    return true;
-  });
-  $it=new RecursiveIteratorIterator($filter);
-  foreach($it as $file){
-    if(count($out)>=$limit) break;
-    if(!$file->isFile()) continue;
-    $name=$file->getFilename();
-    if(!door_ci_contains($name,$query)) continue;
-    $abs=str_replace('\\','/',$file->getPathname());
-    if(strpos($abs,$root)===0) $rel=ltrim(substr($abs,strlen($root)), '/');
-    else $rel=$name;
-    if($rel==='') continue;
-    $out[]=['path'=>$rel,'name'=>$name];
+    // best-effort: ignore filesystem errors
   }
   return $out;
-}
-
-function door_handle_search(){
-  $query=$_GET['q'] ?? '';
-  $nodeLimit=$_GET['node_limit'] ?? 8;
-  $fileLimit=$_GET['file_limit'] ?? 8;
-  $results=door_search_results($query,$nodeLimit,$fileLimit);
-  j(['ok'=>true,'nodes'=>$results['nodes'],'files'=>$results['files']]);
-}
-
-function door_build_breadcrumb($items,$target,$trail=[]){
-  foreach($items as $node){
-    if(!is_array($node)) continue;
-    $entry=['id'=>$node['id'] ?? '', 'title'=>json_get_title($node)];
-    $trail[]=$entry;
-    if(($node['id'] ?? '')===$target) return $trail;
-    if(!empty($node['children']) && is_array($node['children'])){
-      $found=door_build_breadcrumb($node['children'],$target,$trail);
-      if($found) return $found;
-    }
-    array_pop($trail);
-  }
-  return [];
-}
-
-function door_clean_link($link){
-  if(!is_array($link)) return null;
-  $target=trim((string)($link['target'] ?? ''));
-  if($target==='') return null;
-  $title=trim((string)($link['title'] ?? ''));
-  $type=trim((string)($link['type'] ?? ''));
-  $clean=['target'=>$target,'title'=>$title,'type'=>$type];
-  $id=trim((string)($link['id'] ?? ''));
-  if($id!=='') $clean['id']=$id;
-  $optionalKeys=['path','nodeKind','direction','label','icon','color','tileKind'];
-  foreach($optionalKeys as $extra){
-    if(array_key_exists($extra,$link)) $clean[$extra]=$link[$extra];
-  }
-  return $clean;
-}
-
-function door_clean_links($links){
-  $out=[];
-  foreach($links as $link){
-    $clean=door_clean_link($link);
-    if($clean) $out[]=$clean;
-  }
-  return door_dedupe_links($out);
-}
-
-function door_filter_string_list($items){
-  $out=[];
-  if(!is_array($items)) return $out;
-  $seen=[];
-  foreach($items as $item){
-    if(is_string($item) || is_int($item) || is_float($item)){
-      $value=trim((string)$item);
-      if($value==='') continue;
-      if(isset($seen[$value])) continue;
-      $seen[$value]=true;
-      $out[]=$value;
-    }
-  }
-  return $out;
-}
-
-function door_index_children_by_id($children){
-  $index=[];
-  if(!is_array($children)) return $index;
-  foreach($children as $i=>$child){
-    if(!is_array($child)) continue;
-    $id=trim((string)($child['id'] ?? ''));
-    if($id==='') continue;
-    if(!isset($index[$id])) $index[$id]=$i;
-  }
-  return $index;
-}
-
-function door_index_links_by_id($links){
-  $index=[];
-  if(!is_array($links)) return $index;
-  foreach($links as $i=>$link){
-    if(!is_array($link)) continue;
-    $id=trim((string)($link['id'] ?? ''));
-    if($id==='') continue;
-    if(!isset($index[$id])) $index[$id]=$i;
-  }
-  return $index;
-}
-
-function door_dedupe_links($links){
-  $out=[];
-  $seen=[];
-  foreach((array)$links as $link){
-    if(!is_array($link)) continue;
-    $id=trim((string)($link['id'] ?? ''));
-    $target=$link['target'] ?? '';
-    $type=$link['type'] ?? '';
-    $key=$id!==''?'id:'.$id:'target:'.$target.'|type:'.$type;
-    if(isset($seen[$key])) continue;
-    $seen[$key]=true;
-    $out[]=$link;
-  }
-  return array_values($out);
-}
-
-function door_upsert_links_list(&$existing,$updates){
-  if(!is_array($updates) || empty($updates)) return;
-  if(!is_array($existing)) $existing=[];
-  $index=door_index_links_by_id($existing);
-  foreach($updates as $link){
-    $clean=door_clean_link($link);
-    if(!$clean) continue;
-    $id=trim((string)($clean['id'] ?? ''));
-    $target=$clean['target'] ?? '';
-    $pos=null;
-    if($id!=='' && isset($index[$id])) $pos=$index[$id];
-    if($pos===null){
-      foreach($existing as $i=>$cur){
-        if(!is_array($cur)) continue;
-        if(($cur['id'] ?? '')===''){ if(($cur['target'] ?? '')===$target){ $pos=$i; break; } }
-      }
-    }
-    if($pos===null){
-      $existing[]=$clean;
-      if($id!=='') $index[$id]=count($existing)-1;
-    } else {
-      $existing[$pos]=array_merge($existing[$pos],$clean);
-      if($id!=='') $index[$id]=$pos;
-    }
-  }
-  $existing=door_dedupe_links($existing);
-}
-
-function door_require_csrf(){
-  $hdr=$_SERVER['HTTP_X_CSRF'] ?? '';
-  if($hdr !== ($_SESSION['csrf'] ?? '')) bad('CSRF',403);
-}
-
-function door_template($name){
-  $key=strtolower((string)$name);
-  switch($key){
-    case 'grid':
-      return '<div class="door-grid" id="door-grid" role="list"></div>';
-    case 'breadcrumb':
-      return '<nav class="door-breadcrumb" id="door-breadcrumb" aria-label="Breadcrumb"></nav>';
-    case 'rail':
-      return '<div class="door-rail" id="door-rail" role="navigation" aria-label="Teleport rail"></div>';
-    case 'search':
-      return '<div class="door-search-panel"><form id="door-search" class="door-search" autocomplete="off" role="search"><input type="search" id="door-search-input" placeholder="Search rooms & files" aria-label="Search rooms and files"><button type="submit">Search</button></form><div id="door-search-quick" class="door-search-quick" aria-live="polite"></div></div>';
-  }
-  return null;
-}
-
-function door_find_node_copy($items,$id){
-  if(!is_array($items)) return null;
-  foreach($items as $item){
-    if(!is_array($item)) continue;
-    if(($item['id'] ?? '') === $id) return $item;
-    if(isset($item['children']) && is_array($item['children'])){
-      $found=door_find_node_copy($item['children'],$id);
-      if($found!==null) return $found;
-    }
-  }
-  return null;
 }
 
 function door_handle_data(){
-  [$doc,$rootKey]=door_load_doc();
-  $root=&door_root_ref($doc,$rootKey);
-  if(!is_array($root)) $root=[];
-  $target=$_GET['id'] ?? '';
-  if($target==='') $target=$root[0]['id'] ?? '';
-  $node=null;
-  if($target===''){
-    $node=$root[0] ?? null;
-  } else {
-    $node=door_find_node_copy($root,$target);
-    if(!$node && !empty($root)) bad('Room not found',404);
+  $result=door_load();
+  if(!$result['ok']) door_json(['ok'=>false,'error'=>$result['error'] ?? 'Unknown door error']);
+  $data=$result['data'];
+  $roots=[];
+  if(isset($data['root']) && is_array($data['root'])){
+    $roots=$data['root'];
+  } elseif(isset($data['items']) && is_array($data['items'])){
+    $roots=$data['items'];
   }
-  if(!$node){
-    if(empty($root)){
-      $default=door_default_document();
-      $seed=$default['root'][0] ?? null;
-      if($seed){
-        $root[]=$seed;
-        door_save_doc($doc);
-        $node=$root[0] ?? null;
-        $target=$node['id'] ?? '';
-      }
-    }
-    if(!$node){
-      $index=[]; door_flatten_nodes($root,$index);
-      j(['ok'=>true,'node'=>null,'children'=>[],'links'=>[],'breadcrumb'=>[],'allNodes'=>$index,'rootId'=>$root[0]['id'] ?? '' ]);
-    }
+  if(empty($roots)) door_json(['ok'=>false,'error'=>'door.json has no root rooms']);
+  $rootNode=$roots[0];
+  $rootId=trim((string)($rootNode['id'] ?? ''));
+  if($rootId==='') $rootId='root';
+  $target=trim((string)($_GET['id'] ?? ''));
+  if($target==='') $target=$rootId;
+  $found=door_find_node_with_breadcrumb($roots,$target,[]);
+  if(!$found) door_json(['ok'=>false,'error'=>'Node not found','rootId'=>$rootId]);
+  $node=$found['node'];
+  $breadcrumb=$found['breadcrumb'];
+  $childSummaries=[];
+  foreach((array)($node['children'] ?? []) as $child){
+    if(!is_array($child)) continue;
+    $childId=trim((string)($child['id'] ?? ''));
+    if($childId==='') continue;
+    $childSummaries[]=[
+      'id'=>$childId,
+      'title'=>door_node_title($child),
+      'note'=>door_node_note($child)
+    ];
   }
-  $children=[];
-  if(!empty($node['children']) && is_array($node['children'])){
-    foreach($node['children'] as $child){
-      if(!is_array($child)) continue;
-      $children[]=[
-        'id'=>$child['id'] ?? '',
-        'title'=>json_get_title($child),
-        'note'=>json_get_note($child),
-        'icon'=>$child['icon'] ?? null,
-        'color'=>$child['color'] ?? null,
-        'tileKind'=>$child['tileKind'] ?? null,
-        'created'=>$child['created'] ?? null,
-        'modified'=>$child['modified'] ?? null
-      ];
-    }
+  $links=$node['links'] ?? [];
+  if(!is_array($links)) $links=[];
+  $cleanLinks=[];
+  foreach($links as $link){
+    if(!is_array($link)) continue;
+    $target=trim((string)($link['target'] ?? ''));
+    if($target==='') continue;
+    $cleanLinks[]=[
+      'id'=>(string)($link['id'] ?? ''),
+      'title'=>trim((string)($link['title'] ?? $target)),
+      'target'=>$target,
+      'type'=>(string)($link['type'] ?? '')
+    ];
   }
-  $links=[];
-  if(!empty($node['links']) && is_array($node['links'])){
-    foreach($node['links'] as $link){
-      if(!is_array($link)) continue;
-      $clean=door_clean_link($link);
-      if($clean) $links[]=$clean;
-    }
-  }
-  $crumb=door_build_breadcrumb($root,$node['id'] ?? '');
-  if(!$crumb) $crumb=[['id'=>$node['id'] ?? '', 'title'=>json_get_title($node)]];
-  $index=[]; door_flatten_nodes($root,$index);
-  $rootId=$root[0]['id'] ?? '';
-  j([
+  $index=[]; door_collect_nodes($roots,$index);
+  door_json([
     'ok'=>true,
-    'node'=>[
-      'id'=>$node['id'] ?? '',
-      'title'=>json_get_title($node),
-      'note'=>json_get_note($node),
-      'icon'=>$node['icon'] ?? null,
-      'color'=>$node['color'] ?? null,
-      'tileKind'=>$node['tileKind'] ?? null,
-      'created'=>$node['created'] ?? null,
-      'modified'=>$node['modified'] ?? null
-    ],
-    'children'=>$children,
-    'links'=>$links,
-    'breadcrumb'=>$crumb,
+    'node'=>door_response_node($node),
+    'children'=>$childSummaries,
+    'links'=>$cleanLinks,
+    'breadcrumb'=>$breadcrumb,
     'allNodes'=>$index,
     'rootId'=>$rootId
   ]);
@@ -640,296 +609,522 @@ function door_handle_data(){
 function door_handle_create(){
   door_require_csrf();
   $payload=json_decode(file_get_contents('php://input'),true);
-  if(!is_array($payload)) bad('Bad JSON',400);
+  if(!is_array($payload)) door_json(['ok'=>false,'error'=>'Bad JSON'],422);
   $parentId=trim((string)($payload['parentId'] ?? ''));
-  $legacyParent=trim((string)($payload['parent'] ?? ''));
-  $parent=$parentId !== '' ? $parentId : $legacyParent;
-  $title=trim((string)($payload['title'] ?? 'New Room'));
+  if($parentId==='') door_json(['ok'=>false,'error'=>'Missing parentId'],422);
+  $title=trim((string)($payload['title'] ?? ''));
   if($title==='') $title='New Room';
   $note=(string)($payload['note'] ?? '');
-  [$doc,$rootKey]=door_load_doc();
-  $root=&door_root_ref($doc,$rootKey);
+  $load=door_load();
+  if(!$load['ok']) door_json(['ok'=>false,'error'=>$load['error'] ?? 'Unable to load door.json'],500);
+  $data=$load['data'];
+  $rootKey=null;
+  $roots=&door_root_list($data,$rootKey);
+  if(!is_array($roots) || !$roots){
+    $seed=door_seed();
+    if(!$seed['ok']) door_json(['ok'=>false,'error'=>$seed['error'] ?? 'Unable to seed door.json'],500);
+    $now=gmdate('c');
+    $roots=[[
+      'id'=>'root',
+      'title'=>'Atrium',
+      'note'=>'Root room',
+      'children'=>[],
+      'links'=>[],
+      'created'=>$now,
+      'modified'=>$now
+    ]];
+    $data['root']=$roots;
+    $rootKey='root';
+  }
+  $parentList=null; $index=null;
+  if(!door_find_node_location($roots,$parentId,$parentList,$index)) door_json(['ok'=>false,'error'=>'Parent not found'],404);
+  $parent=&$parentList[$index];
+  if(!isset($parent['children']) || !is_array($parent['children'])) $parent['children']=[];
   $now=gmdate('c');
-  if($parent===''){
-    $list=&$root;
-    $parentNode=null;
-  }else{
-    $parentNode=null;
-    if(!cjsf_find_item_ref($root,$parent,$parentNode)) bad('Parent not found',404);
-    if(!isset($parentNode['children']) || !is_array($parentNode['children'])) $parentNode['children']=[];
-    $list=&$parentNode['children'];
-  }
-  $ref=null;
-  if(!empty($list) && isset($list[0]) && is_array($list[0])) $ref=$list[0];
-  elseif($parentNode) $ref=$parentNode;
-  else $ref=['title'=>'Room','children'=>[]];
-  $new=json_new_node_like($ref,$title,$now);
-  $new['note']=$note;
-  $new['created']=$now;
-  $new['modified']=$now;
-  $fallbacks=[
-    'icon'=>$new['icon'] ?? 'door',
-    'color'=>$new['color'] ?? '#2563eb',
-    'tileKind'=>$new['tileKind'] ?? 'room'
-  ];
-  foreach($fallbacks as $key=>$value){
-    if(array_key_exists($key,$payload)) $new[$key]=(string)$payload[$key];
-    else $new[$key]=(string)$value;
-  }
-  if(isset($payload['links']) && is_array($payload['links'])) $new['links']=door_clean_links($payload['links']);
-  $list[]=$new;
-  if(isset($parentNode)) $parentNode['modified']=$now;
-  door_save_doc($doc);
-  audit('door_create','DATA/door/door.json#'.($new['id'] ?? ''),true);
-  j(['ok'=>true,'node'=>[
-    'id'=>$new['id'] ?? '',
+  $newId=trim((string)($payload['id'] ?? ''));
+  if($newId==='') $newId=uuidv4();
+  $new=[
+    'id'=>$newId,
     'title'=>$title,
     'note'=>$note,
-    'icon'=>$new['icon'] ?? null,
-    'color'=>$new['color'] ?? null,
-    'tileKind'=>$new['tileKind'] ?? null,
-    'created'=>$new['created'] ?? null,
-    'modified'=>$new['modified'] ?? null
-  ]]);
+    'children'=>[],
+    'links'=>[],
+    'created'=>$now,
+    'modified'=>$now
+  ];
+  if(isset($payload['links']) && is_array($payload['links'])){
+    $new['links']=[];
+    door_upsert_links($new['links'],$payload['links']);
+  }
+  $parent['children'][]=$new;
+  if(isset($parent['modified'])) $parent['modified']=$now;
+  $save=door_save($data);
+  if(!$save['ok']) door_json(['ok'=>false,'error'=>$save['error'] ?? 'Failed to save door.json'],500);
+  audit('door_create','DATA/door/door.json#'.$newId,true);
+  door_json(['ok'=>true,'id'=>$newId,'parentId'=>$parentId]);
 }
 
 function door_handle_update(){
   door_require_csrf();
   $payload=json_decode(file_get_contents('php://input'),true);
-  if(!is_array($payload)) bad('Bad JSON',400);
+  if(!is_array($payload)) door_json(['ok'=>false,'error'=>'Bad JSON'],422);
   $id=trim((string)($payload['id'] ?? ''));
-  if($id==='') bad('Missing id',400);
-  [$doc,$rootKey]=door_load_doc();
-  $root=&door_root_ref($doc,$rootKey);
-  $node=null;
-  if(!cjsf_find_item_ref($root,$id,$node)) bad('Room not found',404);
+  if($id==='') door_json(['ok'=>false,'error'=>'Missing id'],422);
+  $load=door_load();
+  if(!$load['ok']) door_json(['ok'=>false,'error'=>$load['error'] ?? 'Unable to load door.json'],500);
+  $data=$load['data'];
+  $rootKey=null;
+  $roots=&door_root_list($data,$rootKey);
+  $parentList=null; $index=null;
+  if(!door_find_node_location($roots,$id,$parentList,$index)) door_json(['ok'=>false,'error'=>'Node not found'],404);
+  $node=&$parentList[$index];
+  $changed=false;
   $now=gmdate('c');
-  $mutations=$payload['mutations'] ?? [];
-  if(!is_array($mutations)) $mutations=[];
-  $titleValue=null;
-  if(array_key_exists('title',$payload)) $titleValue=(string)$payload['title'];
-  if(array_key_exists('setTitle',$payload)) $titleValue=(string)$payload['setTitle'];
-  if(array_key_exists('title',$mutations)) $titleValue=(string)$mutations['title'];
-  if(array_key_exists('setTitle',$mutations)) $titleValue=(string)$mutations['setTitle'];
-  if($titleValue!==null) json_set_title($node,$titleValue);
-  $noteValue=null;
-  if(array_key_exists('note',$payload)) $noteValue=(string)$payload['note'];
-  if(array_key_exists('setNote',$payload)) $noteValue=(string)$payload['setNote'];
-  if(array_key_exists('note',$mutations)) $noteValue=(string)$mutations['note'];
-  if(array_key_exists('setNote',$mutations)) $noteValue=(string)$mutations['setNote'];
-  if($noteValue!==null) json_set_note($node,$noteValue);
-  foreach(['icon','color','tileKind','created'] as $key){
-    if(array_key_exists($key,$payload)) $node[$key]=(string)$payload[$key];
+  if(array_key_exists('title',$payload)){
+    $title=trim((string)$payload['title']);
+    $node['title']=$title===''?'Untitled room':$title;
+    $changed=true;
   }
-  $addChildren=[];
-  foreach([$payload['addChildren'] ?? null,$mutations['addChildren'] ?? null] as $source){
-    if(is_array($source)) $addChildren=array_merge($addChildren,$source);
+  if(array_key_exists('note',$payload)){
+    $node['note']=(string)$payload['note'];
+    $changed=true;
   }
-  if($addChildren){
+  if(isset($payload['addChildren']) && is_array($payload['addChildren'])){
     if(!isset($node['children']) || !is_array($node['children'])) $node['children']=[];
-    $childIndex=door_index_children_by_id($node['children']);
-    foreach($addChildren as $child){
+    foreach($payload['addChildren'] as $child){
       if(!is_array($child)) continue;
+      $childTitle=trim((string)($child['title'] ?? ''));
+      if($childTitle==='') $childTitle='Untitled room';
+      $childNote=(string)($child['note'] ?? '');
       $childId=trim((string)($child['id'] ?? ''));
-      if($childId==='') continue;
-      if(isset($childIndex[$childId])){
-        $node['children'][$childIndex[$childId]]=array_merge($node['children'][$childIndex[$childId]],$child);
-      } else {
-        $node['children'][]=$child;
-        $childIndex[$childId]=count($node['children'])-1;
+      if($childId==='') $childId=uuidv4();
+      $newChild=[
+        'id'=>$childId,
+        'title'=>$childTitle,
+        'note'=>$childNote,
+        'children'=>[],
+        'links'=>[],
+        'created'=>$now,
+        'modified'=>$now
+      ];
+      if(isset($child['links']) && is_array($child['links'])){
+        $newChild['links']=[];
+        door_upsert_links($newChild['links'],$child['links']);
       }
+      $node['children'][]=$newChild;
+      $changed=true;
     }
   }
-  $removeChildrenIds=[];
-  foreach([$payload['removeChildren'] ?? null,$mutations['removeChildren'] ?? null] as $source){
-    if(is_array($source)) $removeChildrenIds=array_merge($removeChildrenIds,$source);
-  }
-  $removeChildrenIds=door_filter_string_list($removeChildrenIds);
-  if($removeChildrenIds && isset($node['children']) && is_array($node['children'])){
-    $removeMap=array_flip($removeChildrenIds);
-    $node['children']=array_values(array_filter($node['children'],function($child) use ($removeMap){
-      if(!is_array($child)) return true;
-      $childId=trim((string)($child['id'] ?? ''));
-      if($childId==='') return true;
-      return !isset($removeMap[$childId]);
-    }));
-  }
-  $linksReplace=null;
-  foreach([$payload['links'] ?? null,$mutations['links'] ?? null,$mutations['setLinks'] ?? null] as $source){
-    if(is_array($source)) $linksReplace=door_clean_links($source);
-  }
-  $upsertLinks=[];
-  foreach([$payload['upsertLinks'] ?? null,$mutations['upsertLinks'] ?? null] as $source){
-    if(is_array($source)) $upsertLinks=array_merge($upsertLinks,$source);
-  }
-  $removeLinkIds=[];
-  foreach([$payload['removeLinkIds'] ?? null,$mutations['removeLinkIds'] ?? null] as $source){
-    if(is_array($source)) $removeLinkIds=array_merge($removeLinkIds,$source);
-  }
-  $removeLinkIds=door_filter_string_list($removeLinkIds);
-  if($linksReplace!==null){
-    $node['links']=$linksReplace;
-  } else {
-    if($upsertLinks){
-      if(!isset($node['links']) || !is_array($node['links'])) $node['links']=[];
-      door_upsert_links_list($node['links'],$upsertLinks);
-    }
-    if($removeLinkIds && isset($node['links']) && is_array($node['links'])){
-      $removeMap=array_flip($removeLinkIds);
-      $node['links']=array_values(array_filter($node['links'],function($link) use ($removeMap){
-        if(!is_array($link)) return true;
-        $id=trim((string)($link['id'] ?? ''));
-        if($id==='') return true;
-        return !isset($removeMap[$id]);
+  if(isset($payload['removeChildren']) && is_array($payload['removeChildren']) && !empty($node['children'])){
+    $removeIds=door_filter_ids($payload['removeChildren']);
+    if($removeIds){
+      $node['children']=array_values(array_filter($node['children'],function($child) use ($removeIds){
+        if(!is_array($child)) return false;
+        $cid=trim((string)($child['id'] ?? ''));
+        return $cid==='' || !in_array($cid,$removeIds,true);
       }));
+      $changed=true;
     }
-    if(isset($node['links'])) $node['links']=door_dedupe_links($node['links']);
+  }
+  if(isset($payload['upsertLinks']) && is_array($payload['upsertLinks'])){
+    if(!isset($node['links']) || !is_array($node['links'])) $node['links']=[];
+    door_upsert_links($node['links'],$payload['upsertLinks']);
+    $changed=true;
+  }
+  if(isset($payload['removeLinkIds']) && is_array($payload['removeLinkIds']) && !empty($node['links'])){
+    door_remove_links($node['links'],$payload['removeLinkIds']);
+    $changed=true;
+  }
+  if(!$changed){
+    door_json(['ok'=>true]);
   }
   $node['modified']=$now;
-  door_save_doc($doc);
+  $save=door_save($data);
+  if(!$save['ok']) door_json(['ok'=>false,'error'=>$save['error'] ?? 'Failed to save door.json'],500);
   audit('door_update','DATA/door/door.json#'.$id,true);
-  j(['ok'=>true,'node'=>[
-    'id'=>$node['id'] ?? '',
-    'title'=>json_get_title($node),
-    'note'=>json_get_note($node),
-    'icon'=>$node['icon'] ?? null,
-    'color'=>$node['color'] ?? null,
-    'tileKind'=>$node['tileKind'] ?? null,
-    'created'=>$node['created'] ?? null,
-    'modified'=>$node['modified'] ?? null
-  ]]);
+  door_json(['ok'=>true]);
 }
 
 function door_handle_delete(){
   door_require_csrf();
   $payload=json_decode(file_get_contents('php://input'),true);
-  if(!is_array($payload)) bad('Bad JSON',400);
+  if(!is_array($payload)) door_json(['ok'=>false,'error'=>'Bad JSON'],422);
   $id=trim((string)($payload['id'] ?? ''));
-  if($id==='') bad('Missing id',400);
-  [$doc,$rootKey]=door_load_doc();
-  $root=&door_root_ref($doc,$rootKey);
-  $parentList=$index=$parentNode=null;
-  if(!cjsf_find_parent($root,$id,$parentList,$index,$parentNode)) bad('Room not found',404);
-  $removed=$parentList[$index] ?? null;
+  if($id==='') door_json(['ok'=>false,'error'=>'Missing id'],422);
+  $load=door_load();
+  if(!$load['ok']) door_json(['ok'=>false,'error'=>$load['error'] ?? 'Unable to load door.json'],500);
+  $data=$load['data'];
+  $rootKey=null;
+  $roots=&door_root_list($data,$rootKey);
+  $rootNode=$roots[0] ?? null;
+  $rootId=trim((string)($rootNode['id'] ?? ''));
+  if($rootId!=='' && $id===$rootId) door_json(['ok'=>false,'error'=>'Cannot delete the root room'],400);
+  $parentList=null; $index=null;
+  if(!door_find_node_location($roots,$id,$parentList,$index)) door_json(['ok'=>false,'error'=>'Node not found'],404);
   array_splice($parentList,$index,1);
-  $now=gmdate('c');
-  if(is_array($parentNode)) $parentNode['modified']=$now;
-  door_save_doc($doc);
-  $next=null;
-  if(is_array($parentNode)) $next=$parentNode['id'] ?? null;
-  elseif(!empty($root) && isset($root[0]['id'])) $next=$root[0]['id'];
+  $save=door_save($data);
+  if(!$save['ok']) door_json(['ok'=>false,'error'=>$save['error'] ?? 'Failed to save door.json'],500);
   audit('door_delete','DATA/door/door.json#'.$id,true);
-  j(['ok'=>true,'next'=>$next]);
+  door_json(['ok'=>true]);
+}
+function door_handle_search(){
+  $query=trim((string)($_GET['q'] ?? ''));
+  $nodeLimit=max(1,min(100,(int)($_GET['node_limit'] ?? 25)));
+  $fileLimit=max(1,min(100,(int)($_GET['file_limit'] ?? 50)));
+  if($query==='') door_json(['ok'=>true,'nodes'=>[],'files'=>[]]);
+  $load=door_load();
+  if(!$load['ok']) door_json(['ok'=>false,'error'=>$load['error'] ?? 'Unable to load door.json'],500);
+  $data=$load['data'];
+  $rootKey=null;
+  $roots=&door_root_list($data,$rootKey);
+  $nodes=door_search_nodes($roots,$query,$nodeLimit);
+  $files=door_search_files($query,$fileLimit);
+  door_json(['ok'=>true,'nodes'=>$nodes,'files'=>$files]);
 }
 
 function door_render_shell($title){
-  $selfRaw=$_SERVER['PHP_SELF'] ?? 'cloud.php';
-  $safeSelf=htmlspecialchars($selfRaw, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
-  $logoutHref=htmlspecialchars($selfRaw.'?logout=1', ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
-  $ready=door_ensure_document();
-  $initialStatus=$ready?'Tap a room to begin.':'Door storage unavailable (check ROOT path).';
-  $safeInitial=htmlspecialchars($initialStatus, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
-  $safeTitle=htmlspecialchars($title.' — DOOR', ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
-  $readyJs=$ready?'true':'false';
-  $statusJs=json_encode($initialStatus);
-  $baseJs=json_encode($selfRaw);
-  $csrfJs=json_encode($_SESSION['csrf'] ?? '');
+  $csrf=$_SESSION['csrf'] ?? '';
+  $csrfJs=json_encode($csrf, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+  $safeTitle=htmlspecialchars($title, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
+  header('Content-Type: text/html; charset=utf-8');
   echo <<<HTML
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{$safeTitle}</title>
-  <link rel="stylesheet" href="assets/css/door.css">
+  <title>{$safeTitle} — Door</title>
+  <style>
+    :root{color-scheme:light dark;}
+    body{margin:0;font-family:"Inter",system-ui,-apple-system,Segoe UI,sans-serif;background:#f8fafc;color:#0f172a;min-height:100vh;display:flex;flex-direction:column;}
+    .door-header{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;padding:1.25rem 1.5rem;background:#111827;color:#f9fafb;}
+    .door-header h1{font-size:1.5rem;font-weight:700;letter-spacing:0.08em;margin:0;}
+    .door-search{margin-left:auto;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
+    .door-search input{padding:0.6rem 0.75rem;border-radius:0.5rem;border:1px solid #cbd5f5;min-width:14rem;font-size:0.95rem;}
+    .door-search button{padding:0.6rem 1rem;border-radius:0.5rem;border:1px solid #2563eb;background:#2563eb;color:#f9fafb;font-weight:600;cursor:pointer;}
+    .door-search button:hover{background:#1d4ed8;}
+    .door-main{flex:1;display:flex;flex-direction:column;gap:1.5rem;padding:1.5rem;max-width:960px;margin:0 auto;width:100%;box-sizing:border-box;}
+    .door-error{padding:0.75rem 1rem;margin:1rem 1.5rem;border-radius:0.5rem;border:1px solid #fca5a5;background:#fee2e2;color:#991b1b;font-weight:600;}
+    .door-error.hidden{display:none;}
+    .door-message{min-height:1.5rem;font-size:0.95rem;color:#64748b;}
+    .door-breadcrumb{display:flex;flex-wrap:wrap;gap:0.5rem;font-size:0.9rem;align-items:center;}
+    .door-breadcrumb button{background:none;border:none;color:#2563eb;font-weight:500;cursor:pointer;padding:0.25rem 0.5rem;border-radius:0.375rem;}
+    .door-breadcrumb button:hover{background:#e0f2fe;}
+    .door-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:1.25rem;box-shadow:0 6px 24px rgba(148,163,184,0.12);}
+    .door-node-title{font-size:1.4rem;font-weight:700;margin:0;}
+    .door-node-note{margin-top:0.75rem;font-size:0.95rem;color:#475569;white-space:pre-wrap;}
+    .door-children-header{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;margin-top:0.5rem;}
+    .door-children-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(12rem,1fr));gap:0.75rem;margin-top:0.75rem;}
+    .door-child{display:flex;flex-direction:column;gap:0.35rem;align-items:flex-start;padding:0.85rem;border-radius:0.75rem;border:1px solid #cbd5f5;background:#eff6ff;color:#1d4ed8;text-align:left;width:100%;cursor:pointer;font-size:0.95rem;min-height:4rem;box-sizing:border-box;}
+    .door-child:hover{background:#dbeafe;}
+    .door-child-note{font-size:0.8rem;color:#64748b;}
+    .door-empty{font-size:0.9rem;color:#94a3b8;border:1px dashed #cbd5f5;padding:0.75rem;border-radius:0.75rem;}
+    .door-new{padding:0.65rem 1.1rem;border-radius:0.5rem;border:1px solid #2563eb;background:#2563eb;color:#f8fafc;font-weight:600;cursor:pointer;}
+    .door-new:hover{background:#1d4ed8;}
+    .door-search-results{display:flex;flex-direction:column;gap:0.75rem;}
+    .door-search-group h3{margin:0 0 0.25rem;font-size:0.95rem;color:#334155;}
+    .door-search-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0.35rem;}
+    .door-search-list button{background:none;border:none;color:#2563eb;font-weight:500;text-align:left;cursor:pointer;padding:0.25rem 0;border-bottom:1px solid #e2e8f0;}
+    .door-search-list button:hover{color:#1d4ed8;}
+    .door-search-list a{color:#2563eb;text-decoration:none;border-bottom:1px solid #e2e8f0;padding:0.25rem 0;}
+    .door-search-error{font-size:0.9rem;color:#b91c1c;}
+    @media (max-width:640px){
+      .door-main{padding:1rem;}
+      .door-header{justify-content:flex-start;}
+      .door-search{width:100%;margin-left:0;}
+      .door-search input{flex:1;min-width:0;width:100%;}
+      .door-search button{width:100%;}
+    }
+  </style>
 </head>
 <body>
-  <header>
+  <header class="door-header">
     <h1>DOOR</h1>
-    <a href="{$safeSelf}">Back to classic panels</a>
-    <a href="{$logoutHref}">Logout</a>
+    <form id="door-search" class="door-search" autocomplete="off" role="search" aria-label="Search rooms and files">
+      <input id="door-search-input" type="search" placeholder="Search" aria-label="Search term">
+      <button type="submit">Search</button>
+    </form>
   </header>
-  <main class="door-shell">
-    <div class="door-panel" id="door-crumb-wrap"></div>
-    <div class="door-panel door-layout">
-      <div class="door-grid-wrap" id="door-grid-wrap"></div>
-      <section class="door-panel door-editor-panel">
-        <div class="door-status" id="door-status" role="status" aria-live="polite">{$safeInitial}</div>
-        <div class="door-editor">
-          <label>Room Title
-            <input id="door-room-title" placeholder="Untitled room">
-          </label>
-          <label>Room Note
-            <textarea id="door-room-note" placeholder="Describe this room..."></textarea>
-          </label>
-          <div class="door-links-block">
-            <div class="door-links-header">
-              <h2 class="door-links-title">Teleport Links</h2>
-              <button type="button" class="door-link-attach door-button door-button-secondary px-3 py-2 text-sm font-medium" id="door-attach">Attach…</button>
-            </div>
-            <ul class="door-links" id="door-links-list"></ul>
-          </div>
-          <div class="door-editor-actions">
-            <button type="button" class="door-button door-button-primary px-3 py-2 text-sm font-semibold shadow-sm" id="door-save">Save changes</button>
-            <button type="button" class="door-button door-button-secondary px-3 py-2 text-sm font-semibold" id="door-add-child">Add room</button>
-            <button type="button" class="door-button door-button-danger px-3 py-2 text-sm font-semibold" id="door-delete">Delete room</button>
-          </div>
-        </div>
-      </section>
-    </div>
-    <div class="door-panel" id="door-rail-wrap"></div>
-    <div class="door-panel" id="door-search-wrap"></div>
-    <div class="door-child-dialog" id="door-child-dialog" hidden>
-      <div class="door-child-dialog-content" role="dialog" aria-modal="true" aria-labelledby="door-child-title">
-        <h2 id="door-child-title">Create a room</h2>
-        <form class="door-child-dialog-form" id="door-child-form">
-          <label for="door-child-name">Room name
-            <input id="door-child-name" name="title" value="New Room" placeholder="New Room" autocomplete="off" required>
-          </label>
-          <div class="door-child-dialog-actions">
-            <button type="button" class="door-button door-button-secondary px-3 py-2 text-sm font-medium door-child-dialog-cancel" id="door-child-cancel">Cancel</button>
-            <button type="submit" class="door-button door-button-primary px-3 py-2 text-sm font-semibold door-child-dialog-create" id="door-child-create">Create</button>
-          </div>
-        </form>
+  <div id="door-error" class="door-error hidden" role="alert"></div>
+  <main id="app-door" class="door-main">
+    <div id="door-message" class="door-message" role="status" aria-live="polite"></div>
+    <nav id="door-breadcrumb" class="door-breadcrumb" aria-label="Breadcrumb"></nav>
+    <section class="door-card" aria-live="polite">
+      <h2 id="door-title" class="door-node-title">Loading…</h2>
+      <p id="door-note" class="door-node-note" hidden></p>
+    </section>
+    <section>
+      <div class="door-children-header">
+        <h3 class="door-section-title">Rooms</h3>
+        <button id="door-create" type="button" class="door-new">+ New</button>
       </div>
-    </div>
+      <div id="door-children" class="door-children-grid" role="list"></div>
+    </section>
+    <section id="door-search-results" class="door-search-results" aria-live="polite"></section>
   </main>
   <script>
-    window.__DOOR_BOOTSTRAP__ = {
-      ready: {$readyJs},
-      status: {$statusJs},
-      base: {$baseJs},
-      csrf: {$csrfJs}
-    };
+    (function(){
+      window.__csrf={$csrfJs};
+      window.openContentDrawer = window.openContentDrawer || function(filePath){
+        alert('Content drawer is coming soon for '+(filePath||'this item'));
+      };
+      const defaultParams=new URLSearchParams(window.location.search);
+      if(!defaultParams.has('mode')) defaultParams.set('mode','door');
+      const basePath=window.location.pathname;
+      const state={currentId:null,rootId:null,loading:false};
+      const messageEl=document.getElementById('door-message');
+      const errorEl=document.getElementById('door-error');
+      const titleEl=document.getElementById('door-title');
+      const noteEl=document.getElementById('door-note');
+      const breadcrumbEl=document.getElementById('door-breadcrumb');
+      const childrenEl=document.getElementById('door-children');
+      const createBtn=document.getElementById('door-create');
+      const searchForm=document.getElementById('door-search');
+      const searchInput=document.getElementById('door-search-input');
+      const searchResults=document.getElementById('door-search-results');
+
+      console.log('[Door] JS loaded');
+
+      function buildUrl(action, extra){
+        const params=new URLSearchParams(defaultParams);
+        params.set('door',action);
+        if(extra){
+          for(const [key,val] of Object.entries(extra)){
+            if(val===undefined || val===null || val==='') params.delete(key);
+            else params.set(key,val);
+          }
+        }
+        return basePath+'?'+params.toString();
+      }
+
+      function setError(message){
+        if(!message){
+          errorEl.textContent='';
+          errorEl.classList.add('hidden');
+        }else{
+          errorEl.textContent=message;
+          errorEl.classList.remove('hidden');
+        }
+      }
+
+      function setMessage(text){
+        messageEl.textContent=text||'';
+      }
+
+      function escapeHtml(str){
+        return str.replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]||c;});
+      }
+
+      function renderNode(payload){
+        const node=payload.node||{};
+        const title=(node.title||'').trim()||'Untitled room';
+        titleEl.textContent=title;
+        const note=(node.note||'').trim();
+        if(note){
+          noteEl.textContent=note;
+          noteEl.hidden=false;
+        }else{
+          noteEl.textContent='';
+          noteEl.hidden=true;
+        }
+        breadcrumbEl.innerHTML='';
+        (payload.breadcrumb||[]).forEach(function(crumb,idx,arr){
+          const id=crumb.id||'';
+          const label=(crumb.title||id||'Room').trim()||'Room';
+          if(idx===arr.length-1){
+            const span=document.createElement('span');
+            span.textContent=label;
+            breadcrumbEl.appendChild(span);
+          }else{
+            const btn=document.createElement('button');
+            btn.type='button';
+            btn.textContent=label;
+            btn.addEventListener('click',()=>loadNode(id));
+            breadcrumbEl.appendChild(btn);
+            const sep=document.createElement('span');
+            sep.textContent='›';
+            sep.setAttribute('aria-hidden','true');
+            sep.style.color='#94a3b8';
+            sep.style.margin='0 0.25rem';
+            breadcrumbEl.appendChild(sep);
+          }
+        });
+        childrenEl.innerHTML='';
+        const kids=payload.children||[];
+        if(!kids.length){
+          const empty=document.createElement('div');
+          empty.className='door-empty';
+          empty.textContent='No rooms yet. Use “+ New” to add one.';
+          childrenEl.appendChild(empty);
+        }else{
+          kids.forEach(function(child){
+            const btn=document.createElement('button');
+            btn.className='door-child';
+            btn.type='button';
+            btn.setAttribute('role','listitem');
+            btn.innerHTML='<strong>'+escapeHtml((child.title||'Untitled room').trim()||'Untitled room')+'</strong>';
+            const note=(child.note||'').trim();
+            if(note){
+              const noteSpan=document.createElement('span');
+              noteSpan.className='door-child-note';
+              noteSpan.textContent=note;
+              btn.appendChild(noteSpan);
+            }
+            btn.addEventListener('click',()=>loadNode(child.id));
+            childrenEl.appendChild(btn);
+          });
+        }
+        searchResults.innerHTML='';
+      }
+
+      async function loadNode(id){
+        if(state.loading) return;
+        state.loading=true;
+        setMessage('Loading…');
+        try{
+          const url=buildUrl('data',{id:id||''});
+          console.log('[Door] GET',url);
+          const res=await fetch(url,{headers:{'Accept':'application/json'}});
+          const payload=await res.json().catch(()=>({ok:false,error:'Invalid response'}));
+          if(!res.ok || !payload.ok){
+            throw new Error(payload.error || res.statusText || 'Failed to load room');
+          }
+          state.rootId=payload.rootId || state.rootId || 'root';
+          state.currentId=(payload.node&&payload.node.id)||state.rootId;
+          renderNode(payload);
+          setError('');
+        }catch(err){
+          console.error('[Door] data error',err);
+          setError(err.message || 'Failed to load room');
+        }finally{
+          state.loading=false;
+          setMessage('');
+        }
+      }
+
+      async function createRoom(){
+        const parentId=state.currentId || state.rootId || 'root';
+        const url=buildUrl('create',{});
+        console.log('[Door] POST',url);
+        createBtn.disabled=true;
+        try{
+          const res=await fetch(url,{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF':window.__csrf||''},
+            body:JSON.stringify({parentId:parentId,title:'New Room'})
+          });
+          const payload=await res.json().catch(()=>({ok:false,error:'Invalid response'}));
+          if(!res.ok || !payload.ok){
+            throw new Error(payload.error || res.statusText || 'Unable to create room');
+          }
+          await loadNode(parentId);
+        }catch(err){
+          console.error('[Door] create error',err);
+          setError(err.message || 'Unable to create room');
+        }finally{
+          createBtn.disabled=false;
+        }
+      }
+
+      async function runSearch(term){
+        if(!term){
+          searchResults.innerHTML='';
+          return;
+        }
+        setMessage('Searching…');
+        try{
+          const url=buildUrl('search',{q:term});
+          console.log('[Door] SEARCH',url);
+          const res=await fetch(url,{headers:{'Accept':'application/json'}});
+          const payload=await res.json().catch(()=>({ok:false,error:'Invalid response'}));
+          if(!res.ok || !payload.ok){
+            throw new Error(payload.error || res.statusText || 'Search failed');
+          }
+          renderSearchResults(payload);
+          setError('');
+        }catch(err){
+          console.error('[Door] search error',err);
+          searchResults.innerHTML='<p class="door-search-error">'+escapeHtml(err.message||'Search failed')+'</p>';
+          setError(err.message || 'Search failed');
+        }finally{
+          setMessage('');
+        }
+      }
+
+      function renderSearchResults(payload){
+        searchResults.innerHTML='';
+        const nodes=payload.nodes||[];
+        const files=payload.files||[];
+        if(!nodes.length && !files.length){
+          searchResults.innerHTML='<p class="door-search-error">No matches.</p>';
+          return;
+        }
+        if(nodes.length){
+          const group=document.createElement('div');
+          group.className='door-search-group';
+          const heading=document.createElement('h3');
+          heading.textContent='Rooms';
+          group.appendChild(heading);
+          const list=document.createElement('div');
+          list.className='door-search-list';
+          nodes.forEach(function(node){
+            const btn=document.createElement('button');
+            btn.type='button';
+            btn.textContent=(node.title||node.id||'Room');
+            btn.addEventListener('click',()=>{
+              loadNode(node.id);
+            });
+            list.appendChild(btn);
+          });
+          group.appendChild(list);
+          searchResults.appendChild(group);
+        }
+        if(files.length){
+          const group=document.createElement('div');
+          group.className='door-search-group';
+          const heading=document.createElement('h3');
+          heading.textContent='Files';
+          group.appendChild(heading);
+          const list=document.createElement('div');
+          list.className='door-search-list';
+          files.forEach(function(file){
+            const link=document.createElement('a');
+            link.href=file.path?('../'+file.path):'#';
+            link.textContent=file.name||file.path||'File';
+            link.target='_blank';
+            link.rel='noopener';
+            list.appendChild(link);
+          });
+          group.appendChild(list);
+          searchResults.appendChild(group);
+        }
+      }
+
+      createBtn.addEventListener('click',createRoom);
+      searchForm.addEventListener('submit',function(event){
+        event.preventDefault();
+        runSearch((searchInput.value||'').trim());
+      });
+
+      loadNode('root');
+    })();
   </script>
-  <script src="assets/js/cloud-door.js" defer></script>
 </body>
 </html>
 HTML;
   exit;
 }
+
+// Door router: query ?door=<action> handles data/create/update/delete/search; default returns shell.
 function door_handle_mode($title){
   $route=$_GET['door'] ?? '';
   $method=strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-  if($route==='template'){
-    $name=$_GET['name'] ?? '';
-    $tpl=door_template($name);
-    if($tpl===null){
-      http_response_code(404);
-      header('Content-Type: text/plain; charset=utf-8');
-      echo 'Template not found';
-      exit;
-  }
-  header('Content-Type: text/html; charset=utf-8');
-  echo $tpl;
-  exit;
-}
-  if($route==='data') door_handle_data();
-  elseif($route==='search') door_handle_search();
+  if($route==='data' && $method==='GET') door_handle_data();
   elseif($route==='create' && $method==='POST') door_handle_create();
   elseif($route==='update' && $method==='POST') door_handle_update();
   elseif($route==='delete' && $method==='POST') door_handle_delete();
-  else door_render_shell($title);
+  elseif($route==='search' && $method==='GET') door_handle_search();
+  door_render_shell($title);
 }
 
 // ----- OPML helpers -----
@@ -1602,6 +1797,7 @@ if ($doorMode) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?=$TITLE?></title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Classic UI font/spacing/button tokens come from these Tailwind utility mixes. -->
   <style type="text/tailwindcss">
     .pane-header {@apply flex flex-wrap items-center gap-2 p-4 border-b;}
     .pane-title {@apply font-semibold flex-1;}
@@ -2060,6 +2256,7 @@ const ta=document.getElementById('ta');
 const contentTabs=document.getElementById('contentTabs');
 const sortBtn=document.getElementById('sort-btn');
 const sortMenu=document.getElementById('sort-menu');
+// Classic preview + RAW render/save wiring lives here (PreviewService hooks below).
 const contentPreview=document.getElementById('content-preview');
 const contentEditor=document.getElementById('content-editor');
 const contentNote=document.getElementById('content-note');
