@@ -18,3 +18,7 @@ This guide explains how Door mode behaves so future maintainers can keep the exp
 - Entries must include a `doorId`, `title`, `summary`, and `contentUrl` fields.
 - Attachments reference items by `doorId`; classic deep links continue to work because the schema keeps backward-compatible URLs.
 - When updating the schema, maintain the 1.1 fields and add migrations before raising the version.
+
+## Door Builder API Notes
+- When creating rooms through `cloud.php?action=create`, send the parent room in the `parentId` field. This is now the canonical field that the server reads first.
+- The older `parent` field is still read for now so existing scripts keep working, but new integrations should only rely on `parentId`.

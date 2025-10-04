@@ -734,6 +734,7 @@
       await request('create', {
         method: 'POST',
         body: {
+          parentId: state.currentId,
           parent: state.currentId,
           title,
           note: ''

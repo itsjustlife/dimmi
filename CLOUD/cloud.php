@@ -641,7 +641,9 @@ function door_handle_create(){
   door_require_csrf();
   $payload=json_decode(file_get_contents('php://input'),true);
   if(!is_array($payload)) bad('Bad JSON',400);
-  $parent=$payload['parent'] ?? '';
+  $parentId=trim((string)($payload['parentId'] ?? ''));
+  $legacyParent=trim((string)($payload['parent'] ?? ''));
+  $parent=$parentId !== '' ? $parentId : $legacyParent;
   $title=trim((string)($payload['title'] ?? 'New Room'));
   if($title==='') $title='New Room';
   $note=(string)($payload['note'] ?? '');
