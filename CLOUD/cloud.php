@@ -1007,6 +1007,24 @@ function door_render_shell($title){
   $csrf=$_SESSION['csrf'] ?? '';
   $csrfJs=json_encode($csrf, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
   $safeTitle=htmlspecialchars($title, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
+  $statusMessage='Door storage unavailable.';
+  $bootstrap=[
+    'base'=>'cloud.php',
+    'csrf'=>$csrf,
+    'ready'=>false,
+    'status'=>$statusMessage
+  ];
+  $load=door_load_doc();
+  if($load['ok'] ?? false){
+    $statusMessage='Select a room to get started.';
+    $bootstrap['ready']=true;
+    $bootstrap['status']=$statusMessage;
+  }else{
+    if(isset($load['error'])) $statusMessage=$load['error'];
+    $bootstrap['status']=$statusMessage;
+  }
+  $statusHtml=htmlspecialchars($statusMessage, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
+  $bootstrapJs=json_encode($bootstrap, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
   header('Content-Type: text/html; charset=utf-8');
   echo <<<HTML
 <!doctype html>
@@ -1015,325 +1033,81 @@ function door_render_shell($title){
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{$safeTitle} — Door</title>
-  <style>
-    :root{color-scheme:light dark;}
-    body{margin:0;font-family:"Inter",system-ui,-apple-system,Segoe UI,sans-serif;background:#f8fafc;color:#0f172a;min-height:100vh;display:flex;flex-direction:column;}
-    .door-header{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;padding:1.25rem 1.5rem;background:#111827;color:#f9fafb;}
-    .door-header h1{font-size:1.5rem;font-weight:700;letter-spacing:0.08em;margin:0;}
-    .door-search{margin-left:auto;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
-    .door-search input{padding:0.6rem 0.75rem;border-radius:0.5rem;border:1px solid #cbd5f5;min-width:14rem;font-size:0.95rem;}
-    .door-search button{padding:0.6rem 1rem;border-radius:0.5rem;border:1px solid #2563eb;background:#2563eb;color:#f9fafb;font-weight:600;cursor:pointer;}
-    .door-search button:hover{background:#1d4ed8;}
-    .door-main{flex:1;display:flex;flex-direction:column;gap:1.5rem;padding:1.5rem;max-width:960px;margin:0 auto;width:100%;box-sizing:border-box;}
-    .door-error{padding:0.75rem 1rem;margin:1rem 1.5rem;border-radius:0.5rem;border:1px solid #fca5a5;background:#fee2e2;color:#991b1b;font-weight:600;}
-    .door-error.hidden{display:none;}
-    .door-message{min-height:1.5rem;font-size:0.95rem;color:#64748b;}
-    .door-breadcrumb{display:flex;flex-wrap:wrap;gap:0.5rem;font-size:0.9rem;align-items:center;}
-    .door-breadcrumb button{background:none;border:none;color:#2563eb;font-weight:500;cursor:pointer;padding:0.25rem 0.5rem;border-radius:0.375rem;}
-    .door-breadcrumb button:hover{background:#e0f2fe;}
-    .door-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:1.25rem;box-shadow:0 6px 24px rgba(148,163,184,0.12);}
-    .door-node-title{font-size:1.4rem;font-weight:700;margin:0;}
-    .door-node-note{margin-top:0.75rem;font-size:0.95rem;color:#475569;white-space:pre-wrap;}
-    .door-children-header{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;margin-top:0.5rem;}
-    .door-children-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(12rem,1fr));gap:0.75rem;margin-top:0.75rem;}
-    .door-child{display:flex;flex-direction:column;gap:0.35rem;align-items:flex-start;padding:0.85rem;border-radius:0.75rem;border:1px solid #cbd5f5;background:#eff6ff;color:#1d4ed8;text-align:left;width:100%;cursor:pointer;font-size:0.95rem;min-height:4rem;box-sizing:border-box;}
-    .door-child:hover{background:#dbeafe;}
-    .door-child-note{font-size:0.8rem;color:#64748b;}
-    .door-empty{font-size:0.9rem;color:#94a3b8;border:1px dashed #cbd5f5;padding:0.75rem;border-radius:0.75rem;}
-    .door-new{padding:0.65rem 1.1rem;border-radius:0.5rem;border:1px solid #2563eb;background:#2563eb;color:#f8fafc;font-weight:600;cursor:pointer;}
-    .door-new:hover{background:#1d4ed8;}
-    .door-search-results{display:flex;flex-direction:column;gap:0.75rem;}
-    .door-search-group h3{margin:0 0 0.25rem;font-size:0.95rem;color:#334155;}
-    .door-search-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0.35rem;}
-    .door-search-list button{background:none;border:none;color:#2563eb;font-weight:500;text-align:left;cursor:pointer;padding:0.25rem 0;border-bottom:1px solid #e2e8f0;}
-    .door-search-list button:hover{color:#1d4ed8;}
-    .door-search-list a{color:#2563eb;text-decoration:none;border-bottom:1px solid #e2e8f0;padding:0.25rem 0;}
-    .door-search-error{font-size:0.9rem;color:#b91c1c;}
-    @media (max-width:640px){
-      .door-main{padding:1rem;}
-      .door-header{justify-content:flex-start;}
-      .door-search{width:100%;margin-left:0;}
-      .door-search input{flex:1;min-width:0;width:100%;}
-      .door-search button{width:100%;}
-    }
-  </style>
+  <link rel="stylesheet" href="assets/css/door.css">
 </head>
 <body>
-  <header class="door-header">
-    <h1>DOOR</h1>
-    <form id="door-search" class="door-search" autocomplete="off" role="search" aria-label="Search rooms and files">
-      <input id="door-search-input" type="search" placeholder="Search" aria-label="Search term">
-      <button type="submit">Search</button>
-    </form>
+  <header>
+    <a href="cloud.php?mode=classic" aria-label="Open classic cloud">← Classic</a>
+    <h1>Door</h1>
+    <a href="cloud.php" aria-label="Back to cloud home">Cloud Home</a>
   </header>
-  <div id="door-error" class="door-error hidden" role="alert"></div>
-  <main id="app-door" class="door-main">
-    <div id="door-message" class="door-message" role="status" aria-live="polite"></div>
-    <nav id="door-breadcrumb" class="door-breadcrumb" aria-label="Breadcrumb"></nav>
-    <section class="door-card" aria-live="polite">
-      <h2 id="door-title" class="door-node-title">Loading…</h2>
-      <p id="door-note" class="door-node-note" hidden></p>
+  <main class="door-shell">
+    <div id="door-status" class="door-status" role="status" aria-live="polite">{$statusHtml}</div>
+    <section id="door-crumb-wrap" class="door-panel" aria-label="Room navigation">
+      <nav id="door-breadcrumb" class="door-breadcrumb" aria-label="Breadcrumb"></nav>
+      <div id="door-rail" class="door-rail" aria-label="Teleports"></div>
     </section>
-    <section>
-      <div class="door-children-header">
-        <h3 class="door-section-title">Rooms</h3>
-        <button id="door-create" type="button" class="door-new">+ New</button>
-      </div>
-      <div id="door-children" class="door-children-grid" role="list"></div>
-    </section>
-    <section id="door-search-results" class="door-search-results" aria-live="polite"></section>
+    <div class="door-layout">
+      <section id="door-grid-wrap" class="door-panel door-grid-wrap" aria-label="Rooms">
+        <div id="door-grid" class="door-grid" role="list"></div>
+      </section>
+      <aside class="door-editor-panel">
+        <section class="door-panel door-editor" aria-label="Room details">
+          <label for="door-room-title">Title
+            <input id="door-room-title" type="text" placeholder="Room title">
+          </label>
+          <label for="door-room-note">Notes
+            <textarea id="door-room-note" placeholder="Notes about this room"></textarea>
+          </label>
+          <div class="door-editor-actions">
+            <button id="door-save" type="button" class="door-button door-button-primary">Save</button>
+            <button id="door-add-child" type="button" class="door-button door-button-secondary">Add room</button>
+            <button id="door-delete" type="button" class="door-button door-button-danger">Delete</button>
+          </div>
+        </section>
+        <section class="door-panel door-links-block" aria-label="Teleports">
+          <div class="door-links-header">
+            <h2 class="door-links-title">Teleports</h2>
+            <button id="door-attach" type="button" class="door-link-attach">Attach</button>
+          </div>
+          <ul id="door-links-list" class="door-links"></ul>
+        </section>
+        <section id="door-search-wrap" class="door-panel" aria-label="Search">
+          <div class="door-search-panel">
+            <form id="door-search" class="door-search" role="search">
+              <input id="door-search-input" type="search" placeholder="Search rooms or files" autocomplete="off">
+              <button type="submit">Search</button>
+            </form>
+            <div id="door-search-quick" class="door-search-quick"></div>
+          </div>
+        </section>
+      </aside>
+    </div>
   </main>
+
+  <div id="door-child-dialog" class="door-child-dialog" hidden>
+    <div class="door-child-dialog-content" role="dialog" aria-modal="true" aria-labelledby="door-child-dialog-title">
+      <h2 id="door-child-dialog-title">Create room</h2>
+      <form id="door-child-form" class="door-child-dialog-form">
+        <label for="door-child-name">Room name
+          <input id="door-child-name" name="name" type="text" required placeholder="New room">
+        </label>
+        <div class="door-child-dialog-actions">
+          <button id="door-child-cancel" type="button" class="door-child-dialog-cancel">Cancel</button>
+          <button id="door-child-create" type="submit" class="door-child-dialog-create">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
-    (function(){
-      window.__csrf={$csrfJs};
-      window.openContentDrawer = window.openContentDrawer || function(filePath){
-        alert('Content drawer is coming soon for '+(filePath||'this item'));
-      };
-      const defaultParams=new URLSearchParams(window.location.search);
-      if(!defaultParams.has('mode')) defaultParams.set('mode','door');
-      const basePath=window.location.pathname;
-      const state={currentId:null,rootId:null,loading:false};
-      const messageEl=document.getElementById('door-message');
-      const errorEl=document.getElementById('door-error');
-      const titleEl=document.getElementById('door-title');
-      const noteEl=document.getElementById('door-note');
-      const breadcrumbEl=document.getElementById('door-breadcrumb');
-      const childrenEl=document.getElementById('door-children');
-      const createBtn=document.getElementById('door-create');
-      const searchForm=document.getElementById('door-search');
-      const searchInput=document.getElementById('door-search-input');
-      const searchResults=document.getElementById('door-search-results');
-
-      console.log('[Door] JS loaded');
-
-      function buildUrl(action, extra){
-        const params=new URLSearchParams(defaultParams);
-        params.set('door',action);
-        if(extra){
-          for(const [key,val] of Object.entries(extra)){
-            if(val===undefined || val===null || val==='') params.delete(key);
-            else params.set(key,val);
-          }
-        }
-        return basePath+'?'+params.toString();
-      }
-
-      function setError(message){
-        if(!message){
-          errorEl.textContent='';
-          errorEl.classList.add('hidden');
-        }else{
-          errorEl.textContent=message;
-          errorEl.classList.remove('hidden');
-        }
-      }
-
-      function setMessage(text){
-        messageEl.textContent=text||'';
-      }
-
-      function escapeHtml(str){
-        return str.replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]||c;});
-      }
-
-      function renderNode(payload){
-        const node=payload.node||{};
-        const title=(node.title||'').trim()||'Untitled room';
-        titleEl.textContent=title;
-        const note=(node.note||'').trim();
-        if(note){
-          noteEl.textContent=note;
-          noteEl.hidden=false;
-        }else{
-          noteEl.textContent='';
-          noteEl.hidden=true;
-        }
-        breadcrumbEl.innerHTML='';
-        (payload.breadcrumb||[]).forEach(function(crumb,idx,arr){
-          const id=crumb.id||'';
-          const label=(crumb.title||id||'Room').trim()||'Room';
-          if(idx===arr.length-1){
-            const span=document.createElement('span');
-            span.textContent=label;
-            breadcrumbEl.appendChild(span);
-          }else{
-            const btn=document.createElement('button');
-            btn.type='button';
-            btn.textContent=label;
-            btn.addEventListener('click',()=>loadNode(id));
-            breadcrumbEl.appendChild(btn);
-            const sep=document.createElement('span');
-            sep.textContent='›';
-            sep.setAttribute('aria-hidden','true');
-            sep.style.color='#94a3b8';
-            sep.style.margin='0 0.25rem';
-            breadcrumbEl.appendChild(sep);
-          }
-        });
-        childrenEl.innerHTML='';
-        const kids=payload.children||[];
-        if(!kids.length){
-          const empty=document.createElement('div');
-          empty.className='door-empty';
-          empty.textContent='No rooms yet. Use “+ New” to add one.';
-          childrenEl.appendChild(empty);
-        }else{
-          kids.forEach(function(child){
-            const btn=document.createElement('button');
-            btn.className='door-child';
-            btn.type='button';
-            btn.setAttribute('role','listitem');
-            btn.innerHTML='<strong>'+escapeHtml((child.title||'Untitled room').trim()||'Untitled room')+'</strong>';
-            const note=(child.note||'').trim();
-            if(note){
-              const noteSpan=document.createElement('span');
-              noteSpan.className='door-child-note';
-              noteSpan.textContent=note;
-              btn.appendChild(noteSpan);
-            }
-            btn.addEventListener('click',()=>loadNode(child.id));
-            childrenEl.appendChild(btn);
-          });
-        }
-        searchResults.innerHTML='';
-      }
-
-      async function loadNode(id){
-        if(state.loading) return;
-        state.loading=true;
-        setMessage('Loading…');
-        try{
-          const url=buildUrl('data',{id:id||''});
-          console.log('[Door] GET',url);
-          const res=await fetch(url,{headers:{'Accept':'application/json'}});
-          const payload=await res.json().catch(()=>({ok:false,error:'Invalid response'}));
-          if(!res.ok || !payload.ok){
-            throw new Error(payload.error || res.statusText || 'Failed to load room');
-          }
-          state.rootId=payload.rootId || state.rootId || 'root';
-          state.currentId=(payload.node&&payload.node.id)||state.rootId;
-          renderNode(payload);
-          setError('');
-        }catch(err){
-          console.error('[Door] data error',err);
-          setError(err.message || 'Failed to load room');
-        }finally{
-          state.loading=false;
-          setMessage('');
-        }
-      }
-
-      async function createRoom(){
-        const parentId=state.currentId || state.rootId || 'root';
-        const url=buildUrl('create',{});
-        console.log('[Door] POST',url);
-        createBtn.disabled=true;
-        try{
-          const res=await fetch(url,{
-            method:'POST',
-            headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF':window.__csrf||''},
-            body:JSON.stringify({parentId:parentId,title:'New Room'})
-          });
-          const payload=await res.json().catch(()=>({ok:false,error:'Invalid response'}));
-          if(!res.ok || !payload.ok){
-            throw new Error(payload.error || res.statusText || 'Unable to create room');
-          }
-          await loadNode(parentId);
-        }catch(err){
-          console.error('[Door] create error',err);
-          setError(err.message || 'Unable to create room');
-        }finally{
-          createBtn.disabled=false;
-        }
-      }
-
-      async function runSearch(term){
-        if(!term){
-          searchResults.innerHTML='';
-          return;
-        }
-        setMessage('Searching…');
-        try{
-          const url=buildUrl('search',{q:term});
-          console.log('[Door] SEARCH',url);
-          const res=await fetch(url,{headers:{'Accept':'application/json'}});
-          const payload=await res.json().catch(()=>({ok:false,error:'Invalid response'}));
-          if(!res.ok || !payload.ok){
-            throw new Error(payload.error || res.statusText || 'Search failed');
-          }
-          renderSearchResults(payload);
-          setError('');
-        }catch(err){
-          console.error('[Door] search error',err);
-          searchResults.innerHTML='<p class="door-search-error">'+escapeHtml(err.message||'Search failed')+'</p>';
-          setError(err.message || 'Search failed');
-        }finally{
-          setMessage('');
-        }
-      }
-
-      function renderSearchResults(payload){
-        searchResults.innerHTML='';
-        const nodes=payload.nodes||[];
-        const files=payload.files||[];
-        if(!nodes.length && !files.length){
-          searchResults.innerHTML='<p class="door-search-error">No matches.</p>';
-          return;
-        }
-        if(nodes.length){
-          const group=document.createElement('div');
-          group.className='door-search-group';
-          const heading=document.createElement('h3');
-          heading.textContent='Rooms';
-          group.appendChild(heading);
-          const list=document.createElement('div');
-          list.className='door-search-list';
-          nodes.forEach(function(node){
-            const btn=document.createElement('button');
-            btn.type='button';
-            btn.textContent=(node.title||node.id||'Room');
-            btn.addEventListener('click',()=>{
-              loadNode(node.id);
-            });
-            list.appendChild(btn);
-          });
-          group.appendChild(list);
-          searchResults.appendChild(group);
-        }
-        if(files.length){
-          const group=document.createElement('div');
-          group.className='door-search-group';
-          const heading=document.createElement('h3');
-          heading.textContent='Files';
-          group.appendChild(heading);
-          const list=document.createElement('div');
-          list.className='door-search-list';
-          files.forEach(function(file){
-            const link=document.createElement('a');
-            link.href=file.path?('../'+file.path):'#';
-            link.textContent=file.name||file.path||'File';
-            link.target='_blank';
-            link.rel='noopener';
-            list.appendChild(link);
-          });
-          group.appendChild(list);
-          searchResults.appendChild(group);
-        }
-      }
-
-      createBtn.addEventListener('click',createRoom);
-      searchForm.addEventListener('submit',function(event){
-        event.preventDefault();
-        runSearch((searchInput.value||'').trim());
-      });
-
-      loadNode('root');
-    })();
+    window.__csrf={$csrfJs};
+    window.__DOOR_BOOTSTRAP__={$bootstrapJs};
   </script>
+  <script src="assets/js/cloud-door.js" defer></script>
 </body>
 </html>
 HTML;
-  exit;
 }
 
 // Door router: query ?door=<action> handles data/create/update/delete/search; default returns shell.
@@ -2088,7 +1862,7 @@ if ($doorMode) {
       <span class="sr-only">Home</span>
     </button>
     <nav id="crumb" class="flex items-center gap-2 text-sm text-gray-600"></nav>
-    <button id="doorModeBtn" type="button" onclick="toggleDoorMode()" class="px-3 py-1 text-sm border border-blue-200 text-blue-600 rounded hover:bg-blue-50">Door</button>
+    <a id="doorModeBtn" href="cloud.php?mode=door" class="px-3 py-1 text-sm border border-blue-200 text-blue-600 rounded hover:bg-blue-50">Door</a>
     <div class="ml-auto relative">
       <button id="settingsBtn" class="p-2 rounded hover:bg-gray-100" title="Settings">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5M3.75 12h16.5m-16.5 6.75h16.5"/></svg>
