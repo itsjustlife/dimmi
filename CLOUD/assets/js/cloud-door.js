@@ -336,12 +336,12 @@
     const currentToken = ++searchState.token;
     setSearchMessage('Searching…');
     try {
-      const params = new URLSearchParams();
-      params.set('action', 'search');
-      params.set('q', nextQuery);
-      params.set('node_limit', '8');
-      params.set('file_limit', '6');
-      const res = await fetch(`${DOOR.base}?${params.toString()}`, { headers: { 'Accept': 'application/json' } });
+      const url = DOOR.url('search', {
+        q: nextQuery,
+        node_limit: '8',
+        file_limit: '6'
+      });
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
       const contentType = res.headers.get('content-type') || '';
       const isJson = contentType.includes('application/json');
       const data = isJson ? await res.json() : null;
