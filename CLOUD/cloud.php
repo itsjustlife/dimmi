@@ -1458,12 +1458,31 @@ if ($doorMode) {
     #doorContent .door-chip{display:inline-flex;align-items:center;gap:0.25rem;padding:0.25rem 0.75rem;border-radius:0.5rem;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;font-weight:500;cursor:pointer;transition:background-color .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease;text-decoration:none;}
     #doorContent .door-chip:hover{background:#dbeafe;border-color:#60a5fa;color:#1d4ed8;}
     #doorContent .door-chip:focus{outline:2px solid rgba(37,99,235,0.35);outline-offset:2px;}
+    .door-article{background:#ffffff;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1.25rem;box-shadow:0 1px 1px rgba(148,163,184,0.14);min-height:6rem;}
     #doorTeleports .door-teleport-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(12rem,1fr));gap:0.75rem;margin:0;padding:0;}
     #doorTeleports .door-teleport-list li{list-style:none;}
     #doorTeleports .door-teleport-meta{font-size:0.75rem;color:#6b7280;margin-top:0.35rem;padding-left:0.5rem;}
     #doorTeleports .door-chip{width:100%;justify-content:center;box-shadow:0 1px 1px rgba(148,163,184,0.2);}
     #doorTeleports .door-chip:hover{box-shadow:0 4px 12px rgba(96,165,250,0.25);}
     #doorTeleports a.door-chip{display:inline-flex;}
+    #doorActions{min-height:2.5rem;}
+    #doorActions .door-action-btn{display:inline-flex;align-items:center;gap:0.5rem;padding:0.35rem 0.9rem;border-radius:0.5rem;border:1px solid #cbd5f5;background:#f8fafc;color:#1d4ed8;font-weight:500;box-shadow:0 1px 1px rgba(148,163,184,0.18);transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease,color .2s ease;}
+    #doorActions .door-action-btn:hover{background:#eff6ff;border-color:#93c5fd;box-shadow:0 4px 12px rgba(147,197,253,0.35);}
+    #doorActions .door-action-btn:focus{outline:2px solid rgba(37,99,235,0.35);outline-offset:2px;}
+    #doorActions .door-action-btn svg{width:1rem;height:1rem;}
+    .door-children{background:#ffffff;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1rem 1.25rem;box-shadow:0 1px 1px rgba(148,163,184,0.12);}
+    .door-children-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:1rem;}
+    .door-children-title{font-size:0.95rem;font-weight:600;color:#1f2937;}
+    .door-children-count{font-size:0.8rem;color:#6b7280;}
+    .door-child-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(12rem,1fr));gap:0.75rem;}
+    .door-child-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:0.75rem;padding:0.85rem;display:flex;flex-direction:column;gap:0.5rem;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;background-image:linear-gradient(135deg,rgba(248,250,252,0.95),rgba(239,246,255,0.95));}
+    .door-child-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(148,163,184,0.25);border-color:#bfdbfe;}
+    .door-child-button{display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;text-align:left;width:100%;background:none;border:none;padding:0;margin:0;font:inherit;color:#1f2937;cursor:pointer;}
+    .door-child-button:focus{outline:2px solid rgba(37,99,235,0.35);outline-offset:2px;}
+    .door-child-title{font-weight:600;color:#1f2937;font-size:0.95rem;}
+    .door-child-meta{font-size:0.75rem;color:#6b7280;}
+    .door-child-open{align-self:flex-start;padding:0.25rem 0.6rem;border-radius:9999px;background:#e0f2fe;color:#0369a1;font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+    .door-child-empty{font-size:0.85rem;color:#6b7280;padding:0.25rem 0.5rem;border:1px dashed #cbd5f5;border-radius:0.5rem;background:#f8fafc;}
   </style>
 </head>
 <body class="h-screen flex flex-col bg-gray-50 text-gray-800 overflow-x-hidden">
@@ -1664,8 +1683,9 @@ if ($doorMode) {
         <div class="px-4 py-3 border-b">
           <h3 id="doorTitle" class="text-xl font-semibold text-gray-800">Select a room</h3>
           <div id="doorMeta" class="text-sm text-gray-500 mt-1"></div>
+          <div id="doorActions" class="mt-3 flex flex-wrap gap-2 hidden"></div>
         </div>
-        <div id="doorContent" class="flex-1 overflow-auto p-4 text-sm leading-relaxed bg-gray-50"></div>
+        <div id="doorContent" class="flex-1 overflow-auto p-4 text-sm leading-relaxed bg-gray-50 space-y-6"></div>
         <div id="doorTeleports" class="px-4 py-3 border-t">
           <h4 class="font-semibold text-gray-700 mb-2">Teleports</h4>
           <p id="doorTeleportEmpty" class="text-sm text-gray-500">No teleports yet.</p>
@@ -2098,10 +2118,15 @@ function renderDoorPlaceholder(message){
   const meta=document.getElementById('doorMeta');
   const content=document.getElementById('doorContent');
   const teleports=document.getElementById('doorTeleports');
+  const actions=document.getElementById('doorActions');
   const infoMessage=message && message.trim()!=='' ? `<p class="text-sm text-gray-500">${escapeHtml(message)}</p>` : '';
   const rootId=escapeHtml(doorState.rootId || 'mind-atlas');
   if(title) title.textContent = message || 'Select a room';
   if(meta) meta.textContent = '';
+  if(actions){
+    actions.innerHTML='';
+    actions.classList.add('hidden');
+  }
   if(content){
     content.innerHTML = `
       <div class="space-y-4 text-sm text-gray-600">
@@ -2325,26 +2350,69 @@ async function selectDoorNode(id){
   const meta=document.getElementById('doorMeta');
   const contentEl=document.getElementById('doorContent');
   const status=document.getElementById('doorStatus');
+  const actions=document.getElementById('doorActions');
   if(title) title.textContent=node.title || id;
   if(meta){
     const tags=[];
     if(node.branch) tags.push(node.branch);
-    if(node.kind) tags.push(node.kind==='dir'?'Branch':'Entry');
+    if(node.kind) tags.push(node.kind==='dir'?'Folder':'Entry');
+    if(Array.isArray(node.children) && node.children.length){
+      const count=node.children.length;
+      tags.push(`${count} child${count===1?'':'ren'}`);
+    }
     if(node.missing) tags.push('Stub');
-    if(node.contentPath) tags.push(node.contentPath);
+    if(node.sourcePath) tags.push(node.sourcePath);
+    else if(node.contentPath) tags.push(node.contentPath);
     meta.textContent=tags.join(' · ');
+  }
+  if(actions){
+    actions.innerHTML='';
+    const buttons=[];
+    if(node.sourcePath){
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='door-action-btn';
+      const folderIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 6.75A1.5 1.5 0 015.25 5.25h4.028a1.5 1.5 0 011.06.44l1.222 1.22a1.5 1.5 0 001.06.44h5.63a1.5 1.5 0 011.5 1.5v8.25A1.5 1.5 0 0118.25 18H5.25A1.5 1.5 0 013.75 16.5v-9.75z"/></svg>';
+      const fileIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.75h4.5L18.75 9v9.75a1.5 1.5 0 01-1.5 1.5H9a1.5 1.5 0 01-1.5-1.5V5.25A1.5 1.5 0 019 3.75z"/><path d="M13.5 3.75V9H18"/></svg>';
+      const label=node.kind==='dir'?'Open folder in editor':'Open note in editor';
+      btn.innerHTML=`${node.kind==='dir'?folderIcon:fileIcon}<span>${escapeHtml(label)}</span>`;
+      btn.addEventListener('click',ev=>{ev.preventDefault(); doorOpenPath(node.sourcePath, node.kind);});
+      buttons.push(btn);
+    }
+    if(buttons.length){
+      buttons.forEach(btn=>actions.appendChild(btn));
+      actions.classList.remove('hidden');
+    }else{
+      actions.classList.add('hidden');
+    }
   }
   if(status) status.textContent=`Loading ${node.title || id}…`;
   try{
     const content=await loadDoorContent(node);
     if(contentEl){
-      contentEl.innerHTML=renderDoorMarkdown(content);
+      const fragment=document.createDocumentFragment();
+      const childrenSection=renderDoorChildrenSection(node);
+      if(childrenSection) fragment.appendChild(childrenSection);
+      const article=document.createElement('article');
+      article.className='door-article';
+      article.innerHTML=renderDoorMarkdown(content);
+      fragment.appendChild(article);
+      contentEl.innerHTML='';
+      contentEl.appendChild(fragment);
       wireDoorContentLinks();
     }
   }catch(err){
-    if(contentEl) contentEl.innerHTML=`<p class="text-sm text-red-600">${escapeHtml(err.message)}</p>`;
+    if(contentEl){
+      contentEl.innerHTML='';
+      const childrenSection=renderDoorChildrenSection(node);
+      if(childrenSection) contentEl.appendChild(childrenSection);
+      const errorBox=document.createElement('article');
+      errorBox.className='door-article';
+      errorBox.innerHTML=`<p class="text-sm text-red-600">${escapeHtml(err.message)}</p>`;
+      contentEl.appendChild(errorBox);
+    }
   }finally{
-    if(status) status.textContent='';
+    if(status) status.textContent=`Viewing ${node.title || id}`;
   }
   renderDoorTeleports(node);
 }
@@ -2473,6 +2541,20 @@ function renderDoorTeleports(node){
       a.className='door-chip';
       a.textContent=link.title || link.target;
       li.appendChild(a);
+    }else if(['path','file','folder','structure'].includes((link.type||'').toLowerCase())){
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='door-chip';
+      btn.textContent=link.title || link.target;
+      const kindHint=(link.nodeKind||link.type||'');
+      btn.addEventListener('click',()=>doorOpenPath(link.target, kindHint));
+      li.appendChild(btn);
+      if(link.target){
+        const meta=document.createElement('div');
+        meta.className='door-teleport-meta';
+        meta.textContent=link.target;
+        li.appendChild(meta);
+      }
     }else{
       const span=document.createElement('span');
       span.className='text-sm text-gray-600';
@@ -2482,6 +2564,116 @@ function renderDoorTeleports(node){
     ul.appendChild(li);
   });
   wrap.appendChild(ul);
+}
+
+function renderDoorChildrenSection(node){
+  if(!node || !doorState || !doorState.nodes) return null;
+  const ids=Array.isArray(node.children)?node.children:[];
+  const seen=new Set();
+  const children=[];
+  ids.forEach(childId=>{
+    if(!childId || seen.has(childId)) return;
+    const child=doorState.nodes[childId];
+    if(!child) return;
+    seen.add(childId);
+    children.push(child);
+  });
+  if(!children.length) return null;
+  children.sort((a,b)=>{
+    const at=(a.title||a.id||'').toLowerCase();
+    const bt=(b.title||b.id||'').toLowerCase();
+    return at.localeCompare(bt,'en',{sensitivity:'base'});
+  });
+  const section=document.createElement('section');
+  section.className='door-children';
+  const header=document.createElement('div');
+  header.className='door-children-header';
+  const titleEl=document.createElement('div');
+  titleEl.className='door-children-title';
+  titleEl.textContent='Child rooms';
+  const countEl=document.createElement('div');
+  countEl.className='door-children-count';
+  countEl.textContent=`${children.length} room${children.length===1?'':'s'}`;
+  header.append(titleEl,countEl);
+  section.appendChild(header);
+  const grid=document.createElement('div');
+  grid.className='door-child-grid';
+  children.forEach(child=>{
+    const card=document.createElement('div');
+    card.className='door-child-card';
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='door-child-button';
+    btn.addEventListener('click',()=>selectDoorNode(child.id));
+    const textWrap=document.createElement('div');
+    textWrap.className='flex flex-col gap-1';
+    const title=document.createElement('div');
+    title.className='door-child-title';
+    title.textContent=child.title || child.id;
+    textWrap.appendChild(title);
+    const metaParts=[];
+    if(child.branch) metaParts.push(child.branch);
+    if(child.kind) metaParts.push(child.kind==='dir'?'Folder':'Entry');
+    if(child.missing) metaParts.push('Stub');
+    if(child.sourcePath) metaParts.push(child.sourcePath);
+    if(metaParts.length){
+      const meta=document.createElement('div');
+      meta.className='door-child-meta';
+      meta.textContent=metaParts.join(' · ');
+      textWrap.appendChild(meta);
+    }
+    btn.appendChild(textWrap);
+    const arrow=document.createElement('span');
+    arrow.className='text-blue-500 text-xs font-semibold tracking-wide uppercase self-center';
+    arrow.textContent='View';
+    btn.appendChild(arrow);
+    card.appendChild(btn);
+    if(child.sourcePath){
+      const open=document.createElement('button');
+      open.type='button';
+      open.className='door-child-open';
+      open.textContent=child.kind==='dir'?'Open folder':'Open note';
+      open.addEventListener('click',ev=>{ev.stopPropagation(); doorOpenPath(child.sourcePath, child.kind);});
+      card.appendChild(open);
+    }
+    grid.appendChild(card);
+  });
+  section.appendChild(grid);
+  return section;
+}
+
+async function doorOpenPath(path, kind){
+  if(!path) return;
+  const clean=String(path).replace(/^\/+/, '');
+  const hint=(kind||'').toString().toLowerCase();
+  let target=clean;
+  if(!target){
+    exitDoorMode();
+    await openDir('');
+    return;
+  }
+  let isDir=hint==='dir' || hint==='folder';
+  if(!isDir && hint!=='file' && hint!=='structure'){
+    try{
+      const res=await api('list',{path:target});
+      if(res.ok){
+        const data=await res.json();
+        if(data && data.ok) isDir=true;
+      }
+    }catch(err){
+      // Ignore; fall back to treating as file.
+    }
+  }
+  exitDoorMode();
+  if(isDir){
+    await openDir(target);
+    return;
+  }
+  const parts=target.split('/');
+  const name=parts.pop() || target;
+  const parent=parts.join('/');
+  await openDir(parent);
+  await openFile(target, name);
 }
 
 async function rebuildDoorSeeds(){
