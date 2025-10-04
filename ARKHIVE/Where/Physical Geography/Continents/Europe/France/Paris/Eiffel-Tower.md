@@ -11,9 +11,9 @@ _Context:_ Champ de Mars, central Paris.
 _History:_
 - 1887–1889: Construction for the World's Fair (WHEN:../../../../../../When/README.md).
 _Links:_
-- WHO: [Gustave Eiffel](../../../../../../Who/README.md)
-- WHAT: [Architecture](../../../../../../What/README.md)
-- WHEN: [1889](../../../../../../When/README.md)
-- WHY: [World's Fair](../../../../../../Why/README.md)
-- WHERE: [Paris](README.md)
-_See also:_ [Paris](README.md)
+- WHO: [Gustave Eiffel](../../../../../../Who/)
+- WHAT: [Architecture](../../../../../../What/)
+- WHEN: [1889](../../../../../../When/)
+- WHY: [World's Fair](../../../../../../Why/)
+- WHERE: [Paris](./)
+_See also:_ [Paris](./)

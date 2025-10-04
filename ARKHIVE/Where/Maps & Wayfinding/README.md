@@ -8,8 +8,8 @@ Links: []
 Services for navigation and orientation: maps, routes, gazetteers, and coordinate systems.
 
 ### Sections
-- [Maps & Atlases](Maps & Atlases/README.md)
-- [Routes & Directions](Routes & Directions/README.md)
-- [Gazetteers & Place Index](Gazetteers & Place Index/README.md)
-- [GIS & Coordinates](GIS & Coordinates/README.md)
+- [Maps & Atlases](Maps & Atlases/)
+- [Routes & Directions](Routes & Directions/)
+- [Gazetteers & Place Index](Gazetteers & Place Index/)
+- [GIS & Coordinates](GIS & Coordinates/)
 - [Conventions](Conventions.md)

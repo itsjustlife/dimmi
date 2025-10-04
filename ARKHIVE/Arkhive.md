@@ -3,13 +3,13 @@
 
 Quick access to major branches:
 
-- [How](How/README.md)
-- [What](What/README.md)
-- [When](When/README.md)
-- [Where](Where/README.md)
-- [Who](Who/README.md)
-- [Why](Why/README.md)
-- [Items](Items/README.md)
-- [Arkhiver](Arkhiver/README.md)
+- [How](How/)
+- [What](What/)
+- [When](When/)
+- [Where](Where/)
+- [Who](Who/)
+- [Why](Why/)
+- [Items](Items/)
+- [Arkhiver](Arkhiver/)
 
 [Back to START](../START.md)

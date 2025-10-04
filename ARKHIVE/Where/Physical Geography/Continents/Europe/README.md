@@ -11,9 +11,9 @@ _Context:_ Northern and eastern hemispheres, bounded by Asia to the east.
 _History:_
 - Ancient Greeks defined Europe as a distinct landmass (WHEN:../../../../When/README.md).
 _Links:_
-- WHO: [European Peoples](../../../../Who/README.md)
-- WHAT: [European Culture](../../../../What/README.md)
-- WHEN: [European History](../../../../When/README.md)
-- WHY: [Regional Identity](../../../../Why/README.md)
-- WHERE: [Continents](../README.md)
-_See also:_ [France](France/README.md)
+- WHO: [European Peoples](../../../../Who/)
+- WHAT: [European Culture](../../../../What/)
+- WHEN: [European History](../../../../When/)
+- WHY: [Regional Identity](../../../../Why/)
+- WHERE: [Continents](../)
+_See also:_ [France](France/)

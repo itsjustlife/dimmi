@@ -11,18 +11,18 @@ _Context:_ Global division by large continuous land areas.
 _History:_
 - Classical era: Early geographers identify three continents (WHEN:../../../When/README.md).
 _Links:_
-- WHO: [Explorers](../../../Who/README.md)
-- WHAT: [Geography](../../../What/README.md)
-- WHEN: [Cartographic History](../../../When/README.md)
-- WHY: [Regional Classification](../../../Why/README.md)
-- WHERE: [Physical Geography](../README.md)
-_See also:_ [Oceans & Seas](../Oceans & Seas/README.md)
+- WHO: [Explorers](../../../Who/)
+- WHAT: [Geography](../../../What/)
+- WHEN: [Cartographic History](../../../When/)
+- WHY: [Regional Classification](../../../Why/)
+- WHERE: [Physical Geography](../)
+_See also:_ [Oceans & Seas](../Oceans & Seas/)
 
 ### Major Continents
-- [Africa](Africa/README.md)
-- [Antarctica](Antarctica/README.md)
-- [Asia](Asia/README.md)
-- [Europe](Europe/README.md)
-- [North America](North America/README.md)
-- [Oceania](Oceania/README.md)
-- [South America](South America/README.md)
+- [Africa](Africa/)
+- [Antarctica](Antarctica/)
+- [Asia](Asia/)
+- [Europe](Europe/)
+- [North America](North America/)
+- [Oceania](Oceania/)
+- [South America](South America/)

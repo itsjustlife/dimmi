@@ -9,8 +9,8 @@ WHO: astronomers; WHAT: stars, supernovae, black holes; WHEN: star lifecycles (m
 
 ## Contents
 
-- [Stars & Constellations](./Where-Stars-Constellations.md)
-- [Nebulae & Star-Forming Regions](./Where-Nebulae-Star-Forming-Regions.md)
-- [Supernovae & Stellar Explosions](./Where-Supernovae-Stellar-Explosions.md)
-- [Black Holes & Exotic Objects](./Where-Black-Holes-Exotic-Objects.md)
-- [Stars, Nebulae, Supernovae & Black Holes Link](./Where-Stars-Nebulae-Supernovae-Black-Holes.link.md)
+- [Stars & Constellations](Where-Stars-Constellations.md)
+- [Nebulae & Star-Forming Regions](Where-Nebulae-Star-Forming-Regions.md)
+- [Supernovae & Stellar Explosions](Where-Supernovae-Stellar-Explosions.md)
+- [Black Holes & Exotic Objects](Where-Black-Holes-Exotic-Objects.md)
+- [Stars, Nebulae, Supernovae & Black Holes Link](Where-Stars-Nebulae-Supernovae-Black-Holes.link.md)

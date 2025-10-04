@@ -11,9 +11,9 @@ _Context:_ Otherworldly spaces described in myths and religions.
 _History:_
 - Antiquity: Greek and other traditions map divine realms (WHEN:../../../When/README.md).
 _Links:_
-- WHO: [Deities](../../../Who/README.md)
-- WHAT: [Mythology](../../../What/README.md)
-- WHEN: [Mythic Ages](../../../When/README.md)
-- WHY: [Spiritual Belief](../../../Why/README.md)
-- WHERE: [Fictional & Mythological Settings](../README.md)
+- WHO: [Deities](../../../Who/)
+- WHAT: [Mythology](../../../What/)
+- WHEN: [Mythic Ages](../../../When/)
+- WHY: [Spiritual Belief](../../../Why/)
+- WHERE: [Fictional & Mythological Settings](../)
 _See also:_ [Mount Olympus (Mythic)](Mount-Olympus-(Mythic).md)

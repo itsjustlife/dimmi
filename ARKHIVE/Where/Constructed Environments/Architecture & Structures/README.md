@@ -11,9 +11,9 @@ _Context:_ Designed environments built by humans.
 _History:_
 - Ancient to modern eras: evolving architectural styles (WHEN:../../../When/README.md).
 _Links:_
-- WHO: [Architects](../../../Who/README.md)
-- WHAT: [Architecture](../../../What/README.md)
-- WHEN: [Architectural History](../../../When/README.md)
-- WHY: [Shelter and Symbolism](../../../Why/README.md)
-- WHERE: [Constructed Environments](../README.md)
-_See also:_ [Skyscrapers & Towers](Skyscrapers & Towers/README.md)
+- WHO: [Architects](../../../Who/)
+- WHAT: [Architecture](../../../What/)
+- WHEN: [Architectural History](../../../When/)
+- WHY: [Shelter and Symbolism](../../../Why/)
+- WHERE: [Constructed Environments](../)
+_See also:_ [Skyscrapers & Towers](Skyscrapers & Towers/)

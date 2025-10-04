@@ -1,7 +1,7 @@
-[⟵ Items](../README.md)
+[⟵ Items](../)
 
 # What Items
 
 Placeholder for What-related entries.
 
-[Back to Items](../README.md)
+[Back to Items](../)

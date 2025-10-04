@@ -1,14 +1,14 @@
-[⟵ Arkhive](../Arkhive.md) · [Items](README.md)
+[⟵ Arkhive](../Arkhive.md) · [Items](./)
 
 # Arkhive Items
 
 Collections of specific entries organized by category:
 
-- [Who Items](Who/README.md)
-- [What Items](What/README.md)
-- [When Items](When/README.md)
-- [Where Items](Where/README.md)
-- [Why Items](Why/README.md)
-- [How Items](How/README.md)
+- [Who Items](Who/)
+- [What Items](What/)
+- [When Items](When/)
+- [Where Items](Where/)
+- [Why Items](Why/)
+- [How Items](How/)
 
 [Back to Arkhive](../Arkhive.md)

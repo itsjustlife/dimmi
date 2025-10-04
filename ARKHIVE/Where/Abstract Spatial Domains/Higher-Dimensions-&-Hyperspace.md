@@ -12,9 +12,9 @@ _History:_
 - 19th century: Non-Euclidean geometry expands spatial understanding (WHEN:../../When/README.md).
 - 20th century: String theory proposes extra dimensions (WHAT:../../What/README.md).
 _Links:_
-- WHO: [Theoretical Physicists](../../Who/README.md)
-- WHAT: [Physics](../../What/README.md)
-- WHEN: [Modern Physics](../../When/README.md)
-- WHY: [Model Reality](../../Why/README.md)
-- WHERE: [Abstract Spatial Domains](README.md)
+- WHO: [Theoretical Physicists](../../Who/)
+- WHAT: [Physics](../../What/)
+- WHEN: [Modern Physics](../../When/)
+- WHY: [Model Reality](../../Why/)
+- WHERE: [Abstract Spatial Domains](./)
 _See also:_ [Parallel Universes & Multiverse](Parallel-Universes-Multiverse.md)

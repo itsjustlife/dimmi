@@ -11,9 +11,9 @@ _Context:_ Mythic mountain above Greece distinct from the real peak.
 _History:_
 - Antiquity: Featured in Homeric epics (WHEN:../../../When/README.md).
 _Links:_
-- WHO: [Greek Gods](../../../Who/README.md)
-- WHAT: [Greek Mythology](../../../What/README.md)
-- WHEN: [Mythic Ages](../../../When/README.md)
-- WHY: [Religion](../../../Why/README.md)
-- WHERE: [Mythological & Religious Realms](../README.md)
-_See also:_ [Europe](../../Physical Geography/Continents/Europe/README.md)
+- WHO: [Greek Gods](../../../Who/)
+- WHAT: [Greek Mythology](../../../What/)
+- WHEN: [Mythic Ages](../../../When/)
+- WHY: [Religion](../../../Why/)
+- WHERE: [Mythological & Religious Realms](../)
+_See also:_ [Europe](../../Physical Geography/Continents/Europe/)
