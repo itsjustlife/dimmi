@@ -78,6 +78,23 @@
       selectBtn: null
     }
   };
+  const drawerState = {
+    root: null,
+    toggle: null,
+    close: null,
+    scrim: null,
+    tabs: { web: null, raw: null },
+    save: null,
+    status: null,
+    open: false,
+    toastTimer: null,
+    initialized: false,
+    lastDirty: false
+  };
+  let keyboardBound = false;
+  let previewScriptPromise = null;
+  let detachDirtyWatcher = null;
+  let preventNavigation = false;
   const statusEl = document.getElementById('door-status');
   const titleInput = document.getElementById('door-room-title');
   const noteInput = document.getElementById('door-room-note');
@@ -99,6 +116,194 @@
   };
 
   if (statusEl) statusEl.textContent = bootstrap.status || '';
+
+  function showDrawerToast(message, variant = 'info') {
+    ensureDrawer();
+    if (!drawerState.status) return;
+    drawerState.status.textContent = message || '';
+    drawerState.status.classList.remove('is-info', 'is-warn', 'is-error', 'is-muted');
+    if (!message) {
+      drawerState.status.classList.add('is-muted');
+      return;
+    }
+    const map = { info: 'is-info', warn: 'is-warn', error: 'is-error' };
+    drawerState.status.classList.add(map[variant] || 'is-info');
+    clearTimeout(drawerState.toastTimer);
+    drawerState.toastTimer = setTimeout(() => {
+      drawerState.status.classList.add('is-muted');
+    }, 4000);
+  }
+
+  function bindPreviewService() {
+    if (!window.PreviewService || typeof window.PreviewService.onDirtyChange !== 'function') return;
+    if (detachDirtyWatcher) detachDirtyWatcher();
+    detachDirtyWatcher = window.PreviewService.onDirtyChange(isDirty => {
+      preventNavigation = !!isDirty;
+      const dirty = !!isDirty;
+      if (drawerState.lastDirty === dirty) return;
+      drawerState.lastDirty = dirty;
+      if (dirty) showDrawerToast('Unsaved RAW changes. Save before leaving.', 'warn');
+      else showDrawerToast('Preview synced with room.', 'info');
+    });
+  }
+
+  async function ensurePreviewService() {
+    if (window.PreviewService) {
+      bindPreviewService();
+      return;
+    }
+    if (!previewScriptPromise) {
+      previewScriptPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'assets/js/cloud-classic.js';
+        script.async = true;
+        script.addEventListener('load', () => {
+          bindPreviewService();
+          resolve();
+        });
+        script.addEventListener('error', () => {
+          reject(new Error('Preview tools failed to load'));
+        });
+        document.head.appendChild(script);
+      });
+    }
+    try {
+      await previewScriptPromise;
+    } catch (err) {
+      previewScriptPromise = null;
+      showDrawerToast(err.message || 'Preview tools unavailable.', 'error');
+    }
+  }
+
+  function ensureDrawer() {
+    if (!drawerState.root) {
+      let root = document.getElementById('door-drawer');
+      if (!root) {
+        root = document.createElement('aside');
+        root.id = 'door-drawer';
+        root.className = 'door-drawer';
+        root.setAttribute('aria-hidden', 'true');
+        root.setAttribute('tabindex', '-1');
+        root.innerHTML = `
+          <div class="door-drawer-inner">
+            <div class="door-drawer-header">
+              <h2 class="door-drawer-title">Preview</h2>
+              <div class="door-drawer-tabs" role="tablist">
+                <button id="preview-web-btn" type="button" class="door-drawer-tab" role="tab" aria-selected="true">Web</button>
+                <button id="preview-raw-btn" type="button" class="door-drawer-tab" role="tab" aria-selected="false">Raw</button>
+                <button id="preview-save" type="button" class="door-drawer-save hidden">Save</button>
+              </div>
+              <button type="button" class="door-drawer-close" data-door-drawer-close aria-label="Close preview">×</button>
+            </div>
+            <div class="door-drawer-status is-muted" role="status" aria-live="polite"></div>
+            <div class="door-drawer-body">
+              <div id="preview-web" class="door-preview-web"></div>
+              <textarea id="preview-raw" class="door-preview-raw hidden" spellcheck="false"></textarea>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(root);
+      }
+      drawerState.root = root;
+      drawerState.close = root.querySelector('[data-door-drawer-close]');
+      drawerState.tabs.web = root.querySelector('#preview-web-btn');
+      drawerState.tabs.raw = root.querySelector('#preview-raw-btn');
+      drawerState.save = root.querySelector('#preview-save');
+      drawerState.status = root.querySelector('.door-drawer-status');
+    }
+    if (!drawerState.scrim) {
+      let scrim = document.getElementById('door-drawer-scrim');
+      if (!scrim) {
+        scrim = document.createElement('div');
+        scrim.id = 'door-drawer-scrim';
+        scrim.className = 'door-drawer-scrim';
+        document.body.appendChild(scrim);
+      }
+      drawerState.scrim = scrim;
+    }
+    if (!drawerState.toggle) {
+      let toggle = document.getElementById('door-drawer-toggle');
+      if (!toggle) {
+        toggle = document.createElement('button');
+        toggle.id = 'door-drawer-toggle';
+        toggle.type = 'button';
+        toggle.className = 'door-drawer-toggle';
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.textContent = 'Preview';
+        const header = document.querySelector('header');
+        if (header) header.appendChild(toggle);
+        else document.body.appendChild(toggle);
+      }
+      drawerState.toggle = toggle;
+    }
+  }
+
+  function toggleDrawer(force) {
+    ensureDrawer();
+    const open = force === undefined ? !drawerState.open : !!force;
+    drawerState.open = open;
+    if (drawerState.root) {
+      drawerState.root.classList.toggle('active', open);
+      drawerState.root.setAttribute('aria-hidden', open ? 'false' : 'true');
+      if (open) drawerState.root.focus();
+    }
+    if (drawerState.scrim) drawerState.scrim.classList.toggle('active', open);
+    if (drawerState.toggle) drawerState.toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    document.body.classList.toggle('door-drawer-open', open);
+  }
+
+  function initDrawer() {
+    ensureDrawer();
+    if (drawerState.initialized) return;
+    drawerState.initialized = true;
+    if (drawerState.toggle) drawerState.toggle.addEventListener('click', () => toggleDrawer());
+    if (drawerState.close) drawerState.close.addEventListener('click', () => toggleDrawer(false));
+    if (drawerState.scrim) drawerState.scrim.addEventListener('click', () => toggleDrawer(false));
+    if (drawerState.root) {
+      drawerState.root.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          toggleDrawer(false);
+        }
+      });
+    }
+  }
+
+  function initKeyboardShortcuts() {
+    if (keyboardBound) return;
+    keyboardBound = true;
+    window.addEventListener('keydown', event => {
+      if (event.defaultPrevented) return;
+      const active = document.activeElement;
+      const tag = active && active.tagName ? active.tagName.toLowerCase() : '';
+      const typing = tag === 'input' || tag === 'textarea' || (active && active.isContentEditable);
+      if (!typing && event.key === '/') {
+        event.preventDefault();
+        toggleSearchPanel(true);
+        if (searchState.input) {
+          searchState.input.focus();
+          searchState.input.select();
+        }
+        return;
+      }
+      if (event.key === 'Escape') {
+        if (searchState.open) {
+          event.preventDefault();
+          toggleSearchPanel(false);
+          return;
+        }
+        if (drawerState.open) {
+          event.preventDefault();
+          toggleDrawer(false);
+          return;
+        }
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        saveCurrent();
+      }
+    });
+  }
 
   function normalizeClassicPath(path) {
     if (!path) return '';
@@ -204,13 +409,6 @@
     menu.addEventListener('click', event => event.stopPropagation());
 
     return closeMenu;
-  }
-
-  let preventNavigation = false;
-  if (window.PreviewService && typeof window.PreviewService.onDirtyChange === 'function') {
-    window.PreviewService.onDirtyChange(isDirty => {
-      preventNavigation = !!isDirty;
-    });
   }
 
   function confirmNavigation() {
@@ -468,10 +666,38 @@
         if ('label' in link) clean.label = link.label != null ? String(link.label) : '';
         if ('title' in link) clean.title = link.title != null ? String(link.title) : '';
         else clean.title = typeof clean.title === 'string' ? clean.title : '';
+        if (!clean.label) clean.label = clean.title || target;
         if (!clean.title && typeof clean.label === 'string' && clean.label) clean.title = clean.label;
+        if (!clean.id) clean.id = target;
         clean.type = link.type != null ? String(link.type) : '';
         return clean;
       });
+  }
+
+  function normalizeLinksForSave(links) {
+    if (!Array.isArray(links)) return [];
+    const seen = new Set();
+    return links
+      .map(link => {
+        if (!link || typeof link !== 'object') return null;
+        const rawTarget = link.target != null ? String(link.target) : '';
+        const target = rawTarget.trim();
+        if (!target) return null;
+        const idSource = link.id != null ? String(link.id) : '';
+        const cleanId = (idSource || target).trim();
+        if (!cleanId || seen.has(cleanId)) return null;
+        seen.add(cleanId);
+        const title = link.title != null ? String(link.title) : '';
+        const label = link.label != null ? String(link.label) : '';
+        const type = link.type != null ? String(link.type) : '';
+        const clean = { id: cleanId, target };
+        const resolvedLabel = label || title || target;
+        clean.label = resolvedLabel;
+        if (title) clean.title = title;
+        if (type) clean.type = type;
+        return clean;
+      })
+      .filter(Boolean);
   }
 
   async function request(route, { method = 'GET', params = null, body = null } = {}) {
@@ -669,7 +895,12 @@
         return;
       }
       state.currentId = data.node ? data.node.id : null;
-      state.breadcrumb = data.breadcrumb || [];
+      state.breadcrumb = Array.isArray(data.breadcrumb)
+        ? data.breadcrumb.map(item => ({
+          id: item && item.id ? String(item.id) : (data.node && data.node.id) || '',
+          title: item && item.title ? String(item.title) : ((item && item.id) || 'Room')
+        }))
+        : [];
       state.links = (data.links || []).map(link => {
         if (!link) return null;
         const clean = { ...link };
@@ -678,13 +909,29 @@
         clean.target = target;
         if (link.id != null) clean.id = String(link.id);
         if (link.label != null) clean.label = String(link.label);
+        if (!clean.label) clean.label = (clean.title && String(clean.title)) || target;
         if (link.title != null) clean.title = String(link.title);
         else if (typeof clean.title !== 'string') clean.title = '';
         if (!clean.title && typeof clean.label === 'string' && clean.label) clean.title = clean.label;
+        if (!clean.id) clean.id = target;
         clean.type = link.type != null ? String(link.type) : '';
         return clean;
       }).filter(Boolean);
-      state.index = data.allNodes || [];
+      const nodesIndex = [];
+      if (Array.isArray(data.allNodes)) {
+        data.allNodes.forEach(node => {
+          if (!node || typeof node !== 'object') return;
+          const idVal = node.id != null ? String(node.id) : '';
+          if (!idVal) return;
+          nodesIndex.push({ id: idVal, title: node.title != null ? String(node.title) : idVal });
+        });
+      } else if (data.allNodes && typeof data.allNodes === 'object') {
+        Object.entries(data.allNodes).forEach(([nodeId, nodeTitle]) => {
+          if (!nodeId) return;
+          nodesIndex.push({ id: String(nodeId), title: nodeTitle != null ? String(nodeTitle) : String(nodeId) });
+        });
+      }
+      state.index = nodesIndex;
       renderBreadcrumb(state.breadcrumb);
       renderRail(state.links);
       renderGrid(data.children || []);
@@ -693,15 +940,56 @@
       if (noteInput) noteInput.value = data.node ? (data.node.note || '') : '';
       if (deleteBtn) deleteBtn.disabled = !currentParentId();
       showStatus('Loaded ' + (data.node ? (data.node.title || 'room') : 'room'), false);
+      await ensurePreviewService();
       if (window.PreviewService && typeof window.PreviewService.renderWeb === 'function') {
         const nodes = Array.isArray(data.children) ? data.children : [];
         window.PreviewService.renderWeb({
-          title: data.node ? (data.node.title || '') : '',
-          note: data.node ? (data.node.note || '') : '',
+          doc: data.node || {},
+          docTitle: data.node ? (data.node.title || '') : '',
           links: data.links || [],
-          nodes
+          nodes,
+          jsonMode: true,
+          helpers: {
+            followLink: followLink,
+            openDir: typeof window.openDir === 'function' ? window.openDir : null,
+            openFile: typeof window.openFile === 'function' ? window.openFile : null,
+            findNode(idValue) {
+              if (!idValue) return null;
+              return (state.index || []).find(node => node && node.id === idValue) || null;
+            },
+            setNodeTitle(node, value) {
+              if (node) node.title = value;
+            },
+            setNodeNote(node, value) {
+              if (node) node.note = value;
+            },
+            saveStructure: () => {}
+          }
         });
         window.PreviewService.renderRaw(data.node || {});
+        window.PreviewService.saveRaw(async parsed => {
+          if (!parsed || typeof parsed !== 'object') return;
+          const nextId = parsed.id ? String(parsed.id) : (state.currentId || '');
+          if (!nextId) return;
+          try {
+            showDrawerToast('Saving RAW…', 'info');
+            await request('update', {
+              method: 'POST',
+              body: {
+                id: nextId,
+                title: parsed.title != null ? String(parsed.title) : '',
+                note: parsed.note != null ? String(parsed.note) : '',
+                links: normalizeLinksForSave(parsed.links)
+              }
+            });
+            await loadRoom(nextId);
+            showDrawerToast('RAW saved.', 'info');
+          } catch (err) {
+            console.error(err);
+            showDrawerToast(err.message || 'RAW save failed.', 'error');
+            if (state.currentId) await loadRoom(state.currentId);
+          }
+        });
       }
     } catch (err) {
       console.error(err);
@@ -1607,19 +1895,26 @@
   if (deleteBtn) deleteBtn.addEventListener('click', () => deleteCurrent());
   if (attachBtn) attachBtn.addEventListener('click', () => openAttachWizard({ defaultType: 'relation' }));
 
-  Promise.all([
-    loadTemplate('door-grid-wrap', 'grid'),
-    loadTemplate('door-crumb-wrap', 'breadcrumb'),
-    loadTemplate('door-rail-wrap', 'rail'),
-    loadTemplate('door-search-wrap', 'search')
-  ])
-    .then(() => {
+  async function mountShell() {
+    try {
+      await Promise.all([
+        loadTemplate('door-grid-wrap', 'grid'),
+        loadTemplate('door-crumb-wrap', 'breadcrumb'),
+        loadTemplate('door-rail-wrap', 'rail'),
+        loadTemplate('door-search-wrap', 'search')
+      ]);
+      ensureDrawer();
+      await ensurePreviewService();
+      initDrawer();
       initSearch();
-      if (DOOR_READY) loadRoom('');
+      initKeyboardShortcuts();
+      if (DOOR_READY) await loadRoom('');
       else showStatus('Door storage unavailable.', true);
-    })
-    .catch(err => {
+    } catch (err) {
       console.error(err);
-      showStatus('Failed to initialize DOOR: ' + err.message, true);
-    });
+      showStatus('Failed to initialize DOOR: ' + (err.message || err), true);
+    }
+  }
+
+  mountShell();
 })();
