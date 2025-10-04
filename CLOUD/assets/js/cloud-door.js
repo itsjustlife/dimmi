@@ -384,7 +384,8 @@
       const li = document.createElement('li');
       const go = document.createElement('button');
       go.type = 'button';
-      go.textContent = link.title || link.target || 'Teleport';
+      const buttonLabel = link.label || link.title || link.target || 'Teleport';
+      go.textContent = buttonLabel;
       go.className = 'door-node-link';
       go.addEventListener('click', async () => {
         await followLink(link);
@@ -448,11 +449,18 @@
     if (!Array.isArray(state.links)) return [];
     return state.links
       .filter(link => link && link.target)
-      .map(link => ({
-        target: link.target,
-        title: link.title || '',
-        type: link.type || ''
-      }));
+      .map(link => {
+        const clean = { ...link };
+        const target = link.target != null ? String(link.target) : '';
+        clean.target = target;
+        if ('id' in link) clean.id = link.id != null ? String(link.id) : '';
+        if ('label' in link) clean.label = link.label != null ? String(link.label) : '';
+        if ('title' in link) clean.title = link.title != null ? String(link.title) : '';
+        else clean.title = typeof clean.title === 'string' ? clean.title : '';
+        if (!clean.title && typeof clean.label === 'string' && clean.label) clean.title = clean.label;
+        clean.type = link.type != null ? String(link.type) : '';
+        return clean;
+      });
   }
 
   async function request(route, { method = 'GET', params = null, body = null } = {}) {
@@ -541,7 +549,7 @@
     links.forEach(link => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.textContent = link.title || link.target;
+      btn.textContent = (link && (link.label || link.title)) ? (link.label || link.title) : (link.target || '');
       btn.className = 'door-node-link';
       btn.addEventListener('click', async () => {
         if (!(await confirmNavigation())) return;
@@ -651,14 +659,23 @@
       }
       state.currentId = data.node ? data.node.id : null;
       state.breadcrumb = data.breadcrumb || [];
-      state.links = (data.links || []).map(link => ({
-        target: link.target,
-        title: link.title || '',
-        type: link.type || ''
-      }));
+      state.links = (data.links || []).map(link => {
+        if (!link) return null;
+        const clean = { ...link };
+        const target = link.target != null ? String(link.target) : '';
+        if (!target) return null;
+        clean.target = target;
+        if (link.id != null) clean.id = String(link.id);
+        if (link.label != null) clean.label = String(link.label);
+        if (link.title != null) clean.title = String(link.title);
+        else if (typeof clean.title !== 'string') clean.title = '';
+        if (!clean.title && typeof clean.label === 'string' && clean.label) clean.title = clean.label;
+        clean.type = link.type != null ? String(link.type) : '';
+        return clean;
+      }).filter(Boolean);
       state.index = data.allNodes || [];
       renderBreadcrumb(state.breadcrumb);
-      renderRail(data.links || []);
+      renderRail(state.links);
       renderGrid(data.children || []);
       renderLinks();
       if (titleInput) titleInput.value = data.node ? (data.node.title || '') : '';
@@ -1333,7 +1350,18 @@
       else if (type === 'url') label = target;
       else label = basename(target);
     }
-    const newLink = { target, title: label || '', type };
+    const existing = (Array.isArray(state.links) && attachState.editIndex !== null && attachState.editIndex >= 0 && attachState.editIndex < state.links.length)
+      ? { ...state.links[attachState.editIndex] }
+      : {};
+    const newLink = {
+      ...existing,
+      target,
+      type,
+      title: label || ''
+    };
+    if ('id' in existing && existing.id != null) newLink.id = existing.id;
+    if ('label' in existing || label) newLink.label = label || '';
+    else if (newLink.label !== undefined && !label) delete newLink.label;
     const previous = Array.isArray(state.links) ? state.links.slice() : [];
     const next = previous.slice();
     if (attachState.editIndex !== null && attachState.editIndex >= 0 && attachState.editIndex < next.length) {
@@ -1370,7 +1398,14 @@
     attachState.editingLink = options.link || null;
     attachState.submitting = false;
     const link = options.link || null;
-    if (attachState.labelInput) attachState.labelInput.value = link ? (link.title || '') : (options.defaultLabel || '');
+    if (attachState.labelInput) {
+      let initialLabel = options.defaultLabel || '';
+      if (link) {
+        if ('label' in link) initialLabel = link.label != null ? String(link.label) : '';
+        else initialLabel = link.title != null ? String(link.title) : '';
+      }
+      attachState.labelInput.value = initialLabel || '';
+    }
     if (attachState.urlInput) attachState.urlInput.value = link && link.type === 'url' ? (link.target || '') : '';
     if (attachState.pathInputs.file) attachState.pathInputs.file.value = link && link.type === 'file' ? (link.target || '') : '';
     if (attachState.pathInputs.folder) attachState.pathInputs.folder.value = link && link.type === 'folder' ? (link.target || '') : '';

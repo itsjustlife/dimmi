@@ -427,7 +427,8 @@ function door_clean_link($link){
   $clean=['target'=>$target,'title'=>$title,'type'=>$type];
   $id=trim((string)($link['id'] ?? ''));
   if($id!=='') $clean['id']=$id;
-  foreach(['path','nodeKind','direction'] as $extra){
+  $optionalKeys=['path','nodeKind','direction','label','icon','color','tileKind'];
+  foreach($optionalKeys as $extra){
     if(array_key_exists($extra,$link)) $clean[$extra]=$link[$extra];
   }
   return $clean;
@@ -608,11 +609,8 @@ function door_handle_data(){
   if(!empty($node['links']) && is_array($node['links'])){
     foreach($node['links'] as $link){
       if(!is_array($link)) continue;
-      $links[]=[
-        'target'=>$link['target'] ?? '',
-        'title'=>$link['title'] ?? '',
-        'type'=>$link['type'] ?? ''
-      ];
+      $clean=door_clean_link($link);
+      if($clean) $links[]=$clean;
     }
   }
   $crumb=door_build_breadcrumb($root,$node['id'] ?? '');
