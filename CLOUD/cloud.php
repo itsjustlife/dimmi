@@ -655,9 +655,14 @@ function door_handle_create(){
     $parentNode=null;
   }else{
     $parentNode=null;
-    if(!cjsf_find_item_ref($root,$parent,$parentNode)) bad('Parent not found',404);
-    if(!isset($parentNode['children']) || !is_array($parentNode['children'])) $parentNode['children']=[];
-    $list=&$parentNode['children'];
+    if(!cjsf_find_item_ref($root,$parent,$parentNode)){
+      $list=&$root;
+      $parentNode=null;
+      $parent='';
+    }else{
+      if(!isset($parentNode['children']) || !is_array($parentNode['children'])) $parentNode['children']=[];
+      $list=&$parentNode['children'];
+    }
   }
   $ref=null;
   if(!empty($list) && isset($list[0]) && is_array($list[0])) $ref=$list[0];
@@ -865,14 +870,14 @@ function door_render_shell($title){
           <div class="door-links-block">
             <div class="door-links-header">
               <h2 class="door-links-title">Teleport Links</h2>
-              <button type="button" class="door-link-attach" id="door-attach">Attach…</button>
+              <button type="button" class="door-link-attach door-button door-button-secondary px-3 py-2 text-sm font-medium" id="door-attach">Attach…</button>
             </div>
             <ul class="door-links" id="door-links-list"></ul>
           </div>
           <div class="door-editor-actions">
-            <button type="button" class="door-save" id="door-save">Save changes</button>
-            <button type="button" class="door-new" id="door-add-child">Add room</button>
-            <button type="button" class="door-delete" id="door-delete">Delete room</button>
+            <button type="button" class="door-button door-button-primary px-3 py-2 text-sm font-semibold shadow-sm" id="door-save">Save changes</button>
+            <button type="button" class="door-button door-button-secondary px-3 py-2 text-sm font-semibold" id="door-add-child">Add room</button>
+            <button type="button" class="door-button door-button-danger px-3 py-2 text-sm font-semibold" id="door-delete">Delete room</button>
           </div>
         </div>
       </section>
@@ -887,8 +892,8 @@ function door_render_shell($title){
             <input id="door-child-name" name="title" value="New Room" placeholder="New Room" autocomplete="off" required>
           </label>
           <div class="door-child-dialog-actions">
-            <button type="button" class="door-child-dialog-cancel" id="door-child-cancel">Cancel</button>
-            <button type="submit" class="door-child-dialog-create" id="door-child-create">Create</button>
+            <button type="button" class="door-button door-button-secondary px-3 py-2 text-sm font-medium door-child-dialog-cancel" id="door-child-cancel">Cancel</button>
+            <button type="submit" class="door-button door-button-primary px-3 py-2 text-sm font-semibold door-child-dialog-create" id="door-child-create">Create</button>
           </div>
         </form>
       </div>
