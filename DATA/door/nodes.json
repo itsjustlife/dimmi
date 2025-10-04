@@ -1,6 +1,6 @@
 {
     "schemaVersion": "1.0.0",
-    "generatedAt": "2025-09-28T09:43:28+00:00",
+    "generatedAt": "2025-10-04T02:36:04+00:00",
     "nodes": [
         {
             "id": "arkhive-md",
@@ -1951,9 +1951,16 @@
                 "what__concepts-ideas",
                 "what__knowledge-domains-disciplines",
                 "what__natural-world",
-                "what__what-md"
+                "what__what-md",
+                "what__wikipedia-topics"
             ],
-            "links": [],
+            "links": [
+                {
+                    "title": "Wikipedia Topics",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/README.md"
+                }
+            ],
             "contentPath": "DATA/door/content/what.md",
             "sourcePath": "ARKHIVE/What/README.md",
             "missing": false
@@ -6902,6 +6909,245 @@
             "links": [],
             "contentPath": "DATA/door/content/what__what-md.md",
             "sourcePath": "ARKHIVE/What/What.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics",
+            "title": "Wikipedia Topics",
+            "branch": "What",
+            "kind": "dir",
+            "children": [
+                "what__wikipedia-topics__culture-and-the-arts",
+                "what__wikipedia-topics__general-reference",
+                "what__wikipedia-topics__geography-and-places",
+                "what__wikipedia-topics__health-and-medicine",
+                "what__wikipedia-topics__history-and-events",
+                "what__wikipedia-topics__human-activities",
+                "what__wikipedia-topics__mathematics-and-logic",
+                "what__wikipedia-topics__natural-and-physical-sciences",
+                "what__wikipedia-topics__people-and-self",
+                "what__wikipedia-topics__philosophy-and-thinking",
+                "what__wikipedia-topics__religion-and-belief-systems",
+                "what__wikipedia-topics__society-and-social-sciences",
+                "what__wikipedia-topics__technology-and-applied-sciences"
+            ],
+            "links": [
+                {
+                    "title": "Wikipedia's contents structure",
+                    "type": "url",
+                    "target": "https://en.wikipedia.org/wiki/Wikipedia:Contents"
+                },
+                {
+                    "title": "General Reference",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/General_Reference/README.md"
+                },
+                {
+                    "title": "Culture and the Arts",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/Culture_and_the_Arts/README.md"
+                },
+                {
+                    "title": "Geography and Places",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/Geography_and_Places/README.md"
+                },
+                {
+                    "title": "Health and Medicine",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/Health_and_Medicine/README.md"
+                },
+                {
+                    "title": "History and Events",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/History_and_Events/README.md"
+                },
+                {
+                    "title": "Human Activities",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/Human_Activities/README.md"
+                },
+                {
+                    "title": "Mathematics and Logic",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/Mathematics_and_Logic/README.md"
+                },
+                {
+                    "title": "Natural and Physical Sciences",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/Natural_and_Physical_Sciences/README.md"
+                },
+                {
+                    "title": "People and Self",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/People_and_Self/README.md"
+                },
+                {
+                    "title": "Philosophy and Thinking",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/Philosophy_and_Thinking/README.md"
+                },
+                {
+                    "title": "Religion and Belief Systems",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/Religion_and_Belief_Systems/README.md"
+                },
+                {
+                    "title": "Society and Social Sciences",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/Society_and_Social_Sciences/README.md"
+                },
+                {
+                    "title": "Technology and Applied Sciences",
+                    "type": "path",
+                    "target": "What/Wikipedia_Topics/Technology_and_Applied_Sciences/README.md"
+                }
+            ],
+            "contentPath": "DATA/door/content/what__wikipedia-topics.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__culture-and-the-arts",
+            "title": "Culture And The Arts",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__culture-and-the-arts.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/Culture_and_the_Arts/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__general-reference",
+            "title": "General Reference",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__general-reference.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/General_Reference/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__geography-and-places",
+            "title": "Geography And Places",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__geography-and-places.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/Geography_and_Places/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__health-and-medicine",
+            "title": "Health And Medicine",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__health-and-medicine.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/Health_and_Medicine/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__history-and-events",
+            "title": "History And Events",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__history-and-events.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/History_and_Events/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__human-activities",
+            "title": "Human Activities",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__human-activities.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/Human_Activities/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__mathematics-and-logic",
+            "title": "Mathematics And Logic",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__mathematics-and-logic.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/Mathematics_and_Logic/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__natural-and-physical-sciences",
+            "title": "Natural And Physical Sciences",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__natural-and-physical-sciences.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/Natural_and_Physical_Sciences/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__people-and-self",
+            "title": "People And Self",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__people-and-self.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/People_and_Self/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__philosophy-and-thinking",
+            "title": "Philosophy And Thinking",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__philosophy-and-thinking.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/Philosophy_and_Thinking/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__religion-and-belief-systems",
+            "title": "Religion And Belief Systems",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__religion-and-belief-systems.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/Religion_and_Belief_Systems/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__society-and-social-sciences",
+            "title": "Society And Social Sciences",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__society-and-social-sciences.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/Society_and_Social_Sciences/README.md",
+            "missing": false
+        },
+        {
+            "id": "what__wikipedia-topics__technology-and-applied-sciences",
+            "title": "Technology And Applied Sciences",
+            "branch": "What",
+            "kind": "dir",
+            "children": [],
+            "links": [],
+            "contentPath": "DATA/door/content/what__wikipedia-topics__technology-and-applied-sciences.md",
+            "sourcePath": "ARKHIVE/What/Wikipedia_Topics/Technology_and_Applied_Sciences/README.md",
             "missing": false
         },
         {
