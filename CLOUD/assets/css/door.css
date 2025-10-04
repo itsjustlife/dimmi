@@ -1002,3 +1002,535 @@ header a:hover {
   font-size: 0.75rem;
   color: #94a3b8;
 }
+
+/* ===== Light Cloud palette overrides ===== */
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f8fafc;
+  color: #1f2937;
+  line-height: 1.6;
+}
+
+header {
+  padding: 1rem 1.5rem;
+  gap: 1rem;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+header h1 {
+  color: #1d4ed8;
+  letter-spacing: 0.12em;
+}
+
+header a {
+  color: #1d4ed8;
+  font-weight: 600;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+header a:hover,
+header a:focus {
+  background: #eff6ff;
+  color: #1e40af;
+  outline: none;
+}
+
+.door-shell {
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.door-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(148, 163, 184, 0.18);
+  padding: 1.25rem;
+}
+
+.door-layout {
+  gap: 1.5rem;
+}
+
+.door-grid {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1.25rem;
+}
+
+.door-tile {
+  background: linear-gradient(135deg, #f1f5f9, #eef2ff);
+  border: 1px solid #e2e8f0;
+  border-radius: 0.9rem;
+  color: #1f2937;
+  padding: 0.85rem;
+  box-shadow: 0 1px 2px rgba(148, 163, 184, 0.18);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.door-tile:hover,
+.door-tile:focus {
+  border-color: #bfdbfe;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  box-shadow: 0 12px 28px rgba(148, 163, 184, 0.24);
+  outline: none;
+}
+
+.door-tile.door-add {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
+}
+
+.door-tile.door-search {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 16px 32px rgba(37, 99, 235, 0.3);
+}
+
+.door-tile-action {
+  top: 0.6rem;
+  right: 0.6rem;
+  padding: 0.3rem 0.7rem;
+  letter-spacing: 0.08em;
+  background: #eff6ff;
+  color: #1d4ed8;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.door-tile-action:hover,
+.door-tile-action:focus {
+  background: #dbeafe;
+  color: #1e3a8a;
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.door-tile-menu {
+  top: 2.8rem;
+  right: 0.6rem;
+  min-width: 10rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 30px rgba(148, 163, 184, 0.25);
+}
+
+.door-tile-menu-item {
+  padding: 0.55rem 1rem;
+  font-size: 0.85rem;
+  color: #1f2937;
+}
+
+.door-tile-menu-item:hover,
+.door-tile-menu-item:focus {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.door-breadcrumb {
+  color: #475569;
+  gap: 0.75rem;
+}
+
+.door-breadcrumb button {
+  color: #2563eb;
+  padding: 0.35rem 0.7rem;
+  border-radius: 0.5rem;
+}
+
+.door-breadcrumb button:hover,
+.door-breadcrumb button:focus {
+  background: #eff6ff;
+  color: #1d4ed8;
+  outline: none;
+}
+
+.door-crumb-classic {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #2563eb;
+  letter-spacing: 0.08em;
+}
+
+.door-crumb-classic:hover,
+.door-crumb-classic:focus {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+
+.door-node-link {
+  color: #2563eb;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.5rem;
+}
+
+.door-node-link:hover,
+.door-node-link:focus {
+  background: #eff6ff;
+  color: #1d4ed8;
+  outline: none;
+}
+
+.door-status {
+  color: #2563eb;
+}
+
+.door-status.error {
+  color: #ef4444;
+}
+
+.door-editor {
+  gap: 1.1rem;
+}
+
+.door-editor label {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.door-editor input,
+.door-editor textarea {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #1f2937;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.75rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.door-editor input:focus,
+.door-editor textarea:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.45);
+  outline: none;
+}
+
+.door-editor textarea {
+  min-height: 140px;
+}
+
+.door-editor-actions {
+  gap: 0.75rem;
+}
+
+.door-editor-actions button {
+  flex: 1 1 140px;
+}
+
+.door-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(148, 163, 184, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.door-button:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.4);
+  outline-offset: 2px;
+}
+
+.door-button-primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.door-button-primary:hover,
+.door-button-primary:focus {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.door-button-secondary {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
+}
+
+.door-button-secondary:hover,
+.door-button-secondary:focus {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e3a8a;
+  transform: translateY(-1px);
+}
+
+.door-button-danger {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.door-button-danger:hover,
+.door-button-danger:focus {
+  background: #fecaca;
+  border-color: #fca5a5;
+  transform: translateY(-1px);
+}
+
+.door-links-block {
+  gap: 1rem;
+}
+
+.door-links-title {
+  color: #64748b;
+  letter-spacing: 0.08em;
+}
+
+.door-links {
+  gap: 0.75rem;
+}
+
+.door-link-row {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #1f2937;
+  box-shadow: 0 1px 2px rgba(148, 163, 184, 0.18);
+}
+
+.door-link-title {
+  color: #1f2937;
+}
+
+.door-link-kind,
+.door-link-target {
+  color: #64748b;
+}
+
+.door-link-btn {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
+}
+
+.door-link-btn:hover,
+.door-link-btn:focus {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.door-link-edit {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.door-link-remove {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.door-link-remove:hover,
+.door-link-remove:focus {
+  background: #fecaca;
+  border-color: #fca5a5;
+}
+
+.door-chip {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
+}
+
+.door-chip:hover,
+.door-chip:focus {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.door-chip-file {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.door-search {
+  gap: 0.75rem;
+}
+
+.door-search input {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #1f2937;
+  box-shadow: inset 0 1px 2px rgba(148, 163, 184, 0.12);
+}
+
+.door-search input::placeholder {
+  color: #94a3b8;
+}
+
+.door-search button {
+  padding: 0.6rem 1.1rem;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.door-search button:hover,
+.door-search button:focus {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.door-search-heading,
+.door-search-empty {
+  color: #64748b;
+}
+
+.door-attach-overlay,
+.door-child-dialog {
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.door-child-dialog-content,
+.door-attach-dialog {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px rgba(148, 163, 184, 0.2);
+  color: #1f2937;
+}
+
+.door-child-dialog h2,
+.door-attach-body h2 {
+  color: #1f2937;
+}
+
+.door-child-dialog-form label,
+.door-attach-types span,
+.door-attach-browser-path,
+.door-attach-relations-empty {
+  color: #64748b;
+}
+
+.door-child-dialog-form input,
+.door-attach-type,
+.door-attach-relations-list button,
+.door-attach-structure-preview,
+.door-attach-browser,
+.door-attach-browser-controls button,
+.door-attach-browser-choose {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #1f2937;
+}
+
+.door-child-dialog-form input:focus,
+.door-attach-type:focus,
+.door-attach-type:hover,
+.door-attach-relations-list button:focus,
+.door-attach-relations-list button:hover,
+.door-attach-browser-controls button:focus,
+.door-attach-browser-controls button:hover,
+.door-attach-browser-choose:focus,
+.door-attach-browser-choose:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+  outline: none;
+}
+
+.door-child-dialog-actions button,
+.door-attach-actions button {
+  border-radius: 0.75rem;
+  padding: 0.65rem 1.1rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.door-child-dialog-cancel,
+.door-attach-cancel {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.door-child-dialog-cancel:hover,
+.door-child-dialog-cancel:focus,
+.door-attach-cancel:hover,
+.door-attach-cancel:focus {
+  background: #cbd5f5;
+  transform: translateY(-1px);
+}
+
+.door-child-dialog-create,
+.door-attach-submit {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.door-child-dialog-create:hover,
+.door-child-dialog-create:focus,
+.door-attach-submit:hover,
+.door-attach-submit:focus {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.door-child-dialog-create:disabled,
+.door-attach-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.door-attach-actions {
+  border-top: 1px solid #e2e8f0;
+}
+
+.door-attach-type.active,
+.door-attach-relations-list button.active {
+  border-color: #2563eb;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.door-attach-browser {
+  display: none;
+}
+
+.door-attach-browser.active {
+  display: flex;
+}
+
+.door-attach-structure-preview {
+  background: #111827;
+  color: #f8fafc;
+}
+
+@media (min-width: 960px) {
+  .door-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .door-editor-panel {
+    position: sticky;
+    top: 1.5rem;
+    align-self: flex-start;
+  }
+}
+
