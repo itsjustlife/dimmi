@@ -1863,6 +1863,7 @@ if ($doorMode) {
     </button>
     <nav id="crumb" class="flex items-center gap-2 text-sm text-gray-600"></nav>
     <a id="doorModeBtn" href="cloud.php?mode=door" class="px-3 py-1 text-sm border border-blue-200 text-blue-600 rounded hover:bg-blue-50">Door</a>
+    <a href="cloud.php?mode=door" class="px-3 py-1 text-sm border border-blue-200 text-blue-600 rounded hover:bg-blue-50">Open Door Builder</a>
     <div class="ml-auto relative">
       <button id="settingsBtn" class="p-2 rounded hover:bg-gray-100" title="Settings">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5M3.75 12h16.5m-16.5 6.75h16.5"/></svg>
