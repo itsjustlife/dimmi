@@ -1,6 +1,9 @@
 # What
 
-Concrete objects, abstract concepts, technologies, and knowledge domains
+Concrete objects, abstract concepts, technologies, and knowledge domains.
+
+## Wikipedia alignment overlay
+Use [Wikipedia Topics](Wikipedia_Topics/README.md) when you want to mirror the high-level navigation from Wikipedia’s contents page. It gives Door users a familiar starting point while keeping everything inside the existing `WHAT` security boundary.
 
 ## Child Rooms
 - **Arkhive What** (`what__arkhive-what-txt`)
@@ -10,6 +13,10 @@ Concrete objects, abstract concepts, technologies, and knowledge domains
 - **Knowledge Domains Disciplines** (`what__knowledge-domains-disciplines`)
 - **Natural World** (`what__natural-world`)
 - **What** (`what__what-md`)
+- **Wikipedia Topics** (`what__wikipedia-topics`)
+
+## Teleports
+- Wikipedia Topics → What/Wikipedia_Topics/README.md
 
 ---
 Source: ARKHIVE/What/README.md
