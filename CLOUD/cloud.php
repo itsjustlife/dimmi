@@ -424,7 +424,13 @@ function door_clean_link($link){
   if($target==='') return null;
   $title=trim((string)($link['title'] ?? ''));
   $type=trim((string)($link['type'] ?? ''));
-  return ['target'=>$target,'title'=>$title,'type'=>$type];
+  $clean=['target'=>$target,'title'=>$title,'type'=>$type];
+  $id=trim((string)($link['id'] ?? ''));
+  if($id!=='') $clean['id']=$id;
+  foreach(['path','nodeKind','direction'] as $extra){
+    if(array_key_exists($extra,$link)) $clean[$extra]=$link[$extra];
+  }
+  return $clean;
 }
 
 function door_clean_links($links){
@@ -433,7 +439,91 @@ function door_clean_links($links){
     $clean=door_clean_link($link);
     if($clean) $out[]=$clean;
   }
+  return door_dedupe_links($out);
+}
+
+function door_filter_string_list($items){
+  $out=[];
+  if(!is_array($items)) return $out;
+  $seen=[];
+  foreach($items as $item){
+    if(is_string($item) || is_int($item) || is_float($item)){
+      $value=trim((string)$item);
+      if($value==='') continue;
+      if(isset($seen[$value])) continue;
+      $seen[$value]=true;
+      $out[]=$value;
+    }
+  }
   return $out;
+}
+
+function door_index_children_by_id($children){
+  $index=[];
+  if(!is_array($children)) return $index;
+  foreach($children as $i=>$child){
+    if(!is_array($child)) continue;
+    $id=trim((string)($child['id'] ?? ''));
+    if($id==='') continue;
+    if(!isset($index[$id])) $index[$id]=$i;
+  }
+  return $index;
+}
+
+function door_index_links_by_id($links){
+  $index=[];
+  if(!is_array($links)) return $index;
+  foreach($links as $i=>$link){
+    if(!is_array($link)) continue;
+    $id=trim((string)($link['id'] ?? ''));
+    if($id==='') continue;
+    if(!isset($index[$id])) $index[$id]=$i;
+  }
+  return $index;
+}
+
+function door_dedupe_links($links){
+  $out=[];
+  $seen=[];
+  foreach((array)$links as $link){
+    if(!is_array($link)) continue;
+    $id=trim((string)($link['id'] ?? ''));
+    $target=$link['target'] ?? '';
+    $type=$link['type'] ?? '';
+    $key=$id!==''?'id:'.$id:'target:'.$target.'|type:'.$type;
+    if(isset($seen[$key])) continue;
+    $seen[$key]=true;
+    $out[]=$link;
+  }
+  return array_values($out);
+}
+
+function door_upsert_links_list(&$existing,$updates){
+  if(!is_array($updates) || empty($updates)) return;
+  if(!is_array($existing)) $existing=[];
+  $index=door_index_links_by_id($existing);
+  foreach($updates as $link){
+    $clean=door_clean_link($link);
+    if(!$clean) continue;
+    $id=trim((string)($clean['id'] ?? ''));
+    $target=$clean['target'] ?? '';
+    $pos=null;
+    if($id!=='' && isset($index[$id])) $pos=$index[$id];
+    if($pos===null){
+      foreach($existing as $i=>$cur){
+        if(!is_array($cur)) continue;
+        if(($cur['id'] ?? '')===''){ if(($cur['target'] ?? '')===$target){ $pos=$i; break; } }
+      }
+    }
+    if($pos===null){
+      $existing[]=$clean;
+      if($id!=='') $index[$id]=count($existing)-1;
+    } else {
+      $existing[$pos]=array_merge($existing[$pos],$clean);
+      if($id!=='') $index[$id]=$pos;
+    }
+  }
+  $existing=door_dedupe_links($existing);
 }
 
 function door_require_csrf(){
@@ -614,12 +704,87 @@ function door_handle_update(){
   $node=null;
   if(!cjsf_find_item_ref($root,$id,$node)) bad('Room not found',404);
   $now=gmdate('c');
-  if(array_key_exists('title',$payload)) json_set_title($node,(string)$payload['title']);
-  if(array_key_exists('note',$payload)) json_set_note($node,(string)$payload['note']);
+  $mutations=$payload['mutations'] ?? [];
+  if(!is_array($mutations)) $mutations=[];
+  $titleValue=null;
+  if(array_key_exists('title',$payload)) $titleValue=(string)$payload['title'];
+  if(array_key_exists('setTitle',$payload)) $titleValue=(string)$payload['setTitle'];
+  if(array_key_exists('title',$mutations)) $titleValue=(string)$mutations['title'];
+  if(array_key_exists('setTitle',$mutations)) $titleValue=(string)$mutations['setTitle'];
+  if($titleValue!==null) json_set_title($node,$titleValue);
+  $noteValue=null;
+  if(array_key_exists('note',$payload)) $noteValue=(string)$payload['note'];
+  if(array_key_exists('setNote',$payload)) $noteValue=(string)$payload['setNote'];
+  if(array_key_exists('note',$mutations)) $noteValue=(string)$mutations['note'];
+  if(array_key_exists('setNote',$mutations)) $noteValue=(string)$mutations['setNote'];
+  if($noteValue!==null) json_set_note($node,$noteValue);
   foreach(['icon','color','tileKind','created'] as $key){
     if(array_key_exists($key,$payload)) $node[$key]=(string)$payload[$key];
   }
-  if(isset($payload['links']) && is_array($payload['links'])) $node['links']=door_clean_links($payload['links']);
+  $addChildren=[];
+  foreach([$payload['addChildren'] ?? null,$mutations['addChildren'] ?? null] as $source){
+    if(is_array($source)) $addChildren=array_merge($addChildren,$source);
+  }
+  if($addChildren){
+    if(!isset($node['children']) || !is_array($node['children'])) $node['children']=[];
+    $childIndex=door_index_children_by_id($node['children']);
+    foreach($addChildren as $child){
+      if(!is_array($child)) continue;
+      $childId=trim((string)($child['id'] ?? ''));
+      if($childId==='') continue;
+      if(isset($childIndex[$childId])){
+        $node['children'][$childIndex[$childId]]=array_merge($node['children'][$childIndex[$childId]],$child);
+      } else {
+        $node['children'][]=$child;
+        $childIndex[$childId]=count($node['children'])-1;
+      }
+    }
+  }
+  $removeChildrenIds=[];
+  foreach([$payload['removeChildren'] ?? null,$mutations['removeChildren'] ?? null] as $source){
+    if(is_array($source)) $removeChildrenIds=array_merge($removeChildrenIds,$source);
+  }
+  $removeChildrenIds=door_filter_string_list($removeChildrenIds);
+  if($removeChildrenIds && isset($node['children']) && is_array($node['children'])){
+    $removeMap=array_flip($removeChildrenIds);
+    $node['children']=array_values(array_filter($node['children'],function($child) use ($removeMap){
+      if(!is_array($child)) return true;
+      $childId=trim((string)($child['id'] ?? ''));
+      if($childId==='') return true;
+      return !isset($removeMap[$childId]);
+    }));
+  }
+  $linksReplace=null;
+  foreach([$payload['links'] ?? null,$mutations['links'] ?? null,$mutations['setLinks'] ?? null] as $source){
+    if(is_array($source)) $linksReplace=door_clean_links($source);
+  }
+  $upsertLinks=[];
+  foreach([$payload['upsertLinks'] ?? null,$mutations['upsertLinks'] ?? null] as $source){
+    if(is_array($source)) $upsertLinks=array_merge($upsertLinks,$source);
+  }
+  $removeLinkIds=[];
+  foreach([$payload['removeLinkIds'] ?? null,$mutations['removeLinkIds'] ?? null] as $source){
+    if(is_array($source)) $removeLinkIds=array_merge($removeLinkIds,$source);
+  }
+  $removeLinkIds=door_filter_string_list($removeLinkIds);
+  if($linksReplace!==null){
+    $node['links']=$linksReplace;
+  } else {
+    if($upsertLinks){
+      if(!isset($node['links']) || !is_array($node['links'])) $node['links']=[];
+      door_upsert_links_list($node['links'],$upsertLinks);
+    }
+    if($removeLinkIds && isset($node['links']) && is_array($node['links'])){
+      $removeMap=array_flip($removeLinkIds);
+      $node['links']=array_values(array_filter($node['links'],function($link) use ($removeMap){
+        if(!is_array($link)) return true;
+        $id=trim((string)($link['id'] ?? ''));
+        if($id==='') return true;
+        return !isset($removeMap[$id]);
+      }));
+    }
+    if(isset($node['links'])) $node['links']=door_dedupe_links($node['links']);
+  }
   $node['modified']=$now;
   door_save_doc($doc);
   audit('door_update','DATA/door/door.json#'.$id,true);
