@@ -103,6 +103,7 @@
   const deleteBtn = document.getElementById('door-delete');
   const linksList = document.getElementById('door-links-list');
   const attachBtn = document.getElementById('door-attach');
+  const refreshBtn = document.getElementById('door-refresh');
   const childDialogState = {
     wrap: document.getElementById('door-child-dialog'),
     content: document.querySelector('#door-child-dialog .door-child-dialog-content'),
@@ -422,6 +423,9 @@
     if (!statusEl) return;
     statusEl.textContent = message || '';
     statusEl.classList.toggle('error', !!isError);
+    if (isError && message) {
+      console.error('[Door] Status error:', message);
+    }
   }
 
   function toggleSearchPanel(force) {
@@ -709,7 +713,9 @@
     }
     if (method !== 'GET') options.headers['X-CSRF'] = DOOR.csrf;
     if (payload) options.body = payload;
-    const res = await fetch(DOOR.url(route, params), options);
+    const url = DOOR.url(route, params);
+    console.debug('[Door] Request', method, url);
+    const res = await fetch(url, options);
     const jsonType = (res.headers.get('content-type') || '').includes('application/json');
     if (!jsonType) {
       const text = await res.text();
@@ -888,6 +894,8 @@
 
   async function loadRoom(id) {
     try {
+      const targetId = id || 'root';
+      console.log('[Door] Loading room', targetId);
       showStatus('Loading...', false);
       const data = await request('data', { params: { id } });
       if (!data.node && data.rootId && data.rootId !== id) {
@@ -940,6 +948,7 @@
       if (noteInput) noteInput.value = data.node ? (data.node.note || '') : '';
       if (deleteBtn) deleteBtn.disabled = !currentParentId();
       showStatus('Loaded ' + (data.node ? (data.node.title || 'room') : 'room'), false);
+      if (state.currentId) console.log('[Door] Room ready', state.currentId);
       await ensurePreviewService();
       if (window.PreviewService && typeof window.PreviewService.renderWeb === 'function') {
         const nodes = Array.isArray(data.children) ? data.children : [];
@@ -985,14 +994,14 @@
             await loadRoom(nextId);
             showDrawerToast('RAW saved.', 'info');
           } catch (err) {
-            console.error(err);
+            console.error('[Door] RAW save failed', err);
             showDrawerToast(err.message || 'RAW save failed.', 'error');
             if (state.currentId) await loadRoom(state.currentId);
           }
         });
       }
     } catch (err) {
-      console.error(err);
+      console.error('[Door] Failed to load room', err);
       showStatus(err.message, true);
     }
   }
@@ -1003,6 +1012,7 @@
       return;
     }
     try {
+      console.log('[Door] Saving room', state.currentId);
       showStatus('Saving...', false);
       await request('update', {
         method: 'POST',
@@ -1015,8 +1025,9 @@
       });
       await loadRoom(state.currentId);
       showStatus('Saved.', false);
+      console.log('[Door] Save complete', state.currentId);
     } catch (err) {
-      console.error(err);
+      console.error('[Door] Save failed', err);
       showStatus(err.message, true);
     }
   }
@@ -1894,9 +1905,18 @@
   if (addChildBtn) addChildBtn.addEventListener('click', () => addChildPrompt());
   if (deleteBtn) deleteBtn.addEventListener('click', () => deleteCurrent());
   if (attachBtn) attachBtn.addEventListener('click', () => openAttachWizard({ defaultType: 'relation' }));
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async () => {
+      if (!(await confirmNavigation())) return;
+      const target = state.currentId || 'root';
+      console.log('[Door] Manual refresh', target);
+      await loadRoom(target);
+    });
+  }
 
   async function mountShell() {
     try {
+      console.log('[Door] Bootstrapping Door builder');
       await Promise.all([
         loadTemplate('door-grid-wrap', 'grid'),
         loadTemplate('door-crumb-wrap', 'breadcrumb'),
@@ -1911,7 +1931,7 @@
       if (DOOR_READY) await loadRoom('');
       else showStatus('Door storage unavailable.', true);
     } catch (err) {
-      console.error(err);
+      console.error('[Door] Failed to initialize', err);
       showStatus('Failed to initialize DOOR: ' + (err.message || err), true);
     }
   }
