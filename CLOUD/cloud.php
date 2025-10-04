@@ -879,6 +879,20 @@ function door_render_shell($title){
     </div>
     <div class="door-panel" id="door-rail-wrap"></div>
     <div class="door-panel" id="door-search-wrap"></div>
+    <div class="door-child-dialog" id="door-child-dialog" hidden>
+      <div class="door-child-dialog-content" role="dialog" aria-modal="true" aria-labelledby="door-child-title">
+        <h2 id="door-child-title">Create a room</h2>
+        <form class="door-child-dialog-form" id="door-child-form">
+          <label for="door-child-name">Room name
+            <input id="door-child-name" name="title" value="New Room" placeholder="New Room" autocomplete="off" required>
+          </label>
+          <div class="door-child-dialog-actions">
+            <button type="button" class="door-child-dialog-cancel" id="door-child-cancel">Cancel</button>
+            <button type="submit" class="door-child-dialog-create" id="door-child-create">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </main>
   <script>
     window.__DOOR_BOOTSTRAP__ = {

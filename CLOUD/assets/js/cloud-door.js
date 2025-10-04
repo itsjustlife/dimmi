@@ -86,6 +86,17 @@
   const deleteBtn = document.getElementById('door-delete');
   const linksList = document.getElementById('door-links-list');
   const attachBtn = document.getElementById('door-attach');
+  const childDialogState = {
+    wrap: document.getElementById('door-child-dialog'),
+    content: document.querySelector('#door-child-dialog .door-child-dialog-content'),
+    form: document.getElementById('door-child-form'),
+    input: document.getElementById('door-child-name'),
+    cancelBtn: document.getElementById('door-child-cancel'),
+    createBtn: document.getElementById('door-child-create'),
+    open: false,
+    keyHandler: null,
+    lastFocus: null
+  };
 
   if (statusEl) statusEl.textContent = bootstrap.status || '';
 
@@ -722,13 +733,83 @@
     }
   }
 
-  async function addChildPrompt() {
+  function openAddChildDialog() {
+    if (!childDialogState.wrap || !childDialogState.content || childDialogState.open) return;
+    childDialogState.lastFocus = document.activeElement && typeof document.activeElement.focus === 'function'
+      ? document.activeElement
+      : null;
+    if (childDialogState.form && typeof childDialogState.form.reset === 'function') {
+      childDialogState.form.reset();
+    }
+    childDialogState.wrap.hidden = false;
+    childDialogState.wrap.classList.add('active');
+    childDialogState.open = true;
+    childDialogState.keyHandler = event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeAddChildDialog();
+      }
+    };
+    document.addEventListener('keydown', childDialogState.keyHandler);
+    requestAnimationFrame(() => {
+      if (childDialogState.input && typeof childDialogState.input.focus === 'function') {
+        childDialogState.input.focus();
+        if (typeof childDialogState.input.select === 'function') {
+          childDialogState.input.select();
+        }
+      }
+    });
+  }
+
+  function closeAddChildDialog() {
+    if (!childDialogState.wrap || !childDialogState.open) return;
+    childDialogState.wrap.classList.remove('active');
+    childDialogState.wrap.hidden = true;
+    childDialogState.open = false;
+    setChildDialogBusy(false);
+    if (childDialogState.form && typeof childDialogState.form.reset === 'function') {
+      childDialogState.form.reset();
+    }
+    if (childDialogState.keyHandler) {
+      document.removeEventListener('keydown', childDialogState.keyHandler);
+      childDialogState.keyHandler = null;
+    }
+    if (childDialogState.lastFocus && typeof childDialogState.lastFocus.focus === 'function') {
+      requestAnimationFrame(() => {
+        if (childDialogState.lastFocus && typeof childDialogState.lastFocus.focus === 'function') {
+          childDialogState.lastFocus.focus();
+        }
+      });
+    }
+    childDialogState.lastFocus = null;
+  }
+
+  function setChildDialogBusy(isBusy) {
+    const busy = !!isBusy;
+    if (childDialogState.createBtn) childDialogState.createBtn.disabled = busy;
+    if (childDialogState.cancelBtn) childDialogState.cancelBtn.disabled = busy;
+    if (childDialogState.content) {
+      if (busy) childDialogState.content.setAttribute('aria-busy', 'true');
+      else childDialogState.content.removeAttribute('aria-busy');
+    }
+  }
+
+  async function submitChildDialog() {
     if (!state.currentId) {
       showStatus('Load a room before adding a child.', true);
+      closeAddChildDialog();
       return;
     }
-    const title = window.prompt('Name for the new room?', 'New Room');
-    if (title === null) return;
+    const title = childDialogState.input ? childDialogState.input.value.trim() : '';
+    if (!title) {
+      showStatus('Enter a room name to create a room.', true);
+      if (childDialogState.input && typeof childDialogState.input.focus === 'function') {
+        childDialogState.input.focus();
+        if (typeof childDialogState.input.select === 'function') childDialogState.input.select();
+      }
+      return;
+    }
+    setChildDialogBusy(true);
     try {
       showStatus('Creating room...', false);
       await request('create', {
@@ -741,11 +822,21 @@
         }
       });
       await loadRoom(state.currentId);
+      closeAddChildDialog();
       showStatus('Room created.', false);
     } catch (err) {
       console.error(err);
+      setChildDialogBusy(false);
       showStatus(err.message, true);
     }
+  }
+
+  function addChildPrompt() {
+    if (!state.currentId) {
+      showStatus('Load a room before adding a child.', true);
+      return;
+    }
+    openAddChildDialog();
   }
 
   async function deleteCurrent() {
@@ -1492,6 +1583,23 @@
       console.error(err);
       showStatus(err.message || 'Unable to open link.', true);
     }
+  }
+
+  if (childDialogState.wrap) {
+    childDialogState.wrap.addEventListener('click', event => {
+      if (event.target !== childDialogState.wrap) return;
+      if (childDialogState.createBtn && childDialogState.createBtn.disabled) return;
+      closeAddChildDialog();
+    });
+  }
+  if (childDialogState.cancelBtn) {
+    childDialogState.cancelBtn.addEventListener('click', () => closeAddChildDialog());
+  }
+  if (childDialogState.form) {
+    childDialogState.form.addEventListener('submit', event => {
+      event.preventDefault();
+      submitChildDialog();
+    });
   }
 
   if (saveBtn) saveBtn.addEventListener('click', () => saveCurrent());
