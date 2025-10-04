@@ -272,12 +272,31 @@ function door_load_doc(){
   if(!$seed['ok']) return $seed;
   $path=$seed['path'];
   $raw=@file_get_contents($path);
-  if($raw===false) return ['ok'=>false,'error'=>'Unable to read door.json'];
+  if($raw===false){
+    error_log('[Door] Unable to read door.json at '.$path);
+    return ['ok'=>false,'error'=>'Unable to read door.json'];
+  }
   $data=json_decode($raw,true);
   if($data===null && json_last_error()!==JSON_ERROR_NONE){
-    return ['ok'=>false,'error'=>'door.json is not valid JSON'];
+    error_log('[Door] door.json contained malformed JSON. Reseeding.');
+    $doc=door_default_document();
+    $save=door_save_doc($doc);
+    if(!$save['ok']){
+      error_log('[Door] Failed to reseed malformed door.json: '.($save['error'] ?? 'unknown error'));
+      return ['ok'=>false,'error'=>'door.json is corrupted and could not be reseeded'];
+    }
+    return ['ok'=>true,'path'=>$save['path'],'doc'=>$doc,'reseeded'=>true];
   }
-  if(!is_array($data)) $data=[];
+  if(!is_array($data)){
+    error_log('[Door] door.json root structure invalid. Reseeding.');
+    $doc=door_default_document();
+    $save=door_save_doc($doc);
+    if(!$save['ok']){
+      error_log('[Door] Failed to reseed malformed door.json structure: '.($save['error'] ?? 'unknown error'));
+      return ['ok'=>false,'error'=>'door.json is malformed and could not be reseeded'];
+    }
+    return ['ok'=>true,'path'=>$save['path'],'doc'=>$doc,'reseeded'=>true];
+  }
   return ['ok'=>true,'path'=>$path,'doc'=>$data];
 }
 
@@ -287,10 +306,17 @@ function door_save_doc($data){
   $path=$seed['path'];
   $tmp=$path.'.tmp';
   $json=json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-  if($json===false) return ['ok'=>false,'error'=>'Failed to encode door.json'];
-  if(@file_put_contents($tmp,$json)===false) return ['ok'=>false,'error'=>'Failed to write temporary door.json'];
+  if($json===false){
+    error_log('[Door] Failed to encode door.json for saving.');
+    return ['ok'=>false,'error'=>'Failed to encode door.json'];
+  }
+  if(@file_put_contents($tmp,$json)===false){
+    error_log('[Door] Failed to write temporary door.json at '.$tmp);
+    return ['ok'=>false,'error'=>'Failed to write temporary door.json'];
+  }
   if(!@rename($tmp,$path)){
     @unlink($tmp);
+    error_log('[Door] Failed to atomically replace door.json (check permissions).');
     return ['ok'=>false,'error'=>'Failed to replace door.json'];
   }
   return ['ok'=>true,'path'=>$path];
@@ -972,14 +998,14 @@ function door_handle_delete(){
     door_json(['ok'=>false,'error'=>$message],500);
   }
   audit('door_delete','DATA/door/door.json#'.$id,true);
-  door_json(['ok'=>true]);
+  door_json(['ok'=>true,'next'=>$parentId,'parentId'=>$parentId]);
 }
 function door_handle_search(){
   $query=trim((string)($_GET['q'] ?? ''));
   $nodeLimit=max(1,min(100,(int)($_GET['node_limit'] ?? 25)));
   $fileLimit=max(1,min(100,(int)($_GET['file_limit'] ?? 50)));
   if($query===''){
-    door_json(['ok'=>true]);
+    door_json(['ok'=>true,'nodes'=>[],'files'=>[]]);
   }
   $load=door_load_doc();
   if(!$load['ok']){
@@ -997,10 +1023,9 @@ function door_handle_search(){
       door_json(['ok'=>false,'error'=>$message],500);
     }
   }
-  // Execute searches to ensure the request succeeds even if results are ignored per envelope spec.
-  door_search_nodes($index['roots'],$query,$nodeLimit);
-  door_search_files($query,$fileLimit);
-  door_json(['ok'=>true]);
+  $nodes=door_search_nodes($index['roots'],$query,$nodeLimit);
+  $files=door_search_files($query,$fileLimit);
+  door_json(['ok'=>true,'nodes'=>$nodes,'files'=>$files]);
 }
 
 function door_render_shell($title){
@@ -1009,16 +1034,21 @@ function door_render_shell($title){
   $safeTitle=htmlspecialchars($title, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
   $statusMessage='Door storage unavailable.';
   $bootstrap=[
-    'base'=>'cloud.php',
+    'base'=>basename($_SERVER['PHP_SELF'] ?? 'cloud.php'),
     'csrf'=>$csrf,
     'ready'=>false,
     'status'=>$statusMessage
   ];
   $load=door_load_doc();
   if($load['ok'] ?? false){
-    $statusMessage='Select a room to get started.';
+    if(!empty($load['reseeded'])){
+      $statusMessage='door.json was rebuilt due to corruption. Start fresh from the Atrium.';
+      $bootstrap['status']=$statusMessage;
+    }else{
+      $statusMessage='Select a room to get started.';
+      $bootstrap['status']=$statusMessage;
+    }
     $bootstrap['ready']=true;
-    $bootstrap['status']=$statusMessage;
   }else{
     if(isset($load['error'])) $statusMessage=$load['error'];
     $bootstrap['status']=$statusMessage;
@@ -1036,10 +1066,12 @@ function door_render_shell($title){
   <link rel="stylesheet" href="assets/css/door.css">
 </head>
 <body>
-  <header>
-    <a href="cloud.php?mode=classic" aria-label="Open classic cloud">← Classic</a>
+  <header class="door-header">
     <h1>Door</h1>
-    <a href="cloud.php" aria-label="Back to cloud home">Cloud Home</a>
+    <div class="door-header-actions">
+      <button id="door-refresh" type="button" class="door-header-btn" aria-label="Refresh current room">Refresh</button>
+      <a href="cloud.php?mode=classic" class="door-header-link" aria-label="Back to classic panels">Back to classic panels</a>
+    </div>
   </header>
   <main class="door-shell">
     <div id="door-status" class="door-status" role="status" aria-live="polite">{$statusHtml}</div>
